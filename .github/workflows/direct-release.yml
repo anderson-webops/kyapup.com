@@ -1,0 +1,80 @@
+name: Validate direct production release
+
+on:
+  push:
+    tags:
+      - "v2.*"
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.18.1
+          package-manager-cache: false
+
+      - name: Pin npm
+        run: npm install --global npm@12.0.2 --allow-scripts=npm
+
+      - name: Prepare exact tagged direct runtime
+        env:
+          CI: "true"
+          PUPPETEER_SKIP_DOWNLOAD: "true"
+        run: |
+          printf '/.ai-work/\n' >> "$(git rev-parse --git-path info/exclude)"
+          RELEASE_ROOT="$(dirname "$GITHUB_WORKSPACE")" \
+          NODE_BIN_DIR="$(dirname "$(command -v node)")" \
+          NPM_CONFIG_CACHE="$RUNNER_TEMP/npm-cache" \
+          deploy/systemd/prepare-release.sh "$GITHUB_WORKSPACE"
+
+  artifact:
+    needs: prepare
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.18.1
+          package-manager-cache: false
+      - name: Prepare isolated artifact-test tools
+        run: |
+          npm install --global npm@12.0.2 --allow-scripts=npm
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends bubblewrap apparmor
+          if test -d /sys/kernel/security/apparmor; then
+            printf 'abi <abi/4.0>,\ninclude <tunables/global>\nprofile vitesse-artifact-tests /usr/bin/bwrap flags=(unconfined) {\n  userns,\n}\n' | sudo tee /etc/apparmor.d/vitesse-artifact-tests >/dev/null
+            sudo apparmor_parser -r /etc/apparmor.d/vitesse-artifact-tests
+          fi
+          printf '/.ai-work/\n' >> "$(git rev-parse --git-path info/exclude)"
+      - name: Validate native source and the exact production artifact
+        env:
+          CI: "true"
+          SKIP_INSTALL_SIMPLE_GIT_HOOKS: "1"
+          NUXT_TELEMETRY_DISABLED: "1"
+          PUPPETEER_SKIP_DOWNLOAD: "true"
+        run: |
+          npm ci --include=optional --strict-allow-scripts
+          npm run audit:all
+          npm run audit:prod
+          npm run audit:api
+          npm audit signatures
+          npm run validate
+          npm run test:promotion
+          mkdir -p .ai-work/runs/tagged-artifact
+          npm run package:runtime -- "$PWD/.ai-work/runs/tagged-artifact"

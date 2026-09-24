@@ -1,0 +1,36 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      npm-development:
+        dependency-type: development
+      npm-production:
+        dependency-type: production
+    ignore:
+      # Keep ambient types aligned with the production Node 24 runtime.
+      - dependency-name: "@types/node"
+        update-types:
+          - version-update:semver-major
+      # TypeScript major upgrades require a full template compatibility pass.
+      - dependency-name: typescript
+        update-types:
+          - version-update:semver-major
+      # Deploy-target optional packages are verified by the native-binding gate.
+      - dependency-name: "@esbuild/linux-*"
+      - dependency-name: "@img/sharp-*linux*"
+      - dependency-name: "@oxc-parser/binding-linux-*"
+      - dependency-name: "@oxc-resolver/binding-linux-*"
+      - dependency-name: "@rolldown/binding-linux-*"
+      - dependency-name: "@rollup/rollup-linux-*"
+      - dependency-name: "@unrs/resolver-binding-linux-*"
+      - dependency-name: "lightningcss-linux-*"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5

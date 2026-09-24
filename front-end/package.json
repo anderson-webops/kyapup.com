@@ -1,0 +1,51 @@
+{
+  "name": "front-end",
+  "type": "module",
+  "version": "2.1.2",
+  "private": true,
+  "description": "Static Nuxt frontend for the Vitesse full-stack template.",
+  "author": "Jacob Anderson",
+  "license": "MIT",
+  "keywords": [],
+  "scripts": {
+    "build": "nuxt generate",
+    "dev": "nuxt dev --port 3333 --open",
+    "start": "nuxt dev --port 3333 --open --host",
+    "serve": "nuxt dev --port 3333 --open --host",
+    "preview": "nuxt preview",
+    "typecheck": "nuxt typecheck",
+    "lint": "eslint .",
+    "lint-fix": "eslint . --fix",
+    "prepare": "nuxt prepare"
+  },
+  "dependencies": {
+    "@vueuse/core": "^14.0.0",
+    "pinia": "^4.0.2",
+    "vue": "^3.5.22"
+  },
+  "devDependencies": {
+    "@iconify-json/carbon": "^1.2.25",
+    "@iconify-json/twemoji": "^1.2.4",
+    "@nuxt/devtools": "^3.4.0",
+    "@nuxt/eslint": "^1.16.0",
+    "@nuxtjs/color-mode": "^4.0.1",
+    "@pinia/nuxt": "^1.0.1",
+    "@types/node": "^24.13.3",
+    "@unocss/eslint-config": "^66.5.4",
+    "@unocss/nuxt": "^66.5.4",
+    "@vue/compiler-sfc": "^3.5.40",
+    "@vueuse/nuxt": "^14.0.0",
+    "c12": "^3.3.4",
+    "nuxt": "^4.5.1",
+    "nuxt-security": "^2.6.0",
+    "unocss": "^66.5.4",
+    "vue-router": "^5.2.0",
+    "vue-tsc": "^3.3.9"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ]
+}

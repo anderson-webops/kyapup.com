@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "entrypoints": [
+    "back-end/dist/server.js"
+  ],
+  "required": [
+    "package.json",
+    "package-lock.json",
+    "back-end/package.json",
+    "back-end/package-lock.json",
+    "front-end/package.json",
+    ".vitesse-release-prepared.json",
+    "back-end/dist/server.js",
+    "back-end/dist/app.js",
+    "back-end/dist/server-config.js",
+    "back-end/dist/boundedRateStore.js",
+    "front-end/.output/public/index.html",
+    "front-end/.output/public/200.html",
+    "front-end/.output/public/404.html",
+    "front-end/.output/public/release.json"
+  ],
+  "runtime": {
+    "os": "linux",
+    "arch": "arm64",
+    "node": "24.18.1",
+    "npmBuildOnly": "12.0.2"
+  },
+  "modulesOutsideDist": [],
+  "generatedClients": [],
+  "nativeBindings": [],
+  "staticAssets": [
+    "front-end/.output/public"
+  ],
+  "dependencyRoots": [
+    "back-end"
+  ],
+  "writableState": [
+    {
+      "name": "logs",
+      "location": "existing service journal",
+      "rollback": "preserve journal; no application filesystem state or migrations"
+    }
+  ],
+  "privateConfiguration": "Protected host environment stays external. The template has no database, provider credentials, queue or durable local state. Downstreams must declare any additions.",
+  "topology": "Static Nuxt output with independent compiled Express API; preserve installed paths, users, ports, IPv4/IPv6 and edge policy. This optional direct-release artifact does not replace the separate Netlify function adapter."
+}

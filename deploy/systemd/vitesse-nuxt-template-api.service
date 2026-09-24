@@ -1,0 +1,45 @@
+[Unit]
+Description=Vitesse Nuxt template read-only API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=vitesse-template
+Group=vitesse-template
+WorkingDirectory=/srv/vitesse-nuxt-template/current
+Environment=HOST=127.0.0.1
+Environment=NODE_ENV=production
+Environment=PORT=3006
+Environment=TRUST_PROXY_HOPS=1
+ExecStart=/opt/node-24.18.1/bin/node back-end/dist/server.js
+Restart=on-failure
+RestartSec=5s
+TimeoutStartSec=30s
+TimeoutStopSec=20s
+UMask=0077
+
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectClock=true
+ProtectControlGroups=true
+ProtectHome=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectProc=invisible
+ProtectSystem=strict
+ProcSubset=pid
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+LockPersonality=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target
