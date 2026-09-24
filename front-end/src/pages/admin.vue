@@ -347,7 +347,7 @@ useEventListener('beforeunload', (event) => {
             <div class="card-image">
               <button class="card-preview" :aria-label="`Enlarge ${photo.alt || `photo ${index + 1}`}`" @click="lightbox?.open(photo.id)">
                 <img :src="photo.thumbnailUrl" :alt="photo.alt || 'Kya'" :width="photo.width" :height="photo.height" loading="lazy">
-              </button><label class="photo-select"><input v-model="selected" type="checkbox" :disabled="uploading || busy" :value="photo.id" :aria-label="`Select photo ${index + 1}`"></label><button class="favorite-button" :class="{ starred: photo.featured }" :aria-label="photo.featured ? 'Remove from favorites' : 'Show on site and make a favorite'" :aria-pressed="photo.featured" :disabled="busy || uploading" @click="changePhoto(photo, { featured: !photo.featured, ...(!photo.featured ? { visible: true } : {}) }, photo.featured ? 'Removed from favorites.' : 'Added to favorites and shown on the site.')">
+              </button><label class="photo-select"><input v-model="selected" type="checkbox" :disabled="uploading || busy" :value="photo.id" :aria-label="`Select photo ${index + 1}`"></label><button v-if="photo.visible" class="favorite-button" :class="{ starred: photo.featured }" :aria-label="photo.featured ? 'Remove from favorites' : 'Make a favorite'" :aria-pressed="photo.featured" :disabled="busy || uploading" @click="changePhoto(photo, { featured: !photo.featured }, photo.featured ? 'Removed from favorites.' : 'Added to favorites.')">
                 <span :class="photo.featured ? 'i-carbon-star-filled' : 'i-carbon-star'" aria-hidden="true" />
               </button>
             </div>

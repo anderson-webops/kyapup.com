@@ -53,7 +53,7 @@ the source checkout, development dependencies or real providers. Tests exercise
 the compiled entrypoint, minimal GET/HEAD probes, failing/recovering readiness,
 probe method restrictions, anonymous archive denial, an authenticated synthetic
 photo upload, image conversion, publication, featured settings, archiving,
-persistence across restart, repeated signals during a held HTTP connection and
+scoped machine import, duplicate preservation, import identities across restart, repeated signals during a held HTTP connection and
 clean exit. The complete copied tree is checked again against the trusted archive;
 a deliberately missing compiled rate-store module must fail both verification
 and actual startup. No production service is started or stopped.

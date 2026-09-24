@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict'
 import { Buffer } from 'node:buffer'
 import { spawn } from 'node:child_process'
-import { scryptSync } from 'node:crypto'
+import { createHash, scryptSync } from 'node:crypto'
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import net from 'node:net'
@@ -91,8 +91,12 @@ const password = 'Synthetic-gallery-password-only'
 const salt = Buffer.alloc(16, 7)
 const passwordHash = `scrypt$32768$8$1$${salt.toString('hex')}$${scryptSync(password, salt, 64, { N: 32768, r: 8, p: 1, maxmem: 64 * 1024 * 1024 }).toString('hex')}`
 const allowedOrigin = 'https://kyapup.fixture'
+const importToken = Buffer.alloc(32, 11).toString('base64url')
+const importTokenHash = createHash('sha256').update(importToken).digest('hex')
+const importQuery = '?source=apple-photos&externalId=synthetic-runtime-photo-001'
+const importHeaders = { authorization: `Bearer ${importToken}` }
 let diagnosticOutput = ''
-function startRuntime() {
+function startRuntime(importEnabled = true) {
   diagnosticOutput = ''
   const child = spawn(process.execPath, ['back-end/dist/server.js'], {
     cwd: repositoryRoot,
@@ -107,6 +111,7 @@ function startRuntime() {
       PHOTO_DATA_DIR: dataDirectory,
       ADMIN_PASSWORD_HASH: passwordHash,
       ALLOWED_ORIGINS: allowedOrigin,
+      ...(importEnabled ? { PHOTO_IMPORT_TOKEN_SHA256: importTokenHash } : {}),
     },
     stdio: ['ignore', 'pipe', 'pipe'],
   })
@@ -227,6 +232,60 @@ try {
   assert.equal(gallery.photos[0].id, photo.id)
   assert.equal(gallery.settings.mode, 'cycle')
   assert.equal(gallery.settings.intervalSeconds, 7)
+
+  const importStatusUrl = `${baseUrl}/api/import/status${importQuery}`
+  const importPhotoUrl = `${baseUrl}/api/import/photos${importQuery}`
+  const anonymousImport = await fetch(importStatusUrl)
+  assert.equal(anonymousImport.status, 401)
+  await anonymousImport.arrayBuffer()
+  const wrongImportCredential = await fetch(importStatusUrl, { headers: { authorization: `Bearer ${Buffer.alloc(32, 12).toString('base64url')}` } })
+  assert.equal(wrongImportCredential.status, 401)
+  await wrongImportCredential.arrayBuffer()
+  const absentImport = await fetch(importStatusUrl, { headers: importHeaders })
+  assert.equal(absentImport.status, 200)
+  assert.deepEqual(await absentImport.json(), { exists: false })
+  const imported = await fetch(importPhotoUrl, {
+    method: 'POST',
+    headers: { ...importHeaders, 'content-type': 'application/octet-stream' },
+    body: fixture,
+    signal: AbortSignal.timeout(10000),
+  })
+  assert.equal(imported.status, 201)
+  const importedResult = await imported.json()
+  assert.equal(importedResult.created, true)
+  assert.equal(importedResult.photo.visible, false, 'Machine imports must start in the archive')
+  assert.equal(importedResult.photo.featured, false)
+  const importedId = importedResult.photo.id
+  const importLibrary = await fetch(`${baseUrl}/api/admin/library`, { headers: importHeaders })
+  assert.equal(importLibrary.status, 401, 'An import token must not grant administrator access')
+  await importLibrary.arrayBuffer()
+  const importMedia = await fetch(`${baseUrl}/api/media/${importedId}/full.webp`, { headers: importHeaders })
+  assert.equal(importMedia.status, 404, 'An import token must not grant access to archived media')
+  await importMedia.arrayBuffer()
+  const importSettings = await fetch(`${baseUrl}/api/admin/settings`, {
+    method: 'PATCH',
+    headers: { ...importHeaders, 'content-type': 'application/json', 'origin': allowedOrigin },
+    body: JSON.stringify({ mode: 'static' }),
+  })
+  assert.equal(importSettings.status, 401, 'An import token must not change site settings')
+  await importSettings.arrayBuffer()
+  await change(`/api/admin/photos/${importedId}`, { visible: true, featured: true, alt: 'Owner-edited imported photo' })
+  const alternateFixture = await sharp({ create: { width: 32, height: 24, channels: 3, background: '#456abc' } }).png().toBuffer()
+  const duplicateImport = await fetch(importPhotoUrl, {
+    method: 'POST',
+    headers: { ...importHeaders, 'content-type': 'application/octet-stream' },
+    body: alternateFixture,
+    signal: AbortSignal.timeout(10000),
+  })
+  assert.equal(duplicateImport.status, 200)
+  const duplicate = await duplicateImport.json()
+  assert.equal(duplicate.created, false)
+  assert.equal(duplicate.photo.id, importedId)
+  assert.equal(duplicate.photo.alt, 'Owner-edited imported photo')
+  assert.equal(duplicate.photo.visible, true)
+  assert.equal(duplicate.photo.featured, true)
+  assert.deepEqual(await readFile(path.join(dataDirectory, 'photos', importedId, 'original')), fixture, 'Duplicate imports must preserve the original bytes')
+  await change(`/api/admin/photos/${importedId}`, { visible: false })
   child.kill('SIGTERM')
   assert.ok(await waitForExit(child, 5000), 'The first runtime must shut down before restart')
   assert.equal(child.exitCode, 0, diagnosticOutput)
@@ -241,6 +300,23 @@ try {
   await media.arrayBuffer()
   const expiredSession = await (await fetch(`${baseUrl}/api/admin/session`, { headers: { cookie } })).json()
   assert.equal(expiredSession.authenticated, false, 'A restart must invalidate process-local sessions')
+  const restoredImport = await fetch(importStatusUrl, { headers: importHeaders })
+  assert.equal(restoredImport.status, 200)
+  const restoredImportStatus = await restoredImport.json()
+  assert.equal(restoredImportStatus.exists, true, 'Import identities must survive restart')
+  assert.equal(restoredImportStatus.photo.id, importedId)
+  const restartedDuplicate = await fetch(importPhotoUrl, {
+    method: 'POST',
+    headers: { ...importHeaders, 'content-type': 'application/octet-stream' },
+    body: alternateFixture,
+    signal: AbortSignal.timeout(10000),
+  })
+  assert.equal(restartedDuplicate.status, 200)
+  const restartedImport = await restartedDuplicate.json()
+  assert.equal(restartedImport.created, false)
+  assert.equal(restartedImport.photo.id, importedId)
+  assert.equal(restartedImport.photo.visible, false, 'Repeating an import must not undo manual archiving')
+  assert.equal(restartedImport.photo.alt, 'Owner-edited imported photo')
   await signIn()
   await change(`/api/admin/photos/${photo.id}`, { visible: false })
   gallery = await (await fetch(`${baseUrl}/api/gallery`)).json()
@@ -272,7 +348,13 @@ try {
     pending.destroy()
   }
 
-  console.log(JSON.stringify({ directRuntime: 'passed', loopback: true, probeMutations: 'denied', gallery: 'upload, publication, archive and persistence passed', probes: 'GET/HEAD passed', repeatedSignals: 'drained' }))
+  child = startRuntime(false)
+  await waitForHealth(baseUrl, child, () => diagnosticOutput.trim())
+  const disabledImport = await fetch(importStatusUrl, { headers: importHeaders })
+  assert.equal(disabledImport.status, 503)
+  assert.deepEqual(await disabledImport.json(), { error: 'import_not_configured' })
+
+  console.log(JSON.stringify({ directRuntime: 'passed', loopback: true, probeMutations: 'denied', gallery: 'upload, publication, archive and persistence passed', machineImports: 'scoped, archived, idempotent and persistent', probes: 'GET/HEAD passed', repeatedSignals: 'drained' }))
 }
 finally {
   await stopProcessTree(child)

@@ -90,4 +90,6 @@ jobs:
             .ai-work/runs/tagged-artifact/acceptance.json
             .ai-work/runs/tagged-artifact/dependency-tree.txt
           if-no-files-found: error
+          # Only the explicit accepted outputs above, under locally ignored scratch.
+          include-hidden-files: true
           retention-days: 90

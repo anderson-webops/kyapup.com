@@ -1,16 +1,20 @@
 import { isAbsolute, resolve } from 'node:path'
-import { validPasswordHash } from './auth.js'
+import { validImportTokenHash, validPasswordHash } from './auth.js'
 
 export interface GalleryEnvironment {
   NODE_ENV?: string
   PHOTO_DATA_DIR?: string
   ADMIN_PASSWORD_HASH?: string
+  PHOTO_IMPORT_TOKEN_SHA256?: string
   ALLOWED_ORIGINS?: string
 }
 
 export function readGalleryConfig(environment: GalleryEnvironment = process.env) {
   const production = environment.NODE_ENV === 'production'
   const passwordHash = environment.ADMIN_PASSWORD_HASH || ''
+  const importTokenHash = environment.PHOTO_IMPORT_TOKEN_SHA256 || ''
+  if (importTokenHash && !validImportTokenHash(importTokenHash))
+    throw new Error('PHOTO_IMPORT_TOKEN_SHA256 must contain a 64-character SHA-256 hex digest')
   if ((production || passwordHash) && !validPasswordHash(passwordHash))
     throw new Error('ADMIN_PASSWORD_HASH must contain a supported scrypt password hash')
   if (production && (!environment.PHOTO_DATA_DIR || !isAbsolute(environment.PHOTO_DATA_DIR)))
@@ -29,6 +33,7 @@ export function readGalleryConfig(environment: GalleryEnvironment = process.env)
   return {
     dataDirectory: resolve(environment.PHOTO_DATA_DIR || './data'),
     passwordHash,
+    importTokenHash: importTokenHash.toLowerCase(),
     allowedOrigins,
     secureCookies: production,
   }

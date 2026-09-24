@@ -1,4 +1,4 @@
-import { randomBytes, scrypt, timingSafeEqual } from 'node:crypto'
+import { createHash, randomBytes, scrypt, timingSafeEqual } from 'node:crypto'
 
 const cost = { N: 32768, r: 8, p: 1, maxmem: 64 * 1024 * 1024 }
 const pattern = /^scrypt\$32768\$8\$1\$([a-f0-9]{32})\$([a-f0-9]{128})$/
@@ -25,6 +25,17 @@ export async function verifyPassword(password: string, hash: string) {
   if (!match) return false
   const key = await derive(password, Buffer.from(match[1], 'hex'))
   return timingSafeEqual(key, Buffer.from(match[2], 'hex'))
+}
+
+export function validImportTokenHash(hash: string) {
+  return /^[a-f0-9]{64}$/i.test(hash)
+}
+
+export function verifyImportToken(authorization: string | undefined, hash: string) {
+  const match = /^Bearer ([A-Za-z0-9_-]{43,128})$/i.exec(authorization ?? '')
+  if (!match || !validImportTokenHash(hash)) return false
+  const actual = createHash('sha256').update(match[1], 'utf8').digest()
+  return timingSafeEqual(actual, Buffer.from(hash, 'hex'))
 }
 
 export interface Session {

@@ -70,5 +70,5 @@ else {
     assert.equal(result.signal, null)
     assert.equal(result.status, 0)
   }
-  console.log(JSON.stringify({ sterileArtifact: 'passed', commit: manifest.commit, readinessRecovery: true, photoProcessing: true, archiveAuthentication: true, persistence: true, restart: true }))
+  console.log(JSON.stringify({ sterileArtifact: 'passed', commit: manifest.commit, readinessRecovery: true, photoProcessing: true, archiveAuthentication: true, scopedMachineImports: true, persistentImportIdentity: true, persistence: true, restart: true }))
 }

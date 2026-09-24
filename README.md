@@ -40,6 +40,10 @@ Validation includes locked native image dependencies, lint, types, backend tests
 - Upload still JPG, PNG, WebP, or AVIF photos up to 25 MiB and 60 megapixels, with neither edge over 20,000 pixels. HEIC photos must be exported to a supported format first. The admin interface reports unsupported images and failed uploads without publishing them.
 - Nothing uploaded through the admin portal is committed to this public repository.
 
+## Future imports from Apple Photos
+
+A dedicated bearer-authenticated API can import an explicit selection from Kya’s People & Pets grouping after deployment. Stable library/asset IDs prevent duplicates, imports start in Saved for later, and repeat runs preserve manual choices. The server only stores a hash of the optional import credential. See [the import guide](docs/import-api.md) for the API, tested manifest client, and the local pet-index checks still needed before accessing Photos. No actual Photos library has been accessed or imported during development.
+
 ## Production
 
 Use the direct Nginx/systemd deployment in [deploy/README.md](deploy/README.md). It serves a static Nuxt frontend and one Express API with Node's built-in SQLite database and Sharp image processing. The service stores its library under `/var/lib/kyapup`, reads protected configuration from `/etc/kyapup/api.env`, and listens only on loopback.

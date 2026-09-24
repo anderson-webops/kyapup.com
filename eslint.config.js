@@ -15,6 +15,12 @@ export default antfu(
     },
   },
   {
+    files: ['scripts/*.test.mjs'],
+    rules: {
+      'test/no-import-node-test': 'off',
+    },
+  },
+  {
     files: ['README.md'],
     rules: {
       'markdown/heading-increment': 'off',

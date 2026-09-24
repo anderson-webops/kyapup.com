@@ -57,6 +57,6 @@
       "rollback": "Preserve the journal; do not copy logs into a release archive."
     }
   ],
-  "privateConfiguration": "Root-owned mode0600 /etc/kyapup/api.env supplies ADMIN_PASSWORD_HASH and ALLOWED_ORIGINS; the service reads it through EnvironmentFile. No secrets, sessions, SQLite data or uploaded photos belong in source, static output or runtime archives.",
+  "privateConfiguration": "Root-owned mode0600 /etc/kyapup/api.env supplies ADMIN_PASSWORD_HASH, ALLOWED_ORIGINS and optional PHOTO_IMPORT_TOKEN_SHA256; the service reads it through EnvironmentFile. No secrets, sessions, SQLite data or uploaded photos belong in source, static output or runtime archives. The plaintext import credential belongs only on its client; unset the hash to disable machine imports.",
   "topology": "Static Nuxt output with one independent Express API, Node built-in SQLite and sharp/libvips. Direct Nginx/systemd deployment uses a loopback listener and persistent StateDirectory. kyapup.com and kyagirl.com serve the same application; preserve reviewed installed paths, ports, IPv4/IPv6 and TLS policy. Ephemeral function storage is not a supported photo-library deployment."
 }

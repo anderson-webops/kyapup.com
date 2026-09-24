@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
 import { accessSync, constants, mkdirSync, statSync } from 'node:fs'
 import { mkdir, rm, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
@@ -22,6 +22,23 @@ export interface Settings {
   mode: 'static' | 'cycle'
   intervalSeconds: number
   heroPhotoId: string | null
+}
+
+export interface ImportIdentity {
+  source: 'apple-photos'
+  externalId: string
+}
+
+export interface ImportResult {
+  created: boolean
+  photo: Photo
+}
+
+export function readImportIdentity(input: Record<string, unknown>): ImportIdentity {
+  if (input.source !== 'apple-photos' || typeof input.externalId !== 'string'
+    || !/^[A-Za-z0-9][A-Za-z0-9._/-]{0,199}$/.test(input.externalId))
+    throw new GalleryError(400, 'invalid_import_identity')
+  return { source: 'apple-photos', externalId: input.externalId }
 }
 
 export class GalleryError extends Error {
@@ -61,6 +78,11 @@ export class PhotoStore {
     this.photosDirectory = resolve(directory, 'photos')
     mkdirSync(this.photosDirectory, { recursive: true, mode: 0o700 })
     this.database = new DatabaseSync(resolve(directory, 'library.sqlite'))
+    const version = this.database.prepare('PRAGMA user_version').get() as { user_version: number }
+    if (version.user_version > 2) {
+      this.database.close()
+      throw new Error('The photo library schema is newer than this application supports')
+    }
     this.database.exec(`
       PRAGMA journal_mode = WAL;
       PRAGMA foreign_keys = ON;
@@ -83,7 +105,14 @@ export class PhotoStore {
         heroPhotoId TEXT REFERENCES photos(id)
       );
       INSERT OR IGNORE INTO settings VALUES (1, 'static', 8, NULL);
-      PRAGMA user_version = 1;
+      CREATE TABLE IF NOT EXISTS photo_imports (
+        source TEXT NOT NULL CHECK (source = 'apple-photos'),
+        externalId TEXT NOT NULL,
+        photoId TEXT NOT NULL UNIQUE REFERENCES photos(id),
+        contentSha256 TEXT NOT NULL CHECK (length(contentSha256) = 64),
+        PRIMARY KEY (source, externalId)
+      );
+      PRAGMA user_version = 2;
     `)
   }
 
@@ -121,8 +150,29 @@ export class PhotoStore {
   }
 
   async upload(bytes: Buffer): Promise<Photo> {
+    return (await this.saveUpload(bytes)).photo
+  }
+
+  findImport(identity: ImportIdentity): Photo | null {
+    const row = this.database.prepare(`SELECT photos.* FROM photos
+      JOIN photo_imports ON photo_imports.photoId = photos.id
+      WHERE photo_imports.source = ? AND photo_imports.externalId = ?`)
+      .get(identity.source, identity.externalId) as PhotoRow | undefined
+    return row ? photoFromRow(row) : null
+  }
+
+  async importPhoto(identity: ImportIdentity, bytes: Buffer): Promise<ImportResult> {
+    return this.saveUpload(bytes, identity)
+  }
+
+  private async saveUpload(bytes: Buffer, identity?: ImportIdentity): Promise<ImportResult> {
     if (!bytes.length || bytes.length > maxUploadBytes)
       throw new GalleryError(bytes.length ? 413 : 400, bytes.length ? 'photo_too_large' : 'empty_photo')
+    if (identity) {
+      const existing = this.findImport(identity)
+      // A stable asset ID is authoritative. Edited bytes never replace a curated photo.
+      if (existing) return { created: false, photo: existing }
+    }
 
     // Recognize common HEIC brands even on hosts without an HEVC decoder.
     if (bytes.length >= 12 && bytes.toString('ascii', 4, 8) === 'ftyp'
@@ -165,15 +215,36 @@ export class PhotoStore {
       await writeFile(resolve(photoDirectory, 'original'), bytes, { mode: 0o600, flag: 'wx' })
       await writeFile(resolve(photoDirectory, 'full.webp'), full, { mode: 0o600, flag: 'wx' })
       await writeFile(resolve(photoDirectory, 'thumb.webp'), thumbnail, { mode: 0o600, flag: 'wx' })
-      this.database.prepare(`INSERT INTO photos (id, alt, width, height, position, createdAt)
-        VALUES (?, ?, ?, ?, (SELECT COALESCE(MAX(position), -1) + 1 FROM photos), ?)`) 
-        .run(id, 'Kya', width, height, new Date().toISOString())
+      let result: ImportResult
+      this.database.exec('BEGIN IMMEDIATE')
+      try {
+        // Decode/write happens asynchronously. Recheck while holding the write lock so
+        // concurrent retries create exactly one photo and one source mapping.
+        const existing = identity ? this.findImport(identity) : null
+        if (existing) result = { created: false, photo: existing }
+        else {
+          this.database.prepare(`INSERT INTO photos (id, alt, width, height, position, createdAt)
+            VALUES (?, ?, ?, ?, (SELECT COALESCE(MAX(position), -1) + 1 FROM photos), ?)`)
+            .run(id, 'Kya', width, height, new Date().toISOString())
+          if (identity) {
+            this.database.prepare('INSERT INTO photo_imports (source, externalId, photoId, contentSha256) VALUES (?, ?, ?, ?)')
+              .run(identity.source, identity.externalId, id, createHash('sha256').update(bytes).digest('hex'))
+          }
+          result = { created: true, photo: this.getPhoto(id)! }
+        }
+        this.database.exec('COMMIT')
+      }
+      catch (error) {
+        this.database.exec('ROLLBACK')
+        throw error
+      }
+      if (!result.created) await rm(photoDirectory, { recursive: true, force: true })
+      return result
     }
     catch (error) {
       await rm(photoDirectory, { recursive: true, force: true })
       throw error
     }
-    return this.getPhoto(id)!
   }
 
   updatePhoto(id: string, input: unknown): Photo {

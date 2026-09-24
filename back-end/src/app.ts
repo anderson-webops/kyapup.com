@@ -3,9 +3,9 @@ import { basename, dirname } from 'node:path'
 import express from 'express'
 import { rateLimit } from 'express-rate-limit'
 import helmet from 'helmet'
-import { Sessions, verifyPassword } from './auth.js'
+import { Sessions, verifyImportToken, verifyPassword } from './auth.js'
 import { BoundedRateStore } from './boundedRateStore.js'
-import { GalleryError, maxUploadBytes, PhotoStore } from './photo-store.js'
+import { GalleryError, maxUploadBytes, PhotoStore, readImportIdentity } from './photo-store.js'
 
 const allowedMethods = ['GET', 'HEAD', 'OPTIONS'] as const
 const allowHeader = allowedMethods.join(', ')
@@ -18,6 +18,7 @@ export interface AppOptions {
   isStopping?: () => boolean
   store?: PhotoStore
   passwordHash?: string
+  importTokenHash?: string
   allowedOrigins?: string[]
   secureCookies?: boolean
 }
@@ -90,7 +91,9 @@ export function createApp(options: AppOptions = {}) {
   })
   app.use('/api', (request, response, next) => {
     if (request.method === 'OPTIONS') {
-      response.set('Allow', request.path.startsWith('/admin/') ? 'GET, HEAD, POST, PATCH, OPTIONS' : allowHeader).status(204).end()
+      const methods = request.path.startsWith('/admin/') ? 'GET, HEAD, POST, PATCH, OPTIONS'
+        : request.path === '/import/photos' ? 'POST, OPTIONS' : allowHeader
+      response.set('Allow', methods).status(204).end()
       return
     }
     next()
@@ -118,6 +121,14 @@ export function createApp(options: AppOptions = {}) {
   const requireCsrf = (request: Request, _response: Response, next: NextFunction) => {
     const session = sessions.get(sessionId(request))
     if (!session || request.get('X-CSRF-Token') !== session.csrfToken) throw new GalleryError(403, 'invalid_csrf_token')
+    next()
+  }
+  const requireImportToken = (request: Request, response: Response, next: NextFunction) => {
+    if (!options.importTokenHash) throw new GalleryError(503, 'import_not_configured')
+    if (!verifyImportToken(request.get('Authorization'), options.importTokenHash)) {
+      response.set('WWW-Authenticate', 'Bearer')
+      throw new GalleryError(401, 'import_authentication_required')
+    }
     next()
   }
   const store = () => {
@@ -158,10 +169,16 @@ export function createApp(options: AppOptions = {}) {
     const library = store()
     response.json({ photos: library.list(), settings: library.settings() })
   })
+  app.get('/api/import/status', requireImportToken, (request, response) => {
+    const photo = store().findImport(readImportIdentity(request.query))
+    response.json(photo ? { exists: true, photo } : { exists: false })
+  })
 
   let uploadsInFlight = 0
   const uploadBody = express.raw({ type: 'application/octet-stream', limit: maxUploadBytes, inflate: false })
-  app.post('/api/admin/photos', requireSession, requireOrigin, requireCsrf, (request, response, next) => {
+  const receivePhoto = (
+    save: (request: Request, bytes: Buffer) => Promise<{ status: number, body: unknown }>,
+  ): express.RequestHandler => (request, response, next) => {
     if (!request.is('application/octet-stream')) throw new GalleryError(415, 'upload_requires_octet_stream')
     if (uploadsInFlight >= 2) throw new GalleryError(503, 'upload_busy')
     uploadsInFlight++
@@ -180,14 +197,23 @@ export function createApp(options: AppOptions = {}) {
       void (async () => {
         try {
           if (!Buffer.isBuffer(request.body)) throw new GalleryError(400, 'empty_photo')
-          const photo = await store().upload(request.body)
-          response.status(201).json(photo)
+          const result = await save(request, request.body)
+          response.status(result.status).json(result.body)
         }
         catch (error) { next(error) }
         finally { release() }
       })()
     })
-  })
+  }
+  app.post('/api/admin/photos', requireSession, requireOrigin, requireCsrf,
+    receivePhoto(async (_request, bytes) => ({ status: 201, body: await store().upload(bytes) })))
+  app.post('/api/import/photos', requireImportToken, (request, _response, next) => {
+    readImportIdentity(request.query)
+    next()
+  }, receivePhoto(async (request, bytes) => {
+    const result = await store().importPhoto(readImportIdentity(request.query), bytes)
+    return { status: result.created ? 201 : 200, body: result }
+  }))
   app.patch('/api/admin/photos/:id', requireSession, requireOrigin, requireCsrf, json, (request, response) => {
     response.json(store().updatePhoto(String(request.params.id), request.body))
   })
