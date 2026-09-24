@@ -102,7 +102,7 @@ onBeforeUnmount(() => {
             </button>
           </div>
         </div>
-        <div v-if="gridPhotos.length" class="photo-grid" @mouseenter="interacting = true" @mouseleave="interacting = false" @focusin="interacting = true" @focusout="interacting = false">
+        <div v-if="gridPhotos.length" class="photo-grid" :class="{ 'only-favorites': gridPhotos.every(photo => photo.featured) }" @mouseenter="interacting = true" @mouseleave="interacting = false" @focusin="interacting = true" @focusout="interacting = false">
           <button v-for="photo in gridPhotos" :key="photo.id" class="photo-tile grid-tile" :class="{ 'is-featured': photo.featured }" :aria-label="`Enlarge ${photo.alt || 'photo of Kya'}`" @click="open(photo)">
             <img :src="photo.featured ? photo.url : photo.thumbnailUrl" :alt="photo.alt || 'Kya'" :width="photo.width" :height="photo.height" loading="lazy"><span class="enlarge-indicator"><span class="i-carbon-maximize" aria-hidden="true" /></span>
           </button>
@@ -197,6 +197,9 @@ onBeforeUnmount(() => {
   grid-auto-rows: clamp(230px, 29vw, 520px);
   gap: 12px;
   margin-top: 12px;
+}
+.photo-grid.only-favorites {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .grid-tile.is-featured {
   grid-column: span 2;
