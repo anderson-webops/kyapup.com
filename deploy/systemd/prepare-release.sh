@@ -14,14 +14,14 @@ export NUXT_TELEMETRY_DISABLED=1
 export PUPPETEER_SKIP_DOWNLOAD=true
 export SKIP_INSTALL_SIMPLE_GIT_HOOKS=1
 
-release_root="${BUILD_ROOT:-${RELEASE_ROOT:-/srv/vitesse-nuxt-template/builds}}"
+release_root="${BUILD_ROOT:-${RELEASE_ROOT:-/srv/kyapup/builds}}"
 
 if [[ $# -ne 1 ]]; then
-	echo "Usage: prepare-release.sh /srv/vitesse-nuxt-template/builds/<release>" >&2
+	echo "Usage: prepare-release.sh /srv/kyapup/builds/<release>" >&2
 	exit 2
 fi
 if [[ ${EUID:-$(id -u)} -eq 0 ]]; then
-	echo "Prepare releases as the unprivileged vitesse-template deployment user, not root." >&2
+	echo "Prepare releases as the unprivileged kyapup deployment user, not root." >&2
 	exit 1
 fi
 
@@ -59,8 +59,8 @@ if [[ "$(node --version)" != "v24.18.1" || "$(npm --version)" != "12.0.2" ]]; th
 fi
 
 case "$(git -C "$candidate" remote get-url origin)" in
-  git@github.com:anderson-webops/vitesse-nuxt-template.git|https://github.com/anderson-webops/vitesse-nuxt-template.git|https://github.com/anderson-webops/vitesse-nuxt-template) ;;
-  *) echo 'origin must be the canonical Vitesse repository.' >&2; exit 1;;
+  git@github.com:anderson-webops/kyapup.com.git|https://github.com/anderson-webops/kyapup.com.git|https://github.com/anderson-webops/kyapup.com) ;;
+  *) echo 'origin must be the canonical Kya repository.' >&2; exit 1;;
 esac
 git -C "$candidate" fetch --quiet origin main --tags
 git -C "$candidate" config --local --unset-all http.https://github.com/.extraheader 2>/dev/null || true
@@ -108,4 +108,4 @@ node scripts/prune-direct-runtime.mjs
 node scripts/verify-production-install.mjs
 node scripts/direct-runtime-smoke.mjs
 
-echo "Prepared Docker-free Vitesse Nuxt template runtime $candidate at $VITESSE_COMMIT_SHA."
+echo "Prepared Kya photo gallery runtime $candidate at $VITESSE_COMMIT_SHA."

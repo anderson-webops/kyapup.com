@@ -6,7 +6,7 @@ const projectRoot = resolve(import.meta.dirname, '..')
 const lockfile = JSON.parse(await readFile(resolve(projectRoot, 'package-lock.json'), 'utf8'))
 const npmConfig = await readFile(resolve(projectRoot, '.npmrc'), 'utf8')
 const packages = lockfile.packages || {}
-const nativeNamePattern = /linux-arm64-(?:gnu|musl)$/
+const nativeNamePattern = /(?:linux-arm64-(?:gnu|musl)|@img\/sharp-(?:libvips-)?linux(?:musl)?-arm64)$/
 
 function assert(condition, message) {
   if (!condition)
@@ -42,7 +42,7 @@ for (const [parentKey, parent] of Object.entries(packages)) {
     assert(binding, `Missing Linux ARM64 lock entry for ${packageName}@${version} required by ${parentKey}`)
 
     const [bindingKey, metadata] = binding
-    const expectedLibc = packageName.endsWith('-musl') ? 'musl' : 'glibc'
+    const expectedLibc = /-musl$|linuxmusl-/.test(packageName) ? 'musl' : 'glibc'
     assert(metadata.os?.includes('linux'), `${bindingKey} must target Linux`)
     assert(metadata.cpu?.includes('arm64'), `${bindingKey} must target arm64`)
     assert(metadata.libc?.includes(expectedLibc), `${bindingKey} must target ${expectedLibc}`)
@@ -56,12 +56,26 @@ for (const [parentKey, parent] of Object.entries(packages)) {
       resolvedFamilies.add('oxc-parser')
     if (packageName.startsWith('@rolldown/'))
       resolvedFamilies.add('rolldown')
+    if (packageName.startsWith('@img/sharp-libvips-'))
+      resolvedFamilies.add('sharp-libvips')
+    else if (packageName.startsWith('@img/sharp-'))
+      resolvedFamilies.add('sharp')
     verifiedBindings += 1
   }
 }
 
-for (const family of ['oxc-parser', 'rolldown'])
+for (const family of ['oxc-parser', 'rolldown', 'sharp', 'sharp-libvips'])
   assert(resolvedFamilies.has(family), `package-lock.json must include Linux ARM64 bindings for ${family}`)
 
 assert(verifiedBindings > 0, 'package-lock.json does not contain Linux ARM64 native optional packages')
 console.log(`Native binding lockfile check passed for ${verifiedBindings} Linux ARM64 packages.`)
+
+const backendLock = JSON.parse(await readFile(resolve(projectRoot, 'back-end/package-lock.json'), 'utf8'))
+for (const packageName of ['@img/sharp-linux-arm64', '@img/sharp-libvips-linux-arm64', '@img/sharp-linuxmusl-arm64', '@img/sharp-libvips-linuxmusl-arm64']) {
+  const workspaceBinding = Object.entries(packages).find(([key]) => key.endsWith(`node_modules/${packageName}`))
+  const productionBinding = Object.entries(backendLock.packages || {}).find(([key]) => key.endsWith(`node_modules/${packageName}`))
+  assert(workspaceBinding && productionBinding, `Both locks must include ${packageName}`)
+  assert(productionBinding[1].version === workspaceBinding[1].version, `Native image dependency drift between locks: ${packageName}`)
+  assert(productionBinding[1].integrity === workspaceBinding[1].integrity, `Native image integrity drift between locks: ${packageName}`)
+}
+console.log('Image-processing ARM64 bindings agree in the workspace and direct production locks.')

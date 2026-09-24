@@ -30,10 +30,10 @@ npm audit --prefix "$stage/back-end" --omit=dev --audit-level=low
 npm audit --prefix "$stage/back-end" --audit-level=low
 npm audit signatures --prefix "$stage/back-end"
 npm ls --prefix "$stage/back-end" --omit=dev --all > "$output/dependency-tree.txt"
-# This reviewed JS-only runtime has no executable dependency bins. The verifier
+# This reviewed runtime has no required executable dependency bins. The verifier
 # rejects any other symlinks; it never follows links into a source checkout.
 rm -rf -- "$stage/back-end/node_modules/.bin"
-archive="$output/vitesse-nuxt-template-$VITESSE_RELEASE-${commit:0:12}-linux-arm64.tar.gz"
+archive="$output/kyapup-$VITESSE_RELEASE-${commit:0:12}-linux-arm64.tar.gz"
 python3 -B scripts/runtime-artifact.py pack "$stage" --archive "$archive" --commit "$commit" > "$output/pack.json"
 sha=$(sha256sum "$archive" | cut -d ' ' -f 1)
 printf '%s  %s\n' "$sha" "$(basename "$archive")" > "$output/SHA256SUMS"
@@ -60,7 +60,7 @@ output = Path(sys.argv[1])
 receipt = json.loads((output / "pack.json").read_text())
 receipt["acceptedAt"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
 receipt["bytes"] = (output / receipt["archive"]).stat().st_size
-receipt["checks"] = ["production-only locked install", "full and production backend audits", "registry signatures", "manifest and required paths", "isolated unpacked runtime", "readiness failure and recovery", "GET and HEAD minimal probes", "repeated-signal drain", "restart", "post-copier verification", "missing-module rejection"]
+receipt["checks"] = ["production-only locked install", "full and production backend audits", "registry signatures", "manifest and required paths", "isolated unpacked runtime", "readiness failure and recovery", "GET and HEAD minimal probes", "repeated-signal drain", "restart", "authenticated photo upload and image conversion", "publication and archived media authorization", "photo and settings persistence", "post-copier verification", "missing-module rejection"]
 receipt["harnessSha256"] = {
     name: hashlib.sha256(Path(name).read_bytes()).hexdigest()
     for name in ["deploy/runtime-artifact.json", "scripts/runtime-artifact.py", "scripts/package-runtime.sh", "scripts/test-unpacked-artifact.sh", "scripts/direct-runtime-smoke.mjs", "scripts/artifact-acceptance/runtime.mjs", "scripts/write-release-metadata.mjs", "deploy/systemd/install-service.sh", "deploy/systemd/promote-release.sh", "deploy/systemd/trusted-paths.py", "scripts/test-promotion-recovery.py", "scripts/test-promotion-recovery.sh", "scripts/test-bootstrap-in-vm.py"]

@@ -52,7 +52,7 @@ describe('API security contract', () => {
     expect(response.headers['access-control-allow-credentials']).toBeUndefined()
   })
 
-  it('allows only read-only API methods', async () => {
+  it('keeps probe routes read-only', async () => {
     const response = await request(createApp()).post('/api/health').send({ value: true }).expect(405)
 
     expect(response.body).toEqual({ error: 'method_not_allowed' })

@@ -4,18 +4,26 @@ import 'dotenv/config'
 
 import { createApp } from './app.js'
 import { readServerConfig } from './server-config.js'
+import { readGalleryConfig } from './gallery-config.js'
+import { PhotoStore } from './photo-store.js'
 
 async function main() {
   const { host, port, trustProxyHops } = readServerConfig()
+  const galleryConfig = readGalleryConfig()
+  const store = new PhotoStore(galleryConfig.dataDirectory)
   let isShuttingDown = false
-  const server = createServer(createApp({ trustProxyHops, isStopping: () => isShuttingDown }))
+  const server = createServer(createApp({
+    trustProxyHops, store, ...galleryConfig,
+    isReady: () => store.isReady(),
+    isStopping: () => isShuttingDown,
+  }))
 
   server.headersTimeout = 10_000
   server.keepAliveTimeout = 5_000
   server.maxHeadersCount = 100
   server.maxRequestsPerSocket = 1_000
   server.maxConnections = 256
-  server.requestTimeout = 15_000
+  server.requestTimeout = 120_000
 
   await new Promise<void>((resolve, reject) => {
     server.once('error', reject)
@@ -40,6 +48,7 @@ async function main() {
 
     server.close((error) => {
       clearTimeout(forceTimer)
+      store.close()
       if (error) {
         console.error('Graceful shutdown failed:', error)
         process.exitCode = 1

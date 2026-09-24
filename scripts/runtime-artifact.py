@@ -31,7 +31,7 @@ def permitted(name):
     return allowed and all(
         part not in (".", "..", ".git", ".ai-work", ".npmrc", "credentials.json")
         and not part.startswith(".env")
-        and not part.endswith((".pem", ".key", ".sqlite3", ".sqlite3-wal", ".sqlite3-shm"))
+        and not part.endswith((".pem", ".key", ".sqlite", ".sqlite-wal", ".sqlite-shm", ".sqlite3", ".sqlite3-wal", ".sqlite3-shm", ".db", ".db-wal", ".db-shm"))
         for part in parts
     )
 
@@ -134,7 +134,7 @@ def validate(root, manifest):
         if (root / name).exists():
             raise ValueError(f"development tool in runtime: {name}")
     for name in actual:
-        if name.endswith(".node") or name.endswith(".so"):
+        if name.endswith((".node", ".dylib", ".dll")) or re.search(r"\.so(?:\.[0-9]+)*$", name):
             if name not in contract["nativeBindings"]:
                 raise ValueError(f"undeclared native binding: {name}")
     return manifest

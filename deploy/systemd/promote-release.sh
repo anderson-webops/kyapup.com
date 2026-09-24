@@ -6,14 +6,14 @@ export PATH
 unset NODE_OPTIONS NODE_PATH PYTHONPATH PYTHONHOME
 umask 077
 
-release_root="${RELEASE_ROOT:-/srv/vitesse-nuxt-template/releases}"
-current_link="${CURRENT_LINK:-/srv/vitesse-nuxt-template/current}"
-service_name="${SERVICE_NAME:-vitesse-nuxt-template-api.service}"
+release_root="${RELEASE_ROOT:-/srv/kyapup/releases}"
+current_link="${CURRENT_LINK:-/srv/kyapup/current}"
+service_name="${SERVICE_NAME:-kyapup-api.service}"
 health_url="${HEALTH_URL:-http://127.0.0.1:3006/api/health}"
 public_host="${PUBLIC_HOST:-}"
 
 if [[ $# -ne 4 ]]; then
-	echo "Usage: PUBLIC_HOST=vitesse-nuxt-template promote-release.sh <protected-release> <protected-archive> <sha256> <commit>" >&2
+	echo "Usage: PUBLIC_HOST=kyapup promote-release.sh <protected-release> <protected-archive> <sha256> <commit>" >&2
 	exit 2
 fi
 if [[ ${EUID:-$(id -u)} -ne 0 ]]; then
@@ -96,7 +96,7 @@ if [[ "$(stat -c '%a' "$recovery_root")" != 700 ]]; then
   echo 'Recovery directory must have mode0700.' >&2; exit 1
 fi
 exec 9>"$recovery_root/promotion.lock"
-if ! flock -n 9; then echo 'Another Vitesse promotion is active.' >&2; exit 1; fi
+if ! flock -n 9; then echo 'Another Kya promotion is active.' >&2; exit 1; fi
 if ! nginx -t; then
 	echo "Nginx configuration must pass before promotion." >&2
 	exit 1
@@ -280,7 +280,7 @@ if systemctl restart "$service_name" \
   && systemctl reload nginx \
   && wait_for_target "$candidate"; then
   finished=true
-  echo "Promoted $candidate and verified exact identity and read-only policy over local IPv4 and IPv6 TLS."
+  echo "Promoted $candidate and verified exact identity and probe method policy over local IPv4 and IPv6 TLS."
   exit 0
 fi
 echo 'Candidate acceptance failed; restoring the previous direct release.' >&2

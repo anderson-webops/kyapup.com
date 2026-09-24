@@ -1,104 +1,105 @@
 {
-	"name": "vitesse-nuxt-monorepo",
-	"type": "module",
-	"version": "2.1.2",
-	"private": true,
-	"packageManager": "npm@12.0.2",
-	"engines": {
-		"node": ">=24.18.1 <25",
-		"npm": ">=12.0.2 <13"
-	},
-	"description": "Hardened Nuxt and Express monorepo template based on antfu's Vitesse Nuxt",
-	"author": "Jacob Anderson",
-	"license": "MIT",
-	"keywords": [],
-	"workspaces": [
-		"front-end",
-		"back-end"
-	],
-	"scripts": {
-		"build": "npm run -w front-end build && npm run -w back-end build",
-		"build:netlify": "npm run -w front-end build && npm run -w back-end typecheck",
-		"dev": "npm run -w front-end dev",
-		"server": "npm run -w back-end server",
-		"server:once": "npm run -w back-end server:once",
-		"serve": "npm run -w front-end serve",
-		"preview": "npm run -w front-end preview",
-		"postinstall": "simple-git-hooks && npm run -w front-end prepare",
-		"lint-server": "npm run -w back-end lint-fix && npm run -w back-end server",
-		"lint-serve": "npm run -w front-end lint-fix && npm run -w front-end serve",
-		"lint:root": "eslint \"*.{js,ts,mjs,cjs}\" scripts netlify",
-		"lint": "npm run lint:root && npm run -w front-end lint && npm run -w back-end lint",
-		"lint-fix": "eslint \"*.{js,ts,mjs,cjs}\" scripts netlify --fix && npm run -w front-end lint-fix && npm run -w back-end lint-fix",
-		"typecheck": "npm run -w front-end typecheck && npm run -w back-end typecheck && tsc -p netlify/tsconfig.json --noEmit",
-		"test": "npm run -w back-end test && python3 -B -m unittest discover -s scripts -p test_runtime_artifact.py -v",
-		"clean": "node scripts/clean.mjs",
-		"deps:check": "taze",
-		"a11y": "node scripts/a11y-smoke.mjs",
-		"audit:all": "npm audit --audit-level=low",
-		"audit:prod": "npm audit --omit=dev --audit-level=low",
-		"audit:api": "npm audit --prefix back-end --omit=dev --audit-level=low",
-		"check:api-install": "npm ci --prefix back-end --omit=dev --workspaces=false --ignore-scripts --no-fund --no-audit && node scripts/check-api-install.mjs",
-		"check:native-bindings": "node scripts/check-native-bindings.mjs",
-		"check:deploy-output": "node scripts/check-deploy-output.mjs",
-		"verify:production-install": "node scripts/verify-production-install.mjs",
-		"test:direct-runtime": "node scripts/direct-runtime-smoke.mjs",
-		"test:promotion": "bash scripts/test-promotion-recovery.sh",
-		"package:runtime": "bash scripts/package-runtime.sh",
-		"validate": "npm run check:native-bindings && npm run lint && npm run typecheck && npm run test && npm run build && npm run check:deploy-output && npm run check:api-install"
-	},
-	"dependencies": {
-		"serverless-http": "^4.0.0"
-	},
-	"devDependencies": {
-		"@antfu/eslint-config": "^9.2.0",
-		"@netlify/functions": "^5.3.0",
-		"@types/node": "^24.13.3",
-		"@typescript-eslint/types": "^8.65.0",
-		"@unocss/eslint-plugin": "^66.7.5",
-		"axe-core": "^4.11.4",
-		"eslint": "^10.8.0",
-		"eslint-plugin-format": "^2.0.1",
-		"puppeteer-core": "^25.4.0",
-		"simple-git-hooks": "^2.13.1",
-		"taze": "^19.16.0",
-		"typescript": "^6.0.3"
-	},
-	"allowScripts": {
-		"simple-git-hooks": false,
-		"esbuild@0.28.2": true,
-		"fsevents@2.3.3": true,
-		"unrs-resolver@1.12.2": true
-	},
-	"simple-git-hooks": {
-		"pre-commit": "npm run lint"
-	},
-	"overrides": {
-		"devalue": "5.9.4",
-		"nanoid@^3": "3.3.18",
-		"qs": "6.16.0",
-		"glob": "13.0.6",
-		"esbuild": "^0.28.1",
-		"js-yaml": "4.3.2",
-		"launch-editor": {
-			".": "2.14.1",
-			"shell-quote": "1.9.0"
-		},
-		"shell-quote": "1.10.0",
-		"@nuxt/devtools": {
-			"launch-editor": "2.14.1"
-		},
-		"vite": {
-			".": "^8.1.0",
-			"esbuild": "^0.28.1"
-		},
-		"nitropack": "2.13.4",
-		"simple-git": "3.36.0",
-		"brace-expansion": "5.0.9",
-		"fast-uri": "3.1.6",
-		"postcss": "8.5.24",
-		"svgo": "4.1.0",
-		"tar": "7.5.22",
-		"valibot": "1.4.2"
-	}
+  "name": "kyapup",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "npm@12.0.2",
+  "engines": {
+    "node": ">=24.18.1 <25",
+    "npm": ">=12.0.2 <13"
+  },
+  "description": "A photo-first home for Kya with private uploads and curation",
+  "author": "Jacob Anderson",
+  "license": "MIT",
+  "keywords": [],
+  "workspaces": [
+    "front-end",
+    "back-end"
+  ],
+  "scripts": {
+    "build": "npm run -w front-end build && npm run -w back-end build",
+    "build:netlify": "npm run -w front-end build && npm run -w back-end typecheck",
+    "dev": "npm run -w front-end dev",
+    "server": "npm run -w back-end server",
+    "server:once": "npm run -w back-end server:once",
+    "serve": "npm run -w front-end serve",
+    "preview": "npm run -w front-end preview",
+    "postinstall": "simple-git-hooks && npm run -w front-end prepare",
+    "lint-server": "npm run -w back-end lint-fix && npm run -w back-end server",
+    "lint-serve": "npm run -w front-end lint-fix && npm run -w front-end serve",
+    "lint:root": "eslint \"*.{js,ts,mjs,cjs}\" scripts netlify",
+    "lint": "npm run lint:root && npm run -w front-end lint && npm run -w back-end lint",
+    "lint-fix": "eslint \"*.{js,ts,mjs,cjs}\" scripts netlify --fix && npm run -w front-end lint-fix && npm run -w back-end lint-fix",
+    "typecheck": "npm run -w front-end typecheck && npm run -w back-end typecheck && tsc -p netlify/tsconfig.json --noEmit",
+    "test": "npm run -w back-end test && python3 -B -m unittest discover -s scripts -p test_runtime_artifact.py -v",
+    "clean": "node scripts/clean.mjs",
+    "deps:check": "taze",
+    "a11y": "node scripts/a11y-smoke.mjs",
+    "audit:all": "npm audit --audit-level=low",
+    "audit:prod": "npm audit --omit=dev --audit-level=low",
+    "audit:api": "npm audit --prefix back-end --omit=dev --audit-level=low",
+    "check:api-install": "npm ci --prefix back-end --omit=dev --workspaces=false --ignore-scripts --no-fund --no-audit && node scripts/check-api-install.mjs",
+    "check:native-bindings": "node scripts/check-native-bindings.mjs",
+    "check:deploy-output": "node scripts/check-deploy-output.mjs",
+    "verify:production-install": "node scripts/verify-production-install.mjs",
+    "test:direct-runtime": "node scripts/direct-runtime-smoke.mjs",
+    "test:promotion": "bash scripts/test-promotion-recovery.sh",
+    "package:runtime": "bash scripts/package-runtime.sh",
+    "validate": "npm run check:native-bindings && npm run lint && npm run typecheck && npm run test && npm run build && npm run check:deploy-output && npm run check:api-install"
+  },
+  "dependencies": {
+    "serverless-http": "^4.0.0"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^9.2.0",
+    "@netlify/functions": "^5.3.0",
+    "@types/node": "^24.13.3",
+    "@typescript-eslint/types": "^8.65.0",
+    "@unocss/eslint-plugin": "^66.7.5",
+    "axe-core": "^4.11.4",
+    "eslint": "^10.8.0",
+    "eslint-plugin-format": "^2.0.1",
+    "puppeteer-core": "^25.4.0",
+    "simple-git-hooks": "^2.13.1",
+    "taze": "^19.16.0",
+    "typescript": "^6.0.3"
+  },
+  "allowScripts": {
+    "simple-git-hooks": false,
+    "esbuild@0.28.2": true,
+    "fsevents@2.3.3": true,
+    "unrs-resolver@1.12.2": true,
+    "sharp@0.35.4": true
+  },
+  "simple-git-hooks": {
+    "pre-commit": "npm run lint"
+  },
+  "overrides": {
+    "devalue": "5.9.4",
+    "nanoid@^3": "3.3.18",
+    "qs": "6.16.0",
+    "glob": "13.0.6",
+    "esbuild": "^0.28.1",
+    "js-yaml": "4.3.2",
+    "launch-editor": {
+      ".": "2.14.1",
+      "shell-quote": "1.9.0"
+    },
+    "shell-quote": "1.10.0",
+    "@nuxt/devtools": {
+      "launch-editor": "2.14.1"
+    },
+    "vite": {
+      ".": "^8.1.0",
+      "esbuild": "^0.28.1"
+    },
+    "nitropack": "2.13.4",
+    "simple-git": "3.36.0",
+    "brace-expansion": "5.0.9",
+    "fast-uri": "3.1.6",
+    "postcss": "8.5.24",
+    "svgo": "4.1.0",
+    "tar": "7.5.22",
+    "valibot": "1.4.2"
+  }
 }

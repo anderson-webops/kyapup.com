@@ -5,7 +5,7 @@ import { resolve } from 'node:path'
 const projectRoot = resolve(import.meta.dirname, '..')
 const backendModules = resolve(projectRoot, 'back-end/node_modules')
 
-for (const packageName of ['dotenv', 'express', 'express-rate-limit', 'helmet'])
+for (const packageName of ['dotenv', 'express', 'express-rate-limit', 'helmet', 'sharp'])
   await access(resolve(backendModules, packageName, 'package.json'))
 
 for (const packageName of ['supertest', 'tsx', 'typescript-eslint', 'vitest']) {

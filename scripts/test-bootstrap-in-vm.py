@@ -11,7 +11,7 @@ assert os.geteuid() == 0 and sys.argv[1:] == ["--disposable-vm"]
 marker = Path('/run/vitesse-source-validation-vm')
 assert marker.is_file() and marker.read_text() == 'isolated-public-source-fixture\n'
 assert marker.stat().st_uid == 0
-assert not Path('/srv/vitesse-nuxt-template').exists(), 'Use a fresh disposable VM, never an installed host'
+assert not Path('/srv/kyapup').exists(), 'Use a fresh disposable VM, never an installed host'
 source = Path(__file__).resolve().parent.parent
 control = Path('/root/vitesse-admin-fixture')
 control.mkdir(mode=0o700)
@@ -27,15 +27,15 @@ def run():
 result = run()
 assert result.returncode == 0, result.stdout + result.stderr
 version = json.loads((control / 'package.json').read_text())['version']
-helper = Path('/usr/local/libexec/vitesse-release') / version
+helper = Path('/usr/local/libexec/kyapup-release') / version
 assert (helper / 'deploy/systemd/promote-release.sh').is_file()
 assert helper.stat().st_uid == 0 and not helper.stat().st_mode & 0o022
-unit = Path('/etc/systemd/system/vitesse-nuxt-template-api.service')
+unit = Path('/etc/systemd/system/kyapup-api.service')
 original_unit = unit.read_bytes()
-assert subprocess.run(['systemctl', 'is-active', '--quiet', 'vitesse-nuxt-template-api.service']).returncode != 0
-base = Path('/srv/vitesse-nuxt-template')
+assert subprocess.run(['systemctl', 'is-active', '--quiet', 'kyapup-api.service']).returncode != 0
+base = Path('/srv/kyapup')
 for path in [base / 'current', base / 'releases/unauthorized']:
-    denied = subprocess.run(['runuser', '-u', 'vitesse-template', '--', 'touch', str(path)], capture_output=True)
+    denied = subprocess.run(['runuser', '-u', 'kyapup', '--', 'touch', str(path)], capture_output=True)
     assert denied.returncode != 0, 'Build account changed administrative state'
 assert run().returncode != 0, 'Existing helper version was overwritten'
 assert unit.read_bytes() == original_unit
@@ -49,7 +49,7 @@ base.chmod(0o700)
 result = run()
 assert result.returncode != 0 and 'left unchanged' in result.stderr
 assert base.stat().st_mode & 0o777 == 0o700
-assert not Path('/usr/local/libexec/vitesse-release/999.0.0').exists()
+assert not Path('/usr/local/libexec/kyapup-release/999.0.0').exists()
 base.chmod(0o750)
 
 # Model replacement after a privileged existence check. The old cache creation
@@ -58,7 +58,7 @@ sink = Path('/root/vitesse-cache-fixture')
 sink.mkdir(mode=0o755)
 cache = base / 'shared/npm-cache'
 cache.symlink_to(sink)
-old = subprocess.run(['/usr/bin/install', '-d', '-o', 'vitesse-template', '-g', 'vitesse-template', '-m', '0700', str(cache)], capture_output=True)
+old = subprocess.run(['/usr/bin/install', '-d', '-o', 'kyapup', '-g', 'kyapup', '-m', '0700', str(cache)], capture_output=True)
 followed = sink.stat().st_uid != 0 or sink.stat().st_mode & 0o777 != 0o755
 print(json.dumps({'historicalCachePath': 'followed' if followed else 'rejected', 'exit': old.returncode}), flush=True)
 os.chown(sink, 0, 0)
@@ -72,9 +72,9 @@ assert unit.read_bytes() == original_unit
 # A mutable adjacent service unit fails the trusted bootstrap guard before effects.
 package['version'] = '999.0.2'
 (control / 'package.json').write_text(json.dumps(package))
-(control / 'deploy/systemd/vitesse-nuxt-template-api.service').chmod(0o666)
+(control / 'deploy/systemd/kyapup-api.service').chmod(0o666)
 assert run().returncode != 0
-assert not Path('/usr/local/libexec/vitesse-release/999.0.2').exists()
+assert not Path('/usr/local/libexec/kyapup-release/999.0.2').exists()
 assert unit.read_bytes() == original_unit
 print(json.dumps({'administrativeBootstrap': 'passed', 'protectedPointerAndReleaseRoot': True,
                   'immutableHelpers': True, 'existingUnitPreserved': True,

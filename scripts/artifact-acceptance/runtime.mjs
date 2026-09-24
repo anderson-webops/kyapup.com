@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict'
+import { Buffer } from 'node:buffer'
 import { spawnSync } from 'node:child_process'
-import { access, readFile } from 'node:fs/promises'
+import { scryptSync } from 'node:crypto'
+import { access, mkdtemp, readFile, rm } from 'node:fs/promises'
 import { createServer } from 'node:http'
+import os from 'node:os'
+import path from 'node:path'
 import process from 'node:process'
 
 assert.equal(process.platform, 'linux')
@@ -27,11 +31,16 @@ else {
   const metadata = JSON.parse(await readFile('/app/front-end/.output/public/release.json', 'utf8'))
   const manifest = JSON.parse(await readFile('/app/runtime-manifest.json', 'utf8'))
   assert.equal(metadata.commitSha, manifest.commit)
-  // Dependencies added by a downstream must feed this bounded readiness state.
-  // The baseline API itself has no external database or provider.
+  // Exercise dependency readiness independently, using only a temporary library.
+  const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'kyapup-readiness-'))
+  const { PhotoStore } = await import('/app/back-end/dist/photo-store.js')
+  const store = new PhotoStore(dataDirectory)
+  const salt = Buffer.alloc(16, 9)
+  const key = scryptSync('Synthetic-readiness-password', salt, 64, { N: 32768, r: 8, p: 1, maxmem: 64 * 1024 * 1024 })
+  const passwordHash = `scrypt$32768$8$1$${salt.toString('hex')}$${key.toString('hex')}`
   const { createApp } = await import('/app/back-end/dist/app.js')
   let ready = false
-  const server = createServer(createApp({ isReady: () => ready }))
+  const server = createServer(createApp({ store, passwordHash, allowedOrigins: ['https://kyapup.fixture'], secureCookies: true, isReady: () => ready }))
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve))
   try {
     const origin = `http://127.0.0.1:${server.address().port}`
@@ -49,6 +58,8 @@ else {
   }
   finally {
     await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()))
+    store.close()
+    await rm(dataDirectory, { recursive: true, force: true })
   }
   for (let run = 0; run < 2; run++) {
     const result = spawnSync(process.execPath, ['/harness/direct-runtime-smoke.mjs', '/app'], {
@@ -59,5 +70,5 @@ else {
     assert.equal(result.signal, null)
     assert.equal(result.status, 0)
   }
-  console.log(JSON.stringify({ sterileArtifact: 'passed', commit: manifest.commit, readinessRecovery: true, restart: true }))
+  console.log(JSON.stringify({ sterileArtifact: 'passed', commit: manifest.commit, readinessRecovery: true, photoProcessing: true, archiveAuthentication: true, persistence: true, restart: true }))
 }

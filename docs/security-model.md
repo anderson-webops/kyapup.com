@@ -1,36 +1,69 @@
-# Security and authorization model
+# Kya security and storage model
 
-## Current boundary
+## Public and administrator boundaries
 
-This template has no identity system, login, session, role, administrator, promotion, demotion, or privileged mutation workflow. Its only API response is a public, read-only liveness signal. The former process-local page-view counter was removed because a state-changing `GET` endpoint without an authorization or persistence model is not a safe example for downstream applications.
+The public page displays only photos selected for publication. The unlinked
+`/admin` frontend is a convenience, not an access control. Express authenticates
+all library reads and administrator writes. An archived photo's derivative URLs
+also require authentication; knowing an ID does not make that photo public.
+Original files have no serving route.
 
-The security boundary is the Express application, not the Nuxt UI. The browser uses the same-origin `/api` route in every supported deployment. Cross-origin credential sharing is disabled, and CORS is not treated as authentication.
+One owner password is stored as a salted scrypt hash in protected server
+configuration. There are no public registration or role-management flows.
+Production requires an explicit hash, absolute storage path, and exact allowed
+HTTPS origins. Session cookies are HttpOnly, SameSite Strict, scoped to `/api`,
+and Secure in production. Sessions expire after 12 hours. Session expiry and
+password changes require the owner to sign in again.
 
-## Enforced controls
+Login requires an allowed Origin. Other cookie-authenticated mutations also
+require the session's CSRF token. Both domain names are configured explicitly;
+there is no wildcard CORS policy or shared parent-domain cookie. The browser
+calls same-origin `/api` in development and production.
 
-- Only `GET`, `HEAD`, and `OPTIONS` are accepted below `/api`.
-- The health response contains no process start time, version, environment, or secret metadata and is never cached.
-- Helmet supplies response hardening headers; Nginx, Netlify, and generated Nuxt output add browser-facing defense-in-depth headers and CSP.
-- API requests are rate limited, with proxy trust set explicitly by each deployment adapter rather than globally trusting forwarded headers.
-- Listener ports and proxy-hop counts are range checked.
-- Server request, header, keep-alive, and shutdown durations are bounded.
-- Production source maps are disabled.
-- The direct API is loopback-only and runs as an unprivileged, capability-free systemd service with a read-only system
-  view; Nginx is the only public listener.
-- npm optional dependencies and Linux ARM64 native lock entries are checked, while unreviewed dependency install scripts fail installation.
+## Photo handling
 
-## Requirements for downstream authentication
+The API accepts still JPEG, PNG, WebP, and AVIF uploads up to 25 MiB, 60 million
+pixels, and 20,000 pixels per edge. Sharp decoding has time limits and two upload
+slots. HEIC is not supported. It creates resized WebP display derivatives without
+source metadata. Original bytes
+remain private for preservation. New uploads are archived by default. Publication,
+featured selection, display order, alt text, and presentation settings are stored
+in SQLite outside the release. Unpublishing a photo removes its featured state.
+Media responses use `Cache-Control: no-store` so archive changes are not undermined
+by a deliberately cacheable public image endpoint. A viewer can still save a photo
+while it is public; later archiving cannot revoke already downloaded copies.
 
-Before adding any protected data or mutation, a downstream repository must:
+The runtime account alone owns the mode `0700` state directory. Nginx proxies
+media requests through the API and never serves that directory as static content.
+The production archive verifier rejects database extensions and undeclared native
+libraries. It independently requires the declared Sharp and libvips artifacts.
 
-1. Authenticate on the backend using a reviewed session or token design.
-2. Authorize every protected route on the server using deny-by-default role or capability checks.
-3. Re-read the actor's current role from trusted server-side state for promotion, demotion, and destructive operations.
-4. Prevent self-promotion and require an authorized actor for every role change.
-5. Revoke or refresh active sessions after security-sensitive account changes.
-6. Record immutable audit events for role and privilege changes without logging credentials or session secrets.
-7. Add positive and negative tests for anonymous, ordinary, stale-role, demoted, and administrator cases.
-8. Add CSRF protection before accepting cookie-authenticated mutations.
-9. Keep secrets in deployment-scoped environment storage, never in Nuxt public runtime configuration or source control.
+## Runtime controls
 
-Frontend visibility checks may improve usability, but they never satisfy these requirements.
+Minimal GET/HEAD health and readiness responses disclose no secrets or diagnostics,
+set no cookies, and are never cached. Probe mutation attempts still return 405.
+Readiness includes the storage dependency; shutdown prevents new application work
+while existing connections drain. Rate limiting and fixed proxy trust remain at
+the API boundary. The reverse proxy replaces forwarded headers and applies the
+same 25 MiB request limit as the API.
+
+Helmet, Nginx, and generated frontend policy provide browser headers. Production
+source maps are disabled. The service binds to loopback, runs without capabilities,
+and has a read-only system view except its private persistent state. The approved
+Node runtime is selected explicitly. Dependency locks, audits, native image
+bindings, and the exact copied Linux ARM64 artifact are separate release gates.
+
+## Verification and operational limits
+
+API tests and compiled-runtime acceptance cover login, CSRF, archived media,
+publication, photo processing, configuration, and persistence. The runtime fixture
+uses temporary synthetic data and never a real password or photo library. The
+protected promotion fixture tests interrupted activation and rollback without
+executing candidate application code as root.
+
+A source build, passing local tests, a tag, or a GitHub release does not establish
+production deployment. Domain routing, TLS, private configuration, backups, and
+live administrator behavior must be verified on the separately authorized host.
+See [the server runbook](../deploy/README.md). Historical template audit documents
+in this folder describe their named source baseline and are not a full security
+assessment of Kya's added photo and authentication features.

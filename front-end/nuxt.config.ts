@@ -23,15 +23,13 @@ export default defineNuxtConfig({
     head: {
       viewport: 'width=device-width,initial-scale=1',
       link: [
-        { rel: 'icon', href: '/favicon.ico', sizes: 'any' },
-        { rel: 'icon', type: 'image/svg+xml', href: '/nuxt.svg' },
-        { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
+        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
       ],
       meta: [
         { name: 'description', content: appDescription },
         { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
-        { name: 'theme-color', media: '(prefers-color-scheme: light)', content: 'white' },
-        { name: 'theme-color', media: '(prefers-color-scheme: dark)', content: '#222222' },
+        { name: 'theme-color', media: '(prefers-color-scheme: light)', content: '#131916' },
+        { name: 'theme-color', media: '(prefers-color-scheme: dark)', content: '#131916' },
       ],
     },
   },
@@ -91,7 +89,7 @@ export default defineNuxtConfig({
     compressPublicAssets: true,
     prerender: {
       crawlLinks: false,
-      routes: ['/'],
+      routes: ['/', '/admin'],
       ignore: ['/hi'],
     },
   },
@@ -133,7 +131,7 @@ export default defineNuxtConfig({
         'form-action': ['\'self\''],
         'frame-ancestors': ['\'none\''],
         'frame-src': ['\'none\''],
-        'img-src': ['\'self\'', 'data:'],
+        'img-src': ['\'self\'', 'data:', 'blob:'],
         'manifest-src': ['\'self\''],
         'media-src': ['\'self\''],
         'object-src': ['\'none\''],

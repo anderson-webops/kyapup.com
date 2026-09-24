@@ -1,48 +1,49 @@
 {
-	"name": "back-end",
-	"version": "2.1.2",
-	"private": true,
-	"description": "Minimal Express API for the vitesse-nuxt monorepo template.",
-	"type": "module",
-	"packageManager": "npm@12.0.2",
-	"engines": {
-		"node": ">=24.18.1 <25",
-		"npm": ">=12.0.2 <13"
-	},
-	"main": "dist/server.js",
-	"scripts": {
-		"server": "tsx watch -r dotenv/config src/server.ts",
-		"server:once": "tsx -r dotenv/config src/server.ts",
-		"start": "node dist/server.js",
-		"build": "tsc -p tsconfig.json",
-		"watch": "tsc -w",
-		"dev": "tsx watch -r dotenv/config src/server.ts",
-		"typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit",
-		"test": "vitest run",
-		"lint": "eslint \"{src,test}/**/*.{js,ts}\"",
-		"lint-fix": "eslint \"{src,test}/**/*.{js,ts}\" --fix"
-	},
-	"keywords": [],
-	"author": "Jacob Anderson",
-	"license": "MIT",
-	"dependencies": {
-		"dotenv": "^17.4.2",
-		"express": "^5.2.1",
-		"express-rate-limit": "^8.6.1",
-		"helmet": "^8.1.0"
-	},
-	"overrides": {
-		"nanoid@^3": "3.3.18",
-		"qs": "6.16.0"
-	},
-	"devDependencies": {
-		"@types/express": "^5.0.6",
-		"@types/node": "^24.13.3",
-		"@types/supertest": "^7.2.1",
-		"globals": "^17.8.0",
-		"supertest": "^7.2.2",
-		"tsx": "^4.23.4",
-		"typescript-eslint": "^8.65.0",
-		"vitest": "^4.1.11"
-	}
+  "name": "back-end",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Minimal Express API for the vitesse-nuxt monorepo template.",
+  "type": "module",
+  "packageManager": "npm@12.0.2",
+  "engines": {
+    "node": ">=24.18.1 <25",
+    "npm": ">=12.0.2 <13"
+  },
+  "main": "dist/server.js",
+  "scripts": {
+    "server": "tsx watch -r dotenv/config src/server.ts",
+    "server:once": "tsx -r dotenv/config src/server.ts",
+    "start": "node dist/server.js",
+    "build": "tsc -p tsconfig.json",
+    "watch": "tsc -w",
+    "dev": "tsx watch -r dotenv/config src/server.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit",
+    "test": "vitest run",
+    "lint": "eslint \"{src,test}/**/*.{js,ts}\"",
+    "lint-fix": "eslint \"{src,test}/**/*.{js,ts}\" --fix"
+  },
+  "keywords": [],
+  "author": "Jacob Anderson",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.6.1",
+    "helmet": "^8.1.0",
+    "sharp": "^0.35.4"
+  },
+  "overrides": {
+    "nanoid@^3": "3.3.18",
+    "qs": "6.16.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^24.13.3",
+    "@types/supertest": "^7.2.1",
+    "globals": "^17.8.0",
+    "supertest": "^7.2.2",
+    "tsx": "^4.23.4",
+    "typescript-eslint": "^8.65.0",
+    "vitest": "^4.1.11"
+  }
 }

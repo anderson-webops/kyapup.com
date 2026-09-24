@@ -3,7 +3,7 @@ name: Validate direct production release
 on:
   push:
     tags:
-      - "v2.*"
+      - "v*"
 
 permissions:
   contents: read
@@ -58,8 +58,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends bubblewrap apparmor
           if test -d /sys/kernel/security/apparmor; then
-            printf 'abi <abi/4.0>,\ninclude <tunables/global>\nprofile vitesse-artifact-tests /usr/bin/bwrap flags=(unconfined) {\n  userns,\n}\n' | sudo tee /etc/apparmor.d/vitesse-artifact-tests >/dev/null
-            sudo apparmor_parser -r /etc/apparmor.d/vitesse-artifact-tests
+            printf 'abi <abi/4.0>,\ninclude <tunables/global>\nprofile kyapup-artifact-tests /usr/bin/bwrap flags=(unconfined) {\n  userns,\n}\n' | sudo tee /etc/apparmor.d/kyapup-artifact-tests >/dev/null
+            sudo apparmor_parser -r /etc/apparmor.d/kyapup-artifact-tests
           fi
           printf '/.ai-work/\n' >> "$(git rev-parse --git-path info/exclude)"
       - name: Validate native source and the exact production artifact
@@ -78,3 +78,16 @@ jobs:
           npm run test:promotion
           mkdir -p .ai-work/runs/tagged-artifact
           npm run package:runtime -- "$PWD/.ai-work/runs/tagged-artifact"
+
+      - name: Retain the accepted production archive and receipt
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: kyapup-linux-arm64-${{ github.ref_name }}
+          path: |
+            .ai-work/runs/tagged-artifact/*.tar.gz
+            .ai-work/runs/tagged-artifact/SHA256SUMS
+            .ai-work/runs/tagged-artifact/runtime-manifest.json
+            .ai-work/runs/tagged-artifact/acceptance.json
+            .ai-work/runs/tagged-artifact/dependency-tree.txt
+          if-no-files-found: error
+          retention-days: 90

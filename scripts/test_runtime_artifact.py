@@ -52,7 +52,7 @@ class RuntimeArtifactTests(unittest.TestCase):
             artifact.validate(self.root, self.manifest())
 
     def test_symlinks_and_private_state(self):
-        for name in [".env", "credentials.json", "back-end/dist/key.pem", "back-end/dist/enrollment.sqlite3"]:
+        for name in [".env", "credentials.json", "back-end/dist/key.pem", "back-end/dist/enrollment.sqlite3", "back-end/dist/library.sqlite", "back-end/dist/library.sqlite-wal", "back-end/dist/gallery.db"]:
             with self.subTest(name=name):
                 path = self.root / name
                 path.write_text("synthetic forbidden content")
@@ -62,6 +62,26 @@ class RuntimeArtifactTests(unittest.TestCase):
         (self.root / "back-end/dist/escape").symlink_to("/tmp")
         with self.assertRaisesRegex(ValueError, "forbidden"):
             self.manifest()
+
+
+    def test_required_image_bindings_cannot_be_omitted_from_inventory(self):
+        for name in self.contract["nativeBindings"]:
+            with self.subTest(name=name):
+                native = self.root / name
+                content = native.read_bytes()
+                native.unlink()
+                with self.assertRaisesRegex(ValueError, "required runtime path missing"):
+                    artifact.validate(self.root, self.manifest())
+                native.write_bytes(content)
+
+    def test_versioned_native_libraries_require_a_declaration(self):
+        for name in ["unreviewed.so.8.18.6", "unreviewed.dylib", "unreviewed.dll"]:
+            with self.subTest(name=name):
+                native = self.root / "back-end/dist" / name
+                native.write_text("synthetic native library")
+                with self.assertRaisesRegex(ValueError, "undeclared native binding"):
+                    artifact.validate(self.root, self.manifest())
+                native.unlink()
 
     def test_missing_production_dependency(self):
         package = {"version": "1.0.0", "dependencies": {"fixture": "1.0.0"}}

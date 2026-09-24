@@ -31,3 +31,9 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+
+# Runtime photos and private configuration never belong in source.
+/data/
+/back-end/data/
+*.sqlite
+*.sqlite-*

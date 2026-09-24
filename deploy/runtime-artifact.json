@@ -14,20 +14,31 @@
     "back-end/dist/app.js",
     "back-end/dist/server-config.js",
     "back-end/dist/boundedRateStore.js",
+    "back-end/dist/auth.js",
+    "back-end/dist/gallery-config.js",
+    "back-end/dist/photo-store.js",
     "front-end/.output/public/index.html",
+    "front-end/.output/public/admin/index.html",
     "front-end/.output/public/200.html",
     "front-end/.output/public/404.html",
-    "front-end/.output/public/release.json"
+    "front-end/.output/public/release.json",
+    "back-end/node_modules/sharp/dist/index.mjs",
+    "back-end/node_modules/@img/sharp-linux-arm64/lib/sharp-linux-arm64-0.35.4.node",
+    "back-end/node_modules/@img/sharp-libvips-linux-arm64/lib/libvips-cpp.so.8.18.6"
   ],
   "runtime": {
     "os": "linux",
     "arch": "arm64",
     "node": "24.18.1",
-    "npmBuildOnly": "12.0.2"
+    "npmBuildOnly": "12.0.2",
+    "libc": "glibc"
   },
   "modulesOutsideDist": [],
   "generatedClients": [],
-  "nativeBindings": [],
+  "nativeBindings": [
+    "back-end/node_modules/@img/sharp-linux-arm64/lib/sharp-linux-arm64-0.35.4.node",
+    "back-end/node_modules/@img/sharp-libvips-linux-arm64/lib/libvips-cpp.so.8.18.6"
+  ],
   "staticAssets": [
     "front-end/.output/public"
   ],
@@ -36,11 +47,16 @@
   ],
   "writableState": [
     {
+      "name": "photo library",
+      "location": "/var/lib/kyapup (PHOTO_DATA_DIR), outside all releases",
+      "rollback": "Preserve the entire directory: SQLite metadata, private originals, rendered full-size images and thumbnails. Stop the API for a consistent filesystem backup; retain a pre-upgrade snapshot. Never restore an older database over newer uploads without explicit operator review."
+    },
+    {
       "name": "logs",
-      "location": "existing service journal",
-      "rollback": "preserve journal; no application filesystem state or migrations"
+      "location": "systemd journal for kyapup-api.service",
+      "rollback": "Preserve the journal; do not copy logs into a release archive."
     }
   ],
-  "privateConfiguration": "Protected host environment stays external. The template has no database, provider credentials, queue or durable local state. Downstreams must declare any additions.",
-  "topology": "Static Nuxt output with independent compiled Express API; preserve installed paths, users, ports, IPv4/IPv6 and edge policy. This optional direct-release artifact does not replace the separate Netlify function adapter."
+  "privateConfiguration": "Root-owned mode0600 /etc/kyapup/api.env supplies ADMIN_PASSWORD_HASH and ALLOWED_ORIGINS; the service reads it through EnvironmentFile. No secrets, sessions, SQLite data or uploaded photos belong in source, static output or runtime archives.",
+  "topology": "Static Nuxt output with one independent Express API, Node built-in SQLite and sharp/libvips. Direct Nginx/systemd deployment uses a loopback listener and persistent StateDirectory. kyapup.com and kyagirl.com serve the same application; preserve reviewed installed paths, ports, IPv4/IPv6 and TLS policy. Ephemeral function storage is not a supported photo-library deployment."
 }
