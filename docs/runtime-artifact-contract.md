@@ -56,11 +56,14 @@ probe method restrictions, anonymous archive denial, an authenticated synthetic
 photo upload, image conversion, publication, featured settings, archiving,
 scoped machine import, duplicate preservation, import identities across restart,
 repeated signals during a held HTTP connection and clean exit. Secondary-login
-fixtures must use a separate temporary writable SQLite directory and synthetic
-passwords and HMAC keys. They must cover disabled and malformed configuration,
-the activation boundary without changing the host clock, persistent failure and
-lockout state across process restart, normalized IPv4/IPv6 identities, bounded
-state, unavailable storage, and primary-login independence from secondary lockout.
+fixtures use a separate temporary writable SQLite directory and synthetic
+passwords and HMAC keys. The compiled archive checks cover the activation
+boundary without changing the host clock, concurrent failures, lockout expiry,
+persistent lockouts across process restart, normalized IPv4/IPv6 identities,
+primary-login independence from secondary lockout, and consistent photo/auth
+backup and restore. Required source tests additionally cover disabled and
+malformed configuration, rolling failure windows, bounded state and hashing,
+unavailable storage with primary recovery, and independent SQLite writers.
 The archive must start with `/app` read-only; neither authentication database nor
 real configuration may be copied into it. The complete copied tree is checked again against the trusted archive;
 a deliberately missing compiled rate-store module must fail both verification
