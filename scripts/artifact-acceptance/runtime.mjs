@@ -61,6 +61,50 @@ else {
     store.close()
     await rm(dataDirectory, { recursive: true, force: true })
   }
+  // Synthetic clock injection is a constructor-only test seam, never an HTTP or
+  // production environment clock override. Exercise the exact compiled modules.
+  const { SecondaryAuthenticator, readSecondaryConfig } = await import('/app/back-end/dist/secondary-auth.js')
+  const authDirectory = await mkdtemp(path.join(os.tmpdir(), 'kyapup-auth-boundary-'))
+  const activation = Date.parse('2026-12-24T10:00:00Z')
+  const secondaryPassword = 'toy'
+  const secondarySalt = Buffer.alloc(16, 23)
+  const secondaryHash = `scrypt$32768$8$1$${secondarySalt.toString('hex')}$${scryptSync(secondaryPassword, secondarySalt, 64, { N: 32768, r: 8, p: 1, maxmem: 64 * 1024 * 1024 }).toString('hex')}`
+  const config = readSecondaryConfig({
+    ADMIN_SECONDARY_PASSWORD_HASH: secondaryHash,
+    ADMIN_SECONDARY_NOT_BEFORE: '2026-12-24T10:00:00Z',
+    ADMIN_SECONDARY_FAILURE_LIMIT: '3',
+    ADMIN_SECONDARY_FAILURE_WINDOW_SECONDS: '172800',
+    ADMIN_SECONDARY_LOCKOUT_SECONDS: '172800',
+    ADMIN_SECONDARY_STATE_MAX_ENTRIES: '10000',
+    ADMIN_SECONDARY_STATE_PATH: path.join(authDirectory, 'login-state.sqlite'),
+    ADMIN_SECONDARY_ID_HMAC_KEY: Buffer.alloc(32, 29).toString('hex'),
+  })
+  assert.equal(config.mode, 'enabled')
+  let now = activation - 1
+  let auth = new SecondaryAuthenticator(config, () => now)
+  try {
+    assert.equal((await auth.authenticate(secondaryPassword, '192.0.2.10')).status, 'incorrect')
+    now = activation
+    assert.equal((await auth.authenticate(secondaryPassword, '192.0.2.10')).status, 'authenticated')
+    now++
+    assert.equal((await auth.authenticate(secondaryPassword, '192.0.2.10')).status, 'authenticated')
+    const concurrent = await Promise.all(Array.from({ length: 3 }, () => auth.authenticate('synthetic wrong', '192.0.2.20')))
+    assert.deepEqual(concurrent.map(result => result.status).sort(), ['incorrect', 'incorrect', 'locked'])
+    assert.equal((await auth.authenticate(secondaryPassword, '::ffff:192.0.2.20')).status, 'locked')
+    assert.equal((await auth.authenticate('synthetic wrong', '2001:db8:1:2::10')).status, 'incorrect')
+    assert.equal((await auth.authenticate('synthetic wrong', '2001:db8:1:2::11')).status, 'incorrect')
+    assert.equal((await auth.authenticate('synthetic wrong', '2001:db8:1:2::12')).status, 'locked')
+    auth.close()
+    auth = new SecondaryAuthenticator(config, () => now)
+    now = activation + 172_800_000
+    assert.equal((await auth.authenticate(secondaryPassword, '2001:db8:1:2::99')).status, 'locked')
+    now++
+    assert.equal((await auth.authenticate(secondaryPassword, '2001:db8:1:2::99')).status, 'authenticated')
+  }
+  finally {
+    auth.close()
+    await rm(authDirectory, { recursive: true, force: true })
+  }
   for (let run = 0; run < 2; run++) {
     const result = spawnSync(process.execPath, ['/harness/direct-runtime-smoke.mjs', '/app'], {
       env: { PATH: '/runtime:/usr/bin:/bin' },
@@ -70,5 +114,5 @@ else {
     assert.equal(result.signal, null)
     assert.equal(result.status, 0)
   }
-  console.log(JSON.stringify({ sterileArtifact: 'passed', commit: manifest.commit, readinessRecovery: true, photoProcessing: true, archiveAuthentication: true, scopedMachineImports: true, persistentImportIdentity: true, persistence: true, restart: true }))
+  console.log(JSON.stringify({ sterileArtifact: 'passed', commit: manifest.commit, readinessRecovery: true, photoProcessing: true, archiveAuthentication: true, scopedMachineImports: true, persistentImportIdentity: true, secondaryActivationBoundary: true, concurrentSecondaryFailures: true, secondaryLockoutExpiryAndRestart: true, persistence: true, restart: true }))
 }

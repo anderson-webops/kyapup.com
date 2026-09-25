@@ -6,14 +6,17 @@ import { createApp } from './app.js'
 import { readServerConfig } from './server-config.js'
 import { readGalleryConfig } from './gallery-config.js'
 import { PhotoStore } from './photo-store.js'
+import { SecondaryAuthenticator } from './secondary-auth.js'
 
 async function main() {
   const { host, port, trustProxyHops } = readServerConfig()
   const galleryConfig = readGalleryConfig()
   const store = new PhotoStore(galleryConfig.dataDirectory)
+  const secondaryAuth = galleryConfig.secondaryConfig.mode === 'disabled'
+    ? undefined : new SecondaryAuthenticator(galleryConfig.secondaryConfig)
   let isShuttingDown = false
   const server = createServer(createApp({
-    trustProxyHops, store, ...galleryConfig,
+    trustProxyHops, store, ...galleryConfig, secondaryAuth,
     isReady: () => store.isReady(),
     isStopping: () => isShuttingDown,
   }))
@@ -31,6 +34,7 @@ async function main() {
   })
 
   console.log(`API listening at http://${host}:${port}`)
+  console.log(secondaryAuth?.startupMessage() ?? 'Secondary authentication disabled')
 
   const shutdown = (signal: NodeJS.Signals) => {
     if (isShuttingDown)
@@ -49,6 +53,7 @@ async function main() {
     server.close((error) => {
       clearTimeout(forceTimer)
       store.close()
+      secondaryAuth?.close()
       if (error) {
         console.error('Graceful shutdown failed:', error)
         process.exitCode = 1

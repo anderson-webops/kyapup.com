@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { Buffer } from 'node:buffer'
 import { spawn } from 'node:child_process'
 import { createHash, scryptSync } from 'node:crypto'
-import { mkdtemp, readFile, rm } from 'node:fs/promises'
+import { cp, mkdir, mkdtemp, readFile, realpath, rm } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import net from 'node:net'
 import os from 'node:os'
@@ -87,6 +87,8 @@ async function waitForHealth(baseUrl, child, diagnostics) {
 const port = await reservePort()
 const baseUrl = `http://127.0.0.1:${port}`
 const dataDirectory = await mkdtemp(path.join(os.tmpdir(), 'kyapup-runtime-'))
+const authDirectory = await realpath(await mkdtemp(path.join(os.tmpdir(), 'kyapup-auth-runtime-')))
+const backupDirectory = await mkdtemp(path.join(os.tmpdir(), 'kyapup-backup-runtime-'))
 const password = 'Synthetic-gallery-password-only'
 const salt = Buffer.alloc(16, 7)
 const passwordHash = `scrypt$32768$8$1$${salt.toString('hex')}$${scryptSync(password, salt, 64, { N: 32768, r: 8, p: 1, maxmem: 64 * 1024 * 1024 }).toString('hex')}`
@@ -95,7 +97,13 @@ const importToken = Buffer.alloc(32, 11).toString('base64url')
 const importTokenHash = createHash('sha256').update(importToken).digest('hex')
 const importQuery = '?source=apple-photos&externalId=synthetic-runtime-photo-001'
 const importHeaders = { authorization: `Bearer ${importToken}` }
+const secondaryPassword = 'pup'
+const secondarySalt = Buffer.alloc(16, 17)
+const secondaryHash = `scrypt$32768$8$1$${secondarySalt.toString('hex')}$${scryptSync(secondaryPassword, secondarySalt, 64, { N: 32768, r: 8, p: 1, maxmem: 64 * 1024 * 1024 }).toString('hex')}`
+const secondaryIdentityKey = Buffer.alloc(32, 19).toString('hex')
+let secondaryNotBefore = new Date(Date.now() + 86_400_000).toISOString()
 let diagnosticOutput = ''
+let allDiagnostics = ''
 function startRuntime(importEnabled = true) {
   diagnosticOutput = ''
   const child = spawn(process.execPath, ['back-end/dist/server.js'], {
@@ -111,6 +119,14 @@ function startRuntime(importEnabled = true) {
       PHOTO_DATA_DIR: dataDirectory,
       ADMIN_PASSWORD_HASH: passwordHash,
       ALLOWED_ORIGINS: allowedOrigin,
+      ADMIN_SECONDARY_PASSWORD_HASH: secondaryHash,
+      ADMIN_SECONDARY_NOT_BEFORE: secondaryNotBefore,
+      ADMIN_SECONDARY_FAILURE_LIMIT: '3',
+      ADMIN_SECONDARY_FAILURE_WINDOW_SECONDS: '172800',
+      ADMIN_SECONDARY_LOCKOUT_SECONDS: '172800',
+      ADMIN_SECONDARY_STATE_MAX_ENTRIES: '10000',
+      ADMIN_SECONDARY_STATE_PATH: path.join(authDirectory, 'login-state.sqlite'),
+      ADMIN_SECONDARY_ID_HMAC_KEY: secondaryIdentityKey,
       ...(importEnabled ? { PHOTO_IMPORT_TOKEN_SHA256: importTokenHash } : {}),
     },
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -118,9 +134,21 @@ function startRuntime(importEnabled = true) {
   for (const stream of [child.stdout, child.stderr]) {
     stream.on('data', (data) => {
       diagnosticOutput = `${diagnosticOutput}${data.toString()}`.slice(-4_000)
+      allDiagnostics += data.toString()
     })
   }
   return child
+}
+async function secondaryLogin(value, status, identity = '192.0.2.40') {
+  const response = await fetch(`${baseUrl}/api/admin/login`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'origin': allowedOrigin, 'x-forwarded-for': identity },
+    body: JSON.stringify({ password: value }),
+    signal: AbortSignal.timeout(5000),
+  })
+  assert.equal(response.status, status)
+  await response.arrayBuffer()
+  return response
 }
 let child = startRuntime()
 let cookie
@@ -195,6 +223,7 @@ try {
   assert.equal(unauthorizedLibrary.status, 401)
   await unauthorizedLibrary.arrayBuffer()
   await signIn()
+  await secondaryLogin(secondaryPassword, 401)
   const require = createRequire(path.join(repositoryRoot, 'back-end/package.json'))
   const sharp = require('sharp')
   const fixture = await sharp({ create: { width: 32, height: 24, channels: 3, background: '#db9e63' } }).png().toBuffer()
@@ -289,8 +318,18 @@ try {
   child.kill('SIGTERM')
   assert.ok(await waitForExit(child, 5000), 'The first runtime must shut down before restart')
   assert.equal(child.exitCode, 0, diagnosticOutput)
+  // Only this isolated synthetic credential is activated early.
+  secondaryNotBefore = new Date(Date.now() - 60_000).toISOString()
   child = startRuntime()
   await waitForHealth(baseUrl, child, () => diagnosticOutput.trim())
+  await secondaryLogin(secondaryPassword, 200)
+  await secondaryLogin('synthetic incorrect one', 401)
+  await secondaryLogin('synthetic incorrect two', 401)
+  const locked = await secondaryLogin('synthetic incorrect three', 429)
+  assert.ok(Number(locked.headers.get('retry-after')) > 172_790)
+  await secondaryLogin(secondaryPassword, 429, '::ffff:192.0.2.40')
+  await secondaryLogin(password, 200)
+  await secondaryLogin(secondaryPassword, 429)
   gallery = await (await fetch(`${baseUrl}/api/gallery`)).json()
   assert.equal(gallery.photos.length, 1, 'Published photos must survive a process restart')
   assert.equal(gallery.photos[0].id, photo.id)
@@ -348,15 +387,39 @@ try {
     pending.destroy()
   }
 
+  // Both stores are closed before this consistent, fixture-only backup/restore.
+  await cp(dataDirectory, path.join(backupDirectory, 'photos'), { recursive: true })
+  await cp(authDirectory, path.join(backupDirectory, 'auth'), { recursive: true })
+  await rm(dataDirectory, { recursive: true })
+  await rm(authDirectory, { recursive: true })
+  await mkdir(dataDirectory, { mode: 0o700 })
+  await mkdir(authDirectory, { mode: 0o700 })
+  await cp(path.join(backupDirectory, 'photos'), dataDirectory, { recursive: true })
+  await cp(path.join(backupDirectory, 'auth'), authDirectory, { recursive: true })
   child = startRuntime(false)
   await waitForHealth(baseUrl, child, () => diagnosticOutput.trim())
+  await secondaryLogin(secondaryPassword, 429)
+  await secondaryLogin(password, 200)
+  await signIn()
+  const restoredLibrary = await fetch(`${baseUrl}/api/admin/library`, { headers: { cookie } })
+  assert.equal(restoredLibrary.status, 200)
+  const restoredPhotos = (await restoredLibrary.json()).photos
+  assert.deepEqual(restoredPhotos.map(item => item.id).sort(), [photo.id, importedId].sort())
+  assert.ok(restoredPhotos.every(item => !item.visible))
+  assert.deepEqual(await readFile(path.join(dataDirectory, 'photos', photo.id, 'original')), fixture)
+  assert.deepEqual(await readFile(path.join(dataDirectory, 'photos', importedId, 'original')), fixture)
   const disabledImport = await fetch(importStatusUrl, { headers: importHeaders })
   assert.equal(disabledImport.status, 503)
   assert.deepEqual(await disabledImport.json(), { error: 'import_not_configured' })
 
-  console.log(JSON.stringify({ directRuntime: 'passed', loopback: true, probeMutations: 'denied', gallery: 'upload, publication, archive and persistence passed', machineImports: 'scoped, archived, idempotent and persistent', probes: 'GET/HEAD passed', repeatedSignals: 'drained' }))
+  for (const secret of [password, passwordHash, secondaryPassword, secondaryHash, secondaryIdentityKey, importToken, importTokenHash])
+    assert.equal(allDiagnostics.includes(secret), false, 'Runtime logs must not contain fixture credentials')
+  assert.ok(allDiagnostics.length < 16_384, 'Authentication must not emit per-attempt diagnostics')
+  console.log(JSON.stringify({ directRuntime: 'passed', loopback: true, probeMutations: 'denied', gallery: 'upload, publication, archive and persistence passed', machineImports: 'scoped, archived, idempotent and persistent', secondaryLogin: 'schedule, lockout, primary recovery and restart passed', consistentBackupRestore: 'photos and auth state preserved', probes: 'GET/HEAD passed', repeatedSignals: 'drained' }))
 }
 finally {
   await stopProcessTree(child)
   await rm(dataDirectory, { recursive: true, force: true })
+  await rm(authDirectory, { recursive: true, force: true })
+  await rm(backupDirectory, { recursive: true, force: true })
 }

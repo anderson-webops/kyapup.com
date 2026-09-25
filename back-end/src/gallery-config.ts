@@ -1,7 +1,9 @@
-import { isAbsolute, resolve } from 'node:path'
+import { isAbsolute, relative, resolve, sep } from 'node:path'
 import { validImportTokenHash, validPasswordHash } from './auth.js'
+import type { SecondaryEnvironment } from './secondary-auth.js'
+import { readSecondaryConfig } from './secondary-auth.js'
 
-export interface GalleryEnvironment {
+export interface GalleryEnvironment extends SecondaryEnvironment {
   NODE_ENV?: string
   PHOTO_DATA_DIR?: string
   ADMIN_PASSWORD_HASH?: string
@@ -30,11 +32,19 @@ export function readGalleryConfig(environment: GalleryEnvironment = process.env)
       || (production && url.protocol !== 'https:'))
       throw new Error('ALLOWED_ORIGINS must contain exact HTTP origins (HTTPS in production)')
   }
+  const dataDirectory = resolve(environment.PHOTO_DATA_DIR || './data')
+  let secondaryConfig = readSecondaryConfig(environment)
+  if (secondaryConfig.mode === 'enabled') {
+    const relativeState = relative(dataDirectory, secondaryConfig.statePath)
+    if (!isAbsolute(relativeState) && relativeState !== '..' && !relativeState.startsWith(`..${sep}`))
+      secondaryConfig = { mode: 'unavailable' }
+  }
   return {
-    dataDirectory: resolve(environment.PHOTO_DATA_DIR || './data'),
+    dataDirectory,
     passwordHash,
     importTokenHash: importTokenHash.toLowerCase(),
     allowedOrigins,
     secureCookies: production,
+    secondaryConfig,
   }
 }

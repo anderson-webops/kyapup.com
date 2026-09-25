@@ -15,6 +15,8 @@
     "back-end/dist/server-config.js",
     "back-end/dist/boundedRateStore.js",
     "back-end/dist/auth.js",
+    "back-end/dist/secondary-auth.js",
+    "back-end/dist/secondary-state.js",
     "back-end/dist/gallery-config.js",
     "back-end/dist/photo-store.js",
     "front-end/.output/public/index.html",
@@ -52,11 +54,16 @@
       "rollback": "Preserve the entire directory: SQLite metadata, private originals, rendered full-size images and thumbnails. Stop the API for a consistent filesystem backup; retain a pre-upgrade snapshot. Never restore an older database over newer uploads without explicit operator review."
     },
     {
+      "name": "secondary administrator login state",
+      "location": "/var/lib/kyapup-auth/login-state.sqlite (ADMIN_SECONDARY_STATE_PATH), outside all releases; parent owned by the installed kyapup-site account with mode0700",
+      "rollback": "Preserve the SQLite database and any WAL/SHM files across restarts, promotion and rollback. Stop the API and back up authentication state, photo state and protected configuration consistently before upgrade. State uses HMAC-derived network identity keys. Never reset counters or delete this directory to make activation or acceptance pass."
+    },
+    {
       "name": "logs",
       "location": "systemd journal for kyapup-api.service",
       "rollback": "Preserve the journal; do not copy logs into a release archive."
     }
   ],
-  "privateConfiguration": "Root-owned mode0600 /etc/kyapup/api.env supplies ADMIN_PASSWORD_HASH, ALLOWED_ORIGINS and optional PHOTO_IMPORT_TOKEN_SHA256; the service reads it through EnvironmentFile. No secrets, sessions, SQLite data or uploaded photos belong in source, static output or runtime archives. The plaintext import credential belongs only on its client; unset the hash to disable machine imports.",
-  "topology": "Static Nuxt output with one independent Express API, Node built-in SQLite and sharp/libvips. Direct Nginx/systemd deployment uses a loopback listener and persistent StateDirectory. kyapup.com and kyagirl.com serve the same application; preserve reviewed installed paths, ports, IPv4/IPv6 and TLS policy. Ephemeral function storage is not a supported photo-library deployment."
+  "privateConfiguration": "The installed host reads root-owned mode0600 /etc/kyapup.com/app.env. The generic first-install adapter uses /etc/kyapup/api.env; preserve the actual installed path. ADMIN_PASSWORD_HASH, ALLOWED_ORIGINS, optional PHOTO_IMPORT_TOKEN_SHA256 and optional ADMIN_SECONDARY_* configuration stay outside archives. Root-owned mode0600 /etc/kyapup.com/pending-admin/secondary-admin.env is staged and unloaded until separately reviewed activation. No secrets, sessions, SQLite data or uploaded photos belong in source, static output or runtime archives. The plaintext import credential belongs only on its client; unset the hash to disable machine imports.",
+  "topology": "Static Nuxt output with one independent Express API, Node built-in SQLite and sharp/libvips. Direct Nginx/systemd deployment uses a loopback listener with exactly one trusted proxy hop. Nginx overwrites X-Forwarded-For with the actual client address. Photo state and separate persistent secondary-authentication state remain outside releases, with only their required service write access. kyapup.com and kyagirl.com serve the same application; preserve reviewed installed users, paths, ports, IPv4/IPv6 and TLS policy. Ephemeral function storage is not a supported stateful deployment."
 }

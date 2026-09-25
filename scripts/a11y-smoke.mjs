@@ -242,6 +242,10 @@ async function adminChecks(browser, viewport, scheme) {
     await admin.page.click('.sign-in form button')
     await admin.page.waitForSelector('.admin-grid .photo-card')
     await admin.page.waitForSelector('.page-heading .primary-button:not(:disabled)')
+    // Disabled controls use reduced opacity. Wait for their computed enabled
+    // appearance as well as Vue's attributes before axe snapshots the colors.
+    await admin.page.waitForFunction(() => Array.from(document.querySelectorAll('.header-actions button, .page-heading button, .filter-tabs button'))
+      .every(button => !button.disabled && getComputedStyle(button).opacity === '1'))
     await admin.scan('admin photo library and spotlight')
     await admin.page.click('.filter-tabs button:nth-child(2)')
     await admin.page.waitForFunction(() => document.querySelectorAll('.photo-card').length === 1)

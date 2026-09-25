@@ -5,7 +5,8 @@ The direct adapter runs a static Nuxt tree and one compiled Express service.
 static assets and the runtime. Kya requires Node's built-in SQLite and the exact Sharp ARM64 glibc binding and
 libvips shared library listed in the contract. Image derivatives are generated at
 runtime. Required paths include the compiled photo-store, authentication and API
-modules. No database file or uploaded photograph belongs in an archive. Logs stay
+modules, including `secondary-auth.js` and `secondary-state.js`. No database file
+or uploaded photograph belongs in an archive. Logs stay
 in the service journal.
 
 Keep protected configuration and any downstream database, email spool, cache or
@@ -53,8 +54,15 @@ the source checkout, development dependencies or real providers. Tests exercise
 the compiled entrypoint, minimal GET/HEAD probes, failing/recovering readiness,
 probe method restrictions, anonymous archive denial, an authenticated synthetic
 photo upload, image conversion, publication, featured settings, archiving,
-scoped machine import, duplicate preservation, import identities across restart, repeated signals during a held HTTP connection and
-clean exit. The complete copied tree is checked again against the trusted archive;
+scoped machine import, duplicate preservation, import identities across restart,
+repeated signals during a held HTTP connection and clean exit. Secondary-login
+fixtures must use a separate temporary writable SQLite directory and synthetic
+passwords and HMAC keys. They must cover disabled and malformed configuration,
+the activation boundary without changing the host clock, persistent failure and
+lockout state across process restart, normalized IPv4/IPv6 identities, bounded
+state, unavailable storage, and primary-login independence from secondary lockout.
+The archive must start with `/app` read-only; neither authentication database nor
+real configuration may be copied into it. The complete copied tree is checked again against the trusted archive;
 a deliberately missing compiled rate-store module must fail both verification
 and actual startup. No production service is started or stopped.
 
@@ -83,11 +91,26 @@ timestamp field, not proof that production activated that build.
 
 ## Persistent state and adapter boundary
 
-Production uses `/var/lib/kyapup` (or an explicitly reviewed `PHOTO_DATA_DIR`)
-outside every immutable release. Back up the entire SQLite library and photo
-tree consistently. Preserve them on restart, release promotion, and code rollback.
-The protected `/etc/kyapup/api.env` holds the password hash and allowed origins;
-never bundle it. See the administrative runbook for first setup and backup rules.
+Production photo state uses `/var/lib/kyapup` (or the installed, reviewed
+`PHOTO_DATA_DIR`) outside every immutable release. Secondary authentication uses
+`/var/lib/kyapup-auth/login-state.sqlite`, with its parent owned by the installed
+`kyapup-site` account and mode `0700`. Limit service write access to the required
+state directories. Preserve both databases, their WAL/SHM files, and the whole
+photo tree across restart, promotion, and code rollback. Stop the API for a
+consistent backup of these directories together with the protected configuration;
+do not erase login counters or replace a newer photo library during rollback.
+The authentication database pins the identity-key and policy fingerprint. Changes
+require a reviewed migration that preserves active lockouts, not a silent reset.
+
+The installed active configuration is `/etc/kyapup.com/app.env`, root-owned and
+mode `0600`. The generic first-install adapter's `/etc/kyapup/api.env` is not a
+replacement for that installed path. The separate root-owned mode `0600`
+`/etc/kyapup.com/pending-admin/secondary-admin.env` stays unloaded while staged.
+Only complete, validated secondary configuration loaded by the new runtime arms
+the future activation time. No configuration or database belongs in a release.
+See the [secondary administrator runbook](secondary-admin-deployment.md) for the
+scheduled configuration, isolated checks and rollback, and the administrative
+runbook for first installation.
 
 The inherited Netlify source adapter is not a supported production path for this
 stateful application. Ephemeral function storage cannot preserve the photo library.

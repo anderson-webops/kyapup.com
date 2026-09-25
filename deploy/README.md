@@ -2,6 +2,8 @@
 
 Kya uses Nginx for its static page and one independent, loopback-only Express API under systemd. The site-specific defaults are `kyapup-api.service`, unprivileged account `kyapup`, `/srv/kyapup/current`, port `3006`, and persistent state under `/var/lib/kyapup`. Review those defaults against the host before first installation. Preserve existing applications, service accounts, ports, IPv4/IPv6 listeners, and edge policies.
 
+For the existing host's scheduled secondary administrator, use the [secondary administrator deployment runbook](../docs/secondary-admin-deployment.md). It preserves the installed layout and keeps staged credentials unloaded until the accepted release and configuration are ready.
+
 ## Protected administrative installation
 
 Never run an installer, promotion helper, or verifier from a build-owned checkout as root. Bootstrap from a fresh, independently reviewed, root-created checkout of the published tag under protected ancestors. Review `deploy/systemd/install-service.sh` there. Changing ownership of a previously writable build tree is not a substitute because another process can retain writable file descriptors.

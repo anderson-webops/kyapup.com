@@ -6,6 +6,7 @@ import helmet from 'helmet'
 import { Sessions, verifyImportToken, verifyPassword } from './auth.js'
 import { BoundedRateStore } from './boundedRateStore.js'
 import { GalleryError, maxUploadBytes, PhotoStore, readImportIdentity } from './photo-store.js'
+import type { SecondaryAuthenticator } from './secondary-auth.js'
 
 const allowedMethods = ['GET', 'HEAD', 'OPTIONS'] as const
 const allowHeader = allowedMethods.join(', ')
@@ -21,6 +22,7 @@ export interface AppOptions {
   importTokenHash?: string
   allowedOrigins?: string[]
   secureCookies?: boolean
+  secondaryAuth?: SecondaryAuthenticator
 }
 
 function validateTrustProxyHops(value: number) {
@@ -37,6 +39,8 @@ export function createApp(options: AppOptions = {}) {
   const trustProxyHops = options.trustProxyHops ?? 0
   validateTrustProxyHops(trustProxyHops)
   const sessions = new Sessions(sessionLifetime)
+  // No password-work queue: at most two concurrent scrypt derivations per API.
+  let passwordWorkInFlight = 0
   const origins = new Set(options.allowedOrigins ?? [])
   const cookieOptions = {
     httpOnly: true,
@@ -154,11 +158,34 @@ export function createApp(options: AppOptions = {}) {
     const password: unknown = request.body?.password
     if (typeof password !== 'string' || !password.length || password.length > 1024)
       throw new GalleryError(400, 'invalid_password')
-    if (!await verifyPassword(password, options.passwordHash)) throw new GalleryError(401, 'incorrect_password')
-    sessions.remove(sessionId(request))
-    const session = sessions.create()
-    response.cookie(sessionCookie, session.id, { ...cookieOptions, maxAge: sessionLifetime })
-    response.json({ authenticated: true, csrfToken: session.csrfToken })
+    if (passwordWorkInFlight >= 2) {
+      response.set('Retry-After', '1')
+      throw new GalleryError(429, 'login_busy')
+    }
+    passwordWorkInFlight++
+    try {
+      // Primary recovery neither reads nor clears secondary authentication state.
+      if (!await verifyPassword(password, options.passwordHash)) {
+        if (!options.secondaryAuth) throw new GalleryError(401, 'incorrect_password')
+        const forwarded = request.get('X-Forwarded-For')
+        const loopback = ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(request.socket.remoteAddress ?? '')
+        // The installed Nginx must overwrite this with one actual client address.
+        if (trustProxyHops !== 1 || !loopback || !forwarded || forwarded.includes(',') || request.ip !== forwarded.trim())
+          throw new GalleryError(503, 'secondary_login_unavailable')
+        const result = await options.secondaryAuth.authenticate(password, request.ip)
+        if (result.status === 'incorrect') throw new GalleryError(401, 'incorrect_password')
+        if (result.status === 'unavailable') throw new GalleryError(503, 'secondary_login_unavailable')
+        if (result.status === 'locked') {
+          response.set('Retry-After', String(result.retryAfterSeconds ?? 172_800))
+          throw new GalleryError(429, 'secondary_login_locked')
+        }
+      }
+      sessions.remove(sessionId(request))
+      const session = sessions.create()
+      response.cookie(sessionCookie, session.id, { ...cookieOptions, maxAge: sessionLifetime })
+      response.json({ authenticated: true, csrfToken: session.csrfToken })
+    }
+    finally { passwordWorkInFlight-- }
   })
   app.post('/api/admin/logout', requireSession, requireOrigin, requireCsrf, (request, response) => {
     sessions.remove(sessionId(request))
