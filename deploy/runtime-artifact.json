@@ -51,7 +51,7 @@
     {
       "name": "photo library",
       "location": "/var/lib/kyapup (PHOTO_DATA_DIR), outside all releases",
-      "rollback": "Preserve the entire directory: SQLite metadata, private originals, rendered full-size images and thumbnails. Stop the API for a consistent filesystem backup; retain a pre-upgrade snapshot. Never restore an older database over newer uploads without explicit operator review."
+      "rollback": "Preserve the entire directory: SQLite metadata including pending photo_deletions cleanup jobs, private originals, rendered full-size images and thumbnails. Stop the API for a consistent filesystem backup; retain a pre-upgrade snapshot. Never restore an older database over newer uploads without explicit operator review."
     },
     {
       "name": "secondary administrator login state",

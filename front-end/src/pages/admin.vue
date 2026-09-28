@@ -21,6 +21,18 @@ const selected = ref<string[]>([])
 const details = ref<Photo | null>(null)
 const description = ref('')
 const detailsDialog = useTemplateRef('detailsDialog')
+const deleteDialog = useTemplateRef('deleteDialog')
+const deleteCancel = useTemplateRef('deleteCancel')
+const libraryHeading = useTemplateRef('libraryHeading')
+const deletePhotos = ref<Photo[]>([])
+const deleting = ref(false)
+const deleteProgress = ref('')
+const deleteError = ref('')
+const deleteResult = ref('')
+const pendingRemovals = ref<string[]>([])
+const previewPhotos = computed(() => photos.value.filter(photo => !pendingRemovals.value.includes(photo.id)))
+const selectedRemovalPending = computed(() => selected.value.some(id => pendingRemovals.value.includes(id)))
+let deleteTrigger: HTMLElement | null = null
 const visiblePhotos = computed(() => photos.value.filter(photo => photo.visible))
 const favorites = computed(() => photos.value.filter(photo => photo.featured && photo.visible))
 const shownPhotos = computed(() => photos.value.filter(photo => filter.value === 'all' || (filter.value === 'visible' ? photo.visible : !photo.visible)))
@@ -56,10 +68,11 @@ function errorMessage(cause: unknown) {
   }
   return 'That didn’t save. Please try again.'
 }
-async function request<T>(path: string, body?: object | File, method: 'POST' | 'PATCH' = 'POST') {
+async function request<T>(path: string, body?: object | File, method: 'POST' | 'PATCH' | 'DELETE' = 'POST') {
   return $fetch<T>(path, {
     method,
     body,
+    ...(method === 'DELETE' ? { retry: 0 } : {}),
     headers: {
       'X-CSRF-Token': csrfToken.value,
       ...(body instanceof File ? { 'Content-Type': 'application/octet-stream' } : {}),
@@ -126,7 +139,7 @@ async function saveSettings(change: Partial<GallerySettings>) {
   finally { busy.value = false }
 }
 async function upload(files: FileList | File[] | null) {
-  if (!files?.length || uploading.value)
+  if (!files?.length || uploading.value || busy.value || deletePhotos.value.length)
     return
   uploading.value = true
   error.value = ''
@@ -181,6 +194,131 @@ async function bulkVisibility(visible: boolean) {
   catch (cause) { error.value = errorMessage(cause) }
   finally { busy.value = false }
 }
+async function openDelete(items: Photo[]) {
+  if (busy.value || uploading.value || !authenticated.value)
+    return
+  deletePhotos.value = items.filter(photo => photos.value.some(item => item.id === photo.id))
+  if (!deletePhotos.value.length)
+    return
+  deleteTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null
+  deleteError.value = ''
+  deleteResult.value = ''
+  error.value = ''
+  await nextTick()
+  deleteDialog.value?.showModal()
+  deleteCancel.value?.focus()
+}
+function cancelDelete() {
+  if (!deleting.value)
+    deleteDialog.value?.close()
+}
+async function closedDelete() {
+  deletePhotos.value = []
+  deleteError.value = ''
+  deleteResult.value = ''
+  await nextTick()
+  if (deleteTrigger?.isConnected)
+    deleteTrigger.focus()
+  else if (authenticated.value)
+    libraryHeading.value?.focus()
+  else
+    document.getElementById('password')?.focus()
+  deleteTrigger = null
+}
+function deleteFailure(cause: unknown) {
+  const failure = cause as { status?: number, statusCode?: number, data?: { error?: string } }
+  const status = failure.statusCode || failure.status
+  const code = failure.data?.error
+  if (status === 401) {
+    authenticated.value = false
+    return 'Please sign in again to finish deleting.'
+  }
+  if (code === 'photo_delete_incomplete')
+    return 'This photo is hidden, but removal hasn’t finished. Please try again.'
+  if (code === 'delete_busy')
+    return 'Photo removal is busy. Please try again in a moment.'
+  if (code === 'invalid_csrf_token')
+    return 'Please refresh this page and sign in again before trying to delete these photos.'
+  if (code === 'origin_not_allowed')
+    return 'Photo removal isn’t set up for this address yet. Please let Jacob know.'
+  if (status === 429)
+    return 'Please give the site a minute, then try again.'
+  return 'Removal didn’t finish. Please try again.'
+}
+function removeLocalPhoto(id: string) {
+  photos.value = photos.value.filter(photo => photo.id !== id)
+  pendingRemovals.value = pendingRemovals.value.filter(pendingId => pendingId !== id)
+  selected.value = selected.value.filter(selectedId => selectedId !== id)
+  if (settings.value.heroPhotoId === id)
+    settings.value.heroPhotoId = null
+}
+async function confirmDelete() {
+  if (busy.value || uploading.value || !deletePhotos.value.length)
+    return
+  busy.value = true
+  deleting.value = true
+  error.value = ''
+  message.value = ''
+  deleteError.value = ''
+  deleteResult.value = ''
+  const pending = [...deletePhotos.value]
+  const remaining: Photo[] = []
+  let removed = 0
+  let reason = ''
+  try {
+    for (const [index, photo] of pending.entries()) {
+      deleteProgress.value = `Deleting photo ${index + 1} of ${pending.length}…`
+      try {
+        await request(`/api/admin/photos/${photo.id}`, undefined, 'DELETE')
+        removeLocalPhoto(photo.id)
+        removed++
+      }
+      catch (cause) {
+        const failure = cause as { status?: number, statusCode?: number, data?: { error?: string } }
+        const status = failure.statusCode || failure.status
+        const explanation = deleteFailure(cause)
+        reason ||= explanation
+        if (failure.data?.error === 'photo_delete_incomplete') {
+          // Keep a retry target locally while the server finishes removing files.
+          if (!pendingRemovals.value.includes(photo.id))
+            pendingRemovals.value.push(photo.id)
+          photos.value = photos.value.map(item => item.id === photo.id ? { ...item, visible: false, featured: false } : item)
+          if (settings.value.heroPhotoId === photo.id)
+            settings.value.heroPhotoId = null
+        }
+        remaining.push(photos.value.find(item => item.id === photo.id) || photo)
+        if (!authenticated.value || status === 403 || status === 429 || failure.data?.error === 'delete_busy') {
+          reason = explanation
+          remaining.push(...pending.slice(index + 1))
+          break
+        }
+      }
+    }
+    message.value = removed ? `${removed === 1 ? '1 photo' : `${removed} photos`} deleted.` : ''
+    deleteResult.value = message.value
+    deletePhotos.value = remaining
+    if (remaining.length) {
+      deleteError.value = `${remaining.length === 1 ? '1 photo still needs' : `${remaining.length} photos still need`} to be removed. ${reason}`
+      error.value = `${!authenticated.value && message.value ? `${message.value} ` : ''}${deleteError.value}`
+      // Failed removals remain selected even if an incomplete removal hid a photo.
+      filter.value = 'all'
+      await nextTick()
+      selected.value = remaining.map(photo => photo.id)
+    }
+  }
+  finally {
+    busy.value = false
+    deleting.value = false
+    deleteProgress.value = ''
+  }
+  if (!remaining.length || !authenticated.value) {
+    deleteDialog.value?.close()
+  }
+  else {
+    await nextTick()
+    deleteCancel.value?.focus()
+  }
+}
 function openDetails(photo: Photo) {
   details.value = photo
   description.value = photo.alt
@@ -212,13 +350,13 @@ onMounted(async () => {
   finally { checking.value = false }
 })
 onBeforeRouteLeave(() => {
-  if (!uploading.value)
+  if (!uploading.value && !deleting.value)
     return true
-  error.value = 'Please wait for your photos to finish uploading before leaving.'
+  error.value = deleting.value ? 'Please wait for photo removal to finish before leaving.' : 'Please wait for your photos to finish uploading before leaving.'
   return false
 })
 useEventListener('beforeunload', (event) => {
-  if (uploading.value)
+  if (uploading.value || deleting.value)
     event.preventDefault()
 })
 </script>
@@ -261,14 +399,16 @@ useEventListener('beforeunload', (event) => {
         <div>
           <p class="eyebrow">
             KYA’S LITTLE PHOTO ALBUM
-          </p><h1>Your photos</h1><p class="muted">
+          </p><h1 ref="libraryHeading" tabindex="-1">
+            Your photos
+          </h1><p class="muted">
             Keep the moments. Pick your favorites.
           </p>
         </div><button class="primary-button" :disabled="uploading || busy" @click="fileInput?.click()">
           <span class="i-carbon-add" aria-hidden="true" />Add photos
         </button>
       </div>
-      <input ref="fileInput" class="sr-only" type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple aria-label="Choose photos to upload" :disabled="uploading" @change="upload(($event.target as HTMLInputElement).files)">
+      <input ref="fileInput" class="sr-only" type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple aria-label="Choose photos to upload" :disabled="uploading || busy" @change="upload(($event.target as HTMLInputElement).files)">
       <section v-if="photos.length" class="spotlight" aria-labelledby="spotlight-heading">
         <div class="spotlight-title">
           <span class="i-carbon-star-filled" aria-hidden="true" /><div>
@@ -325,10 +465,12 @@ useEventListener('beforeunload', (event) => {
       </div>
       <div v-if="selected.length" class="selection-bar">
         <span>{{ selected.length }} selected</span><div>
-          <button class="small-button" :disabled="busy || uploading" @click="bulkVisibility(true)">
+          <button class="small-button" :disabled="busy || uploading || selectedRemovalPending" @click="bulkVisibility(true)">
             Show selected
-          </button><button class="quiet-button" :disabled="busy || uploading" @click="bulkVisibility(false)">
+          </button><button class="quiet-button" :disabled="busy || uploading || selectedRemovalPending" @click="bulkVisibility(false)">
             Save for later
+          </button><button class="quiet-button danger-link" :disabled="busy || uploading" @click="openDelete(photos.filter(photo => selected.includes(photo.id)))">
+            Delete selected
           </button><button class="quiet-button" aria-label="Clear selection" :disabled="uploading || busy" @click="selected = []">
             <span class="i-carbon-close" aria-hidden="true" />
           </button>
@@ -348,27 +490,57 @@ useEventListener('beforeunload', (event) => {
         <div v-else class="admin-grid">
           <article v-for="(photo, index) in shownPhotos" :key="photo.id" class="photo-card" :class="{ selected: selected.includes(photo.id) }">
             <div class="card-image">
-              <button class="card-preview" :aria-label="`Enlarge ${photo.alt || `photo ${index + 1}`}`" @click="lightbox?.open(photo.id)">
+              <button class="card-preview" :aria-label="`Enlarge ${photo.alt || `photo ${index + 1}`}`" :disabled="pendingRemovals.includes(photo.id)" @click="lightbox?.open(photo.id)">
                 <img :src="photo.thumbnailUrl" :alt="photo.alt || 'Kya'" :width="photo.width" :height="photo.height" loading="lazy">
               </button><label class="photo-select"><input v-model="selected" type="checkbox" :disabled="uploading || busy" :value="photo.id" :aria-label="`Select photo ${index + 1}`"></label><button v-if="photo.visible" class="favorite-button" :class="{ starred: photo.featured }" :aria-label="photo.featured ? 'Remove from favorites' : 'Make a favorite'" :aria-pressed="photo.featured" :disabled="busy || uploading" @click="changePhoto(photo, { featured: !photo.featured }, photo.featured ? 'Removed from favorites.' : 'Added to favorites.')">
                 <span :class="photo.featured ? 'i-carbon-star-filled' : 'i-carbon-star'" aria-hidden="true" />
               </button>
             </div>
             <div class="card-actions">
-              <button class="visibility-button" :class="{ published: photo.visible }" :disabled="busy || uploading" @click="changePhoto(photo, { visible: !photo.visible }, photo.visible ? 'Saved for later.' : 'Shown on the site.')">
-                <span :class="photo.visible ? 'i-carbon-checkmark' : 'i-carbon-add'" aria-hidden="true" />{{ photo.visible ? 'On site · Hide' : 'Show on site' }}
-              </button><button class="details-button" aria-label="Photo description" @click="openDetails(photo)">
+              <button class="visibility-button" :class="{ published: photo.visible }" :disabled="busy || uploading || pendingRemovals.includes(photo.id)" @click="changePhoto(photo, { visible: !photo.visible }, photo.visible ? 'Saved for later.' : 'Shown on the site.')">
+                <span :class="pendingRemovals.includes(photo.id) ? 'i-carbon-time' : photo.visible ? 'i-carbon-checkmark' : 'i-carbon-add'" aria-hidden="true" />{{ pendingRemovals.includes(photo.id) ? 'Removal pending' : photo.visible ? 'On site · Hide' : 'Show on site' }}
+              </button><button class="details-button" aria-label="Photo description" :disabled="busy || uploading || pendingRemovals.includes(photo.id)" @click="openDetails(photo)">
                 <span class="i-carbon-edit" aria-hidden="true" />
+              </button><button class="quiet-button danger-link card-delete" :aria-label="`Delete photo ${index + 1}`" :disabled="busy || uploading" @click="openDelete([photo])">
+                Delete
               </button>
             </div>
           </article>
         </div>
       </section>
       <p v-if="photos.length" class="library-note">
-        Saved photos stay here until you want to show them. Nothing gets deleted.
+        Saved for later keeps photos in your library. Delete removes them permanently.
       </p>
     </main>
-    <PhotoLightbox ref="lightbox" :photos="photos" />
+    <PhotoLightbox ref="lightbox" :photos="previewPhotos" />
+    <dialog ref="deleteDialog" class="details-dialog delete-dialog" aria-labelledby="delete-heading" aria-describedby="delete-explanation" :aria-busy="deleting" @cancel.prevent="cancelDelete" @close="closedDelete">
+      <h2 id="delete-heading">
+        {{ deletePhotos.length === 1 ? 'Delete this photo permanently?' : `Delete ${deletePhotos.length} photos permanently?` }}
+      </h2>
+      <p id="delete-explanation" class="muted">
+        {{ deletePhotos.length === 1 ? 'This photo will' : 'These photos will' }} be removed from the site and its photo library. This can’t be undone. “Saved for later” keeps photos in your library instead.
+      </p>
+      <div class="delete-previews" aria-label="Photos to delete">
+        <img v-for="photo in deletePhotos.slice(0, 6)" :key="photo.id" :src="photo.thumbnailUrl" :alt="photo.alt || 'Kya'" :width="photo.width" :height="photo.height">
+        <span v-if="deletePhotos.length > 6" class="muted">+{{ deletePhotos.length - 6 }} more</span>
+      </div>
+      <p v-if="deleteProgress" class="muted" role="status">
+        {{ deleteProgress }} Keep this page open.
+      </p>
+      <p v-if="deleteResult" class="success-message" role="status">
+        {{ deleteResult }}
+      </p>
+      <p v-if="deleteError" class="error-message" role="alert">
+        {{ deleteError }}
+      </p>
+      <div class="dialog-actions">
+        <button ref="deleteCancel" type="button" class="quiet-button" :disabled="deleting" @click="cancelDelete">
+          Cancel
+        </button><button type="button" class="primary-button delete-confirm" :disabled="busy || uploading || !deletePhotos.length" @click="confirmDelete">
+          {{ deleting ? 'Deleting…' : 'Delete permanently' }}
+        </button>
+      </div>
+    </dialog>
     <dialog ref="detailsDialog" class="details-dialog" aria-labelledby="details-heading">
       <form @submit.prevent="saveDescription">
         <h2 id="details-heading">
@@ -489,6 +661,9 @@ h2 {
 }
 .quiet-button:hover {
   text-decoration: underline;
+}
+.danger-link {
+  color: #8a321c;
 }
 .spotlight {
   border: 1px solid #dce3d8;
@@ -768,10 +943,17 @@ select {
 }
 .card-actions {
   padding: 9px 8px 9px 12px;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px;
   align-items: center;
-  justify-content: space-between;
   gap: 4px;
+}
+.card-delete {
+  grid-column: 1 / -1;
+  justify-self: end;
+  min-height: 32px;
+  padding: 4px 6px;
+  font-size: 0.8125rem;
 }
 .visibility-button {
   display: inline-flex;
@@ -914,6 +1096,29 @@ input[type='text'],
   justify-content: flex-end;
   gap: 10px;
 }
+.delete-dialog > * + * {
+  margin-top: 16px;
+}
+.delete-previews {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.delete-previews img {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: #e1e5dc;
+}
+.delete-confirm {
+  background: #8a321c;
+  border-color: #8a321c;
+}
+.delete-confirm:hover {
+  background: #702816;
+}
 @media (max-width: 1000px) {
   .admin-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -968,6 +1173,7 @@ input[type='text'],
   }
   .card-actions {
     padding: 6px;
+    grid-template-columns: minmax(0, 1fr) 28px;
   }
   .visibility-button {
     font-size: 0.75rem;
@@ -1009,6 +1215,12 @@ input[type='text'],
   }
   .sign-in {
     margin-top: 10vh;
+  }
+  .delete-dialog {
+    padding: 20px;
+  }
+  .delete-dialog .dialog-actions {
+    flex-wrap: wrap;
   }
 }
 </style>

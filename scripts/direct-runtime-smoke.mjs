@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { Buffer } from 'node:buffer'
 import { spawn } from 'node:child_process'
 import { createHash, scryptSync } from 'node:crypto'
-import { cp, mkdir, mkdtemp, readFile, realpath, rm } from 'node:fs/promises'
+import { cp, mkdir, mkdtemp, readFile, realpath, rm, stat } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import net from 'node:net'
 import os from 'node:os'
@@ -181,6 +181,23 @@ async function change(route, body) {
   assert.equal(response.status, 200)
   return response.json()
 }
+async function assertPhotoDeleted(id) {
+  const library = await fetch(`${baseUrl}/api/admin/library`, { headers: { cookie } })
+  assert.equal(library.status, 200)
+  const saved = await library.json()
+  assert.equal(saved.photos.some(item => item.id === id), false, 'Deleted photos must be absent from the library')
+  const publicGallery = await (await fetch(`${baseUrl}/api/gallery`)).json()
+  assert.equal(publicGallery.photos.some(item => item.id === id), false, 'Deleted photos must be absent from the public gallery')
+  for (const variant of ['thumb.webp', 'full.webp']) {
+    for (const headers of [{}, { cookie }]) {
+      const response = await fetch(`${baseUrl}/api/media/${id}/${variant}`, { headers })
+      assert.equal(response.status, 404, 'Deleted media must be unavailable to visitors and administrators')
+      await response.arrayBuffer()
+    }
+  }
+  await assert.rejects(stat(path.join(dataDirectory, 'photos', id)), { code: 'ENOENT' }, 'Deletion must remove original and derivative files')
+  return saved
+}
 
 try {
   await waitForHealth(baseUrl, child, () => diagnosticOutput.trim())
@@ -315,6 +332,40 @@ try {
   assert.equal(duplicate.photo.featured, true)
   assert.deepEqual(await readFile(path.join(dataDirectory, 'photos', importedId, 'original')), fixture, 'Duplicate imports must preserve the original bytes')
   await change(`/api/admin/photos/${importedId}`, { visible: false })
+
+  const retainedLibrary = await (await fetch(`${baseUrl}/api/admin/library`, { headers: { cookie } })).json()
+  const disposableUpload = await fetch(`${baseUrl}/api/admin/photos`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/octet-stream', 'origin': allowedOrigin, cookie, 'x-csrf-token': csrfToken },
+    body: alternateFixture,
+    signal: AbortSignal.timeout(10000),
+  })
+  assert.equal(disposableUpload.status, 201)
+  const deletedId = (await disposableUpload.json()).id
+  await change(`/api/admin/photos/${deletedId}`, { visible: true, featured: true, alt: 'Disposable synthetic runtime photo' })
+  const deletionUrl = `${baseUrl}/api/admin/photos/${deletedId}`
+  for (const [headers, expected] of [
+    [{ origin: allowedOrigin }, 401],
+    [{ origin: allowedOrigin, ...importHeaders }, 401],
+    [{ origin: allowedOrigin, cookie }, 403],
+    [{ 'origin': 'https://unrelated.fixture', cookie, 'x-csrf-token': csrfToken }, 403],
+  ]) {
+    const denied = await fetch(deletionUrl, { method: 'DELETE', headers })
+    assert.equal(denied.status, expected, 'Deletion must enforce session, Origin and CSRF protections')
+    await denied.arrayBuffer()
+  }
+  const stillPresent = await fetch(`${baseUrl}/api/media/${deletedId}/full.webp`)
+  assert.equal(stillPresent.status, 200, 'Rejected deletion requests must preserve the photo')
+  await stillPresent.arrayBuffer()
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const deleted = await fetch(deletionUrl, {
+      method: 'DELETE',
+      headers: { 'origin': allowedOrigin, cookie, 'x-csrf-token': csrfToken },
+    })
+    assert.equal(deleted.status, 204, 'Deleting an existing or already-deleted photo must succeed without a body')
+    assert.equal(await deleted.text(), '')
+  }
+  assert.deepEqual(await assertPhotoDeleted(deletedId), retainedLibrary, 'Deletion must preserve every retained photo and spotlight setting')
   child.kill('SIGTERM')
   assert.ok(await waitForExit(child, 5000), 'The first runtime must shut down before restart')
   assert.equal(child.exitCode, 0, diagnosticOutput)
@@ -357,6 +408,7 @@ try {
   assert.equal(restartedImport.photo.visible, false, 'Repeating an import must not undo manual archiving')
   assert.equal(restartedImport.photo.alt, 'Owner-edited imported photo')
   await signIn()
+  assert.deepEqual(await assertPhotoDeleted(deletedId), retainedLibrary, 'Deletion and retained library settings must survive restart')
   await change(`/api/admin/photos/${photo.id}`, { visible: false })
   gallery = await (await fetch(`${baseUrl}/api/gallery`)).json()
   assert.equal(gallery.photos.length, 0)
@@ -403,9 +455,12 @@ try {
   await signIn()
   const restoredLibrary = await fetch(`${baseUrl}/api/admin/library`, { headers: { cookie } })
   assert.equal(restoredLibrary.status, 200)
-  const restoredPhotos = (await restoredLibrary.json()).photos
+  const restoredState = await restoredLibrary.json()
+  const restoredPhotos = restoredState.photos
   assert.deepEqual(restoredPhotos.map(item => item.id).sort(), [photo.id, importedId].sort())
   assert.ok(restoredPhotos.every(item => !item.visible))
+  assert.deepEqual(restoredState.settings, { ...retainedLibrary.settings, heroPhotoId: null })
+  await assertPhotoDeleted(deletedId)
   assert.deepEqual(await readFile(path.join(dataDirectory, 'photos', photo.id, 'original')), fixture)
   assert.deepEqual(await readFile(path.join(dataDirectory, 'photos', importedId, 'original')), fixture)
   const disabledImport = await fetch(importStatusUrl, { headers: importHeaders })
@@ -415,7 +470,7 @@ try {
   for (const secret of [password, passwordHash, secondaryPassword, secondaryHash, secondaryIdentityKey, importToken, importTokenHash])
     assert.equal(allDiagnostics.includes(secret), false, 'Runtime logs must not contain fixture credentials')
   assert.ok(allDiagnostics.length < 16_384, 'Authentication must not emit per-attempt diagnostics')
-  console.log(JSON.stringify({ directRuntime: 'passed', loopback: true, probeMutations: 'denied', gallery: 'upload, publication, archive and persistence passed', machineImports: 'scoped, archived, idempotent and persistent', secondaryLogin: 'schedule, lockout, primary recovery and restart passed', consistentBackupRestore: 'photos and auth state preserved', probes: 'GET/HEAD passed', repeatedSignals: 'drained' }))
+  console.log(JSON.stringify({ directRuntime: 'passed', loopback: true, probeMutations: 'denied', gallery: 'upload, publication, archive and persistence passed', deletion: 'authorized, idempotent, media removed and persistent; retained library and settings preserved', machineImports: 'scoped, archived, idempotent and persistent', secondaryLogin: 'schedule, lockout, primary recovery and restart passed', consistentBackupRestore: 'photos and auth state preserved', probes: 'GET/HEAD passed', repeatedSignals: 'drained' }))
 }
 finally {
   await stopProcessTree(child)

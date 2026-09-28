@@ -95,7 +95,7 @@ export function createApp(options: AppOptions = {}) {
   })
   app.use('/api', (request, response, next) => {
     if (request.method === 'OPTIONS') {
-      const methods = request.path.startsWith('/admin/') ? 'GET, HEAD, POST, PATCH, OPTIONS'
+      const methods = request.path.startsWith('/admin/') ? 'GET, HEAD, POST, PATCH, DELETE, OPTIONS'
         : request.path === '/import/photos' ? 'POST, OPTIONS' : allowHeader
       response.set('Allow', methods).status(204).end()
       return
@@ -243,6 +243,10 @@ export function createApp(options: AppOptions = {}) {
   }))
   app.patch('/api/admin/photos/:id', requireSession, requireOrigin, requireCsrf, json, (request, response) => {
     response.json(store().updatePhoto(String(request.params.id), request.body))
+  })
+  app.delete('/api/admin/photos/:id', requireSession, requireOrigin, requireCsrf, async (request, response) => {
+    await store().delete(request.params.id as string)
+    response.status(204).end()
   })
   app.patch('/api/admin/settings', requireSession, requireOrigin, requireCsrf, json, (request, response) => {
     response.json(store().updateSettings(request.body))

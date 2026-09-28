@@ -54,6 +54,8 @@ the source checkout, development dependencies or real providers. Tests exercise
 the compiled entrypoint, minimal GET/HEAD probes, failing/recovering readiness,
 probe method restrictions, anonymous archive denial, an authenticated synthetic
 photo upload, image conversion, publication, featured settings, archiving,
+authenticated permanent deletion of metadata and all stored image variants,
+deletion persistence through restart and backup/restore,
 scoped machine import, duplicate preservation, import identities across restart,
 repeated signals during a held HTTP connection and clean exit. Secondary-login
 fixtures use a separate temporary writable SQLite directory and synthetic
@@ -64,6 +66,10 @@ primary-login independence from secondary lockout, and consistent photo/auth
 backup and restore. Required source tests additionally cover disabled and
 malformed configuration, rolling failure windows, bounded state and hashing,
 unavailable storage with primary recovery, and independent SQLite writers.
+Source deletion tests additionally cover failed cleanup and its durable retry,
+transaction rollback, concurrency bounds, deleted import identities and additive
+schema compatibility. The deletion journal stays inside the photo database and
+requires no new writable path, dependency or service.
 The archive must start with `/app` read-only; neither authentication database nor
 real configuration may be copied into it. The complete copied tree is checked again against the trusted archive;
 a deliberately missing compiled rate-store module must fail both verification

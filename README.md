@@ -8,6 +8,12 @@ The site is based on the existing [anderson-webops/vitesse-nuxt-template](https:
 
 Open `/admin` and sign in. Tap **Add photos**, choose your pictures, then tap **Show selected**. Tap a star to make a photo a favorite; favorites appear largest. Choose **One favorite** or **Rotate favorites** at the top. **Save for later** hides a photo without deleting it. Changes save automatically.
 
+To remove an upload, tap **Delete** under its photo, or select several photos and
+tap **Delete selected**. Review the previews and confirm **Delete permanently**.
+This removes the site's original upload and display copies from its library and
+server storage. It does not delete the source picture from your phone or Apple
+Photos. Choose **Cancel** to keep the photos, or **Save for later** to hide them.
+
 ## Local development
 
 Use Node.js **24.18.1** and npm **12.0.2**. All dependency operations start at the repository root.

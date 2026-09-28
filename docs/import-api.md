@@ -65,7 +65,7 @@ node scripts/import-photos.mjs /private/staging/manifest.json --apply
 
 The client checks each source ID before uploading, sends photos one at a time, pauses and retries the same request up to three times when rate-limited, stops at other failures, and prints counts without tokens or source IDs. Rerunning is safe after interruptions, including a lost upload response. It validates supported image headers and the 25 MiB limit before upload, uses bounded request timeouts, refuses cross-host redirects, and accepts production credentials only at the two named HTTPS sites. Loopback HTTP is allowed for local synthetic tests.
 
-If a previously imported Apple Photos asset is edited later, its stable ID still resolves to the existing site photo. This API deliberately does not replace that image or its curation. A replacement workflow would be a separate explicit change. The API also does not deduplicate an earlier manual admin upload against a later library import, or detect visually identical photos with different source IDs.
+If a previously imported Apple Photos asset is edited later, its stable ID still resolves to the existing site photo. This API deliberately does not replace that image or its curation. An administrator can delete the site photo, which also clears its import identity. An explicit later import creates a new private photo; deletion does not change Apple Photos or permanently exclude the asset from future import manifests. The API also does not deduplicate an earlier manual admin upload against a later library import, or detect visually identical photos with different source IDs.
 
 ## API contract
 

@@ -134,6 +134,8 @@ async function newFixturePage(browser, viewport, scheme, empty = false) {
   let authenticated = false
   let settings = { ...fixtureSettings }
   const photos = empty ? [] : structuredClone(fixturePhotos)
+  const deletedIds = []
+  const incompleteDeletes = new Set()
   const errors = []
   page.on('pageerror', error => errors.push(error.message))
   await page.setRequestInterception(true)
@@ -147,6 +149,10 @@ async function newFixturePage(browser, viewport, scheme, empty = false) {
     const json = (body, status = 200) => request.respond({ status, contentType: 'application/json', headers, body: JSON.stringify(body) })
     const session = () => ({ authenticated, ...(authenticated ? { csrfToken: 'synthetic-accessibility-token' } : {}) })
     if (url.pathname.startsWith('/api/media/')) {
+      if (!photos.some(photo => [photo.thumbnailUrl, photo.url].includes(url.pathname))) {
+        await json({ error: 'not_found' }, 404)
+        return
+      }
       await request.respond({ status: 200, contentType: 'image/svg+xml', headers, body: '<svg xmlns="http://www.w3.org/2000/svg" width="960" height="720" viewBox="0 0 960 720"><rect width="960" height="720" fill="#42634e"/><circle cx="480" cy="360" r="190" fill="#cba87a"/><ellipse cx="430" cy="330" rx="18" ry="24" fill="#23382d"/><ellipse cx="540" cy="330" rx="18" ry="24" fill="#23382d"/></svg>' })
       return
     }
@@ -177,6 +183,26 @@ async function newFixturePage(browser, viewport, scheme, empty = false) {
       await json(settings)
       return
     }
+    if (/^\/api\/admin\/photos\/[^/]+$/.test(url.pathname) && request.method() === 'DELETE') {
+      if (!authenticated || request.headers()['x-csrf-token'] !== 'synthetic-accessibility-token') {
+        errors.push('Deletion must include the authenticated session CSRF token')
+        await json({ error: 'invalid_csrf_token' }, 403)
+        return
+      }
+      const id = url.pathname.split('/').at(-1)
+      const index = photos.findIndex(photo => photo.id === id)
+      deletedIds.push(id)
+      if (index !== -1)
+        photos.splice(index, 1)
+      if (settings.heroPhotoId === id)
+        settings = { ...settings, heroPhotoId: null }
+      if (incompleteDeletes.delete(id)) {
+        await json({ error: 'photo_delete_incomplete' }, 503)
+        return
+      }
+      await request.respond({ status: 204, headers })
+      return
+    }
     errors.push(`Unexpected fixture API request: ${request.method()} ${url.pathname}`)
     await json({ error: 'not_found' }, 404)
   })
@@ -201,7 +227,7 @@ async function newFixturePage(browser, viewport, scheme, empty = false) {
       failures.push(result)
     else console.log(`a11y ok: ${state} [${name}, ${scheme}]`)
   }
-  return { page, navigate, scan }
+  return { page, navigate, scan, failNextDelete: id => incompleteDeletes.add(id), fixtureState: () => structuredClone({ photos, settings, deletedIds }) }
 }
 
 async function publicChecks(browser, viewport, scheme) {
@@ -234,6 +260,19 @@ async function publicChecks(browser, viewport, scheme) {
 
 async function adminChecks(browser, viewport, scheme) {
   const admin = await newFixturePage(browser, viewport, scheme)
+  const deleteDialog = 'dialog[aria-labelledby="delete-heading"][open]'
+  async function clickButton(selector, label) {
+    for (const button of await admin.page.$$(selector)) {
+      if (await button.evaluate(element => element.textContent.trim()) === label) {
+        await button.click()
+        return
+      }
+    }
+    assert.fail(`Missing button: ${label}`)
+  }
+  async function waitForDeleteDialogToClose() {
+    await admin.page.waitForFunction(selector => !document.querySelector(selector), {}, deleteDialog)
+  }
   try {
     await admin.navigate('/admin')
     await admin.page.waitForSelector('#password')
@@ -256,6 +295,77 @@ async function adminChecks(browser, viewport, scheme) {
     await admin.page.waitForSelector('.details-dialog[open]')
     await admin.scan('admin photo description dialog')
     await admin.page.keyboard.press('Escape')
+    await admin.page.waitForFunction(() => !document.querySelector('.details-dialog[open]'))
+    await admin.page.click('.photo-select input')
+
+    // Cancellation must not send a DELETE, and keyboard focus returns to the
+    // unchanged trigger. Confirming removes only the synthetic archived photo.
+    await admin.page.click('button[aria-label="Delete photo 1"]')
+    await admin.page.waitForSelector(deleteDialog)
+    assert.equal(await admin.page.$eval(`${deleteDialog} h2`, heading => heading.textContent.trim()), 'Delete this photo permanently?')
+    assert.equal(await admin.page.evaluate(() => document.activeElement?.textContent.trim()), 'Cancel', 'Deletion must initially focus the safe action')
+    await admin.scan('admin single photo delete confirmation')
+    await admin.page.keyboard.press('Escape')
+    await waitForDeleteDialogToClose()
+    assert.deepEqual(admin.fixtureState().deletedIds, [], 'Cancelling must not send a deletion request')
+    assert.equal(admin.fixtureState().photos.length, fixturePhotos.length)
+    assert.equal(await admin.page.$eval('button[aria-label="Delete photo 1"]', button => button === document.activeElement), true)
+    await admin.page.click('button[aria-label="Delete photo 1"]')
+    await admin.page.waitForSelector(deleteDialog)
+    await clickButton(`${deleteDialog} button`, 'Delete permanently')
+    await waitForDeleteDialogToClose()
+    await admin.page.waitForSelector('.empty-library')
+    assert.deepEqual(admin.fixtureState().deletedIds, [fixturePhotos[6].id])
+    assert.deepEqual(admin.fixtureState().photos, fixturePhotos.slice(0, 6), 'A single deletion must preserve every unselected photo')
+    assert.deepEqual(admin.fixtureState().settings, fixtureSettings, 'Deleting an archived photo must preserve the spotlight')
+
+    await admin.page.click('.filter-tabs button:nth-child(3)')
+    await admin.page.waitForFunction(() => document.querySelectorAll('.photo-card').length === 6)
+    await admin.page.click('.photo-card:nth-child(1) .photo-select input')
+    await admin.page.click('.photo-card:nth-child(2) .photo-select input')
+    await clickButton('.selection-bar button', 'Delete selected')
+    await admin.page.waitForSelector(deleteDialog)
+    assert.equal(await admin.page.$eval(`${deleteDialog} h2`, heading => heading.textContent.trim()), 'Delete 2 photos permanently?')
+    await admin.scan('admin selected photos delete confirmation')
+    await clickButton(`${deleteDialog} button`, 'Cancel')
+    await waitForDeleteDialogToClose()
+    assert.deepEqual(admin.fixtureState().deletedIds, [fixturePhotos[6].id], 'Cancelling a selection must preserve every selected photo')
+    assert.equal(await admin.page.$$eval('.photo-select input:checked', elements => elements.length), 2)
+    await clickButton('.selection-bar button', 'Delete selected')
+    await admin.page.waitForSelector(deleteDialog)
+    await clickButton(`${deleteDialog} button`, 'Delete permanently')
+    await waitForDeleteDialogToClose()
+    await admin.page.waitForFunction(() => document.querySelectorAll('.photo-card').length === 4 && !document.querySelector('.selection-bar'))
+    assert.deepEqual(admin.fixtureState().deletedIds, [fixturePhotos[6].id, fixturePhotos[0].id, fixturePhotos[1].id])
+    assert.deepEqual(admin.fixtureState().photos, fixturePhotos.slice(2, 6), 'Selected deletion must preserve all remaining photo metadata')
+    assert.deepEqual(admin.fixtureState().settings, { ...fixtureSettings, heroPhotoId: null }, 'Deleting the cover must only clear its selection')
+    await admin.scan('admin after confirmed photo deletions')
+    if (viewport.name === 'desktop' && scheme === 'light') {
+      admin.failNextDelete(fixturePhotos[3].id)
+      await admin.page.click('.photo-card:nth-child(1) .photo-select input')
+      await admin.page.click('.photo-card:nth-child(2) .photo-select input')
+      await clickButton('.selection-bar button', 'Delete selected')
+      await admin.page.waitForSelector(deleteDialog)
+      await clickButton(`${deleteDialog} button`, 'Delete permanently')
+      await admin.page.waitForSelector(`${deleteDialog} .error-message`)
+      await admin.page.waitForFunction(() => document.querySelector('.delete-confirm')?.disabled === false)
+      assert.match(await admin.page.$eval(`${deleteDialog} .success-message`, node => node.textContent), /1 photo deleted/)
+      await admin.scan('admin interrupted deletion and retry')
+      await clickButton(`${deleteDialog} button`, 'Cancel')
+      await waitForDeleteDialogToClose()
+      assert.equal(await admin.page.$$eval('.photo-select input:checked', nodes => nodes.length), 1)
+      assert.equal(await admin.page.$eval('.photo-card .visibility-button', button => button.disabled && button.textContent.includes('Removal pending')), true)
+      assert.equal(await admin.page.$eval('.photo-card .card-preview', button => button.disabled), true)
+      await clickButton('.selection-bar button', 'Delete selected')
+      await admin.page.waitForSelector(deleteDialog)
+      await clickButton(`${deleteDialog} button`, 'Delete permanently')
+      await waitForDeleteDialogToClose()
+      await admin.page.waitForFunction(() => document.querySelectorAll('.photo-card').length === 2 && !document.querySelector('.selection-bar'))
+      assert.equal(admin.fixtureState().deletedIds.filter(id => id === fixturePhotos[2].id).length, 1, 'Successful deletions must not repeat on retry')
+      assert.equal(admin.fixtureState().deletedIds.filter(id => id === fixturePhotos[3].id).length, 2, 'Only the unfinished deletion should retry')
+      assert.deepEqual(admin.fixtureState().photos, fixturePhotos.slice(4, 6))
+      await admin.scan('admin after retrying unfinished deletion')
+    }
   }
   finally { await admin.page.close() }
 }

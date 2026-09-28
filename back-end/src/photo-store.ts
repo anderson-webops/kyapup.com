@@ -50,6 +50,7 @@ export class GalleryError extends Error {
 type PhotoRow = Omit<Photo, 'visible' | 'featured' | 'url' | 'thumbnailUrl'> & { visible: number, featured: number }
 const maxPixels = 60_000_000
 const maxDimension = 20_000
+const photoIdPattern = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/
 export const maxUploadBytes = 25 * 1024 * 1024
 
 function photoFromRow(row: PhotoRow): Photo {
@@ -72,6 +73,9 @@ export class PhotoStore {
   private readonly database: DatabaseSync
   private readonly photosDirectory: string
   private closed = false
+  private readonly deletionsInFlight = new Map<string, Promise<void>>()
+  private deletionSweep?: Promise<void>
+  private readonly deletionTimer: ReturnType<typeof setInterval>
 
   constructor(readonly directory: string) {
     mkdirSync(directory, { recursive: true, mode: 0o700 })
@@ -112,8 +116,17 @@ export class PhotoStore {
         contentSha256 TEXT NOT NULL CHECK (length(contentSha256) = 64),
         PRIMARY KEY (source, externalId)
       );
+      -- Additive journal: schema-2 readers can still read the remaining library.
+      -- Keep jobs until the original and both derivatives have been removed.
+      CREATE TABLE IF NOT EXISTS photo_deletions (
+        id TEXT PRIMARY KEY,
+        attemptedAt INTEGER NOT NULL DEFAULT 0
+      );
       PRAGMA user_version = 2;
     `)
+    void this.retryDeletions()
+    this.deletionTimer = setInterval(() => { void this.retryDeletions() }, 60_000)
+    this.deletionTimer.unref()
   }
 
   isReady() {
@@ -132,6 +145,7 @@ export class PhotoStore {
   close() {
     if (this.closed) return
     this.closed = true
+    clearInterval(this.deletionTimer)
     this.database.close()
   }
 
@@ -151,6 +165,67 @@ export class PhotoStore {
 
   async upload(bytes: Buffer): Promise<Photo> {
     return (await this.saveUpload(bytes)).photo
+  }
+
+  async delete(id: string): Promise<void> {
+    if (!photoIdPattern.test(id)) throw new GalleryError(404, 'photo_not_found')
+    if (this.deletionsInFlight.has(id)) return this.deletionsInFlight.get(id)!
+    if (this.deletionsInFlight.size >= 2) throw new GalleryError(503, 'delete_busy')
+    // Revoke all references atomically before removing files. If interrupted,
+    // the persistent journal retries cleanup without making the photo accessible.
+    this.database.exec('BEGIN IMMEDIATE')
+    try {
+      if (this.getPhoto(id)) {
+        this.database.prepare('INSERT OR IGNORE INTO photo_deletions (id) VALUES (?)').run(id)
+        this.database.prepare('UPDATE settings SET heroPhotoId = NULL WHERE heroPhotoId = ?').run(id)
+        this.database.prepare('DELETE FROM photo_imports WHERE photoId = ?').run(id)
+        this.database.prepare('DELETE FROM photos WHERE id = ?').run(id)
+      }
+      this.database.exec('COMMIT')
+    }
+    catch (error) {
+      this.database.exec('ROLLBACK')
+      throw error
+    }
+    // A supplied UUID alone never authorizes filesystem cleanup.
+    if (this.database.prepare('SELECT id FROM photo_deletions WHERE id = ?').get(id))
+      await this.finishDeletion(id)
+  }
+
+  private finishDeletion(id: string): Promise<void> {
+    const pending = this.deletionsInFlight.get(id)
+    if (pending) return pending
+    if (this.closed || !photoIdPattern.test(id)) return Promise.reject(new GalleryError(503, 'photo_delete_incomplete'))
+    if (this.deletionsInFlight.size >= 2) return Promise.reject(new GalleryError(503, 'delete_busy'))
+    const cleanup = Promise.resolve().then(async () => {
+      try {
+        this.database.prepare('UPDATE photo_deletions SET attemptedAt = ? WHERE id = ?').run(Date.now(), id)
+        await rm(resolve(this.photosDirectory, id), { recursive: true, force: true })
+        if (!this.closed) this.database.prepare('DELETE FROM photo_deletions WHERE id = ?').run(id)
+      }
+      catch {
+        throw new GalleryError(503, 'photo_delete_incomplete')
+      }
+    }).finally(() => { this.deletionsInFlight.delete(id) })
+    this.deletionsInFlight.set(id, cleanup)
+    return cleanup
+  }
+
+  private retryDeletions(): Promise<void> {
+    if (this.deletionSweep) return this.deletionSweep
+    this.deletionSweep = (async () => {
+      try {
+        if (this.closed) return
+        const jobs = this.database.prepare('SELECT id FROM photo_deletions ORDER BY attemptedAt, id LIMIT 16').all() as Array<{ id: string }>
+        for (const { id } of jobs) {
+          if (this.closed) break
+          try { await this.finishDeletion(id) }
+          catch { /* Retain the job for a later pass; never log private photo data. */ }
+        }
+      }
+      catch { /* A later pass can retry when storage is available again. */ }
+    })().finally(() => { this.deletionSweep = undefined })
+    return this.deletionSweep
   }
 
   findImport(identity: ImportIdentity): Photo | null {

@@ -33,6 +33,16 @@ Media responses use `Cache-Control: no-store` so archive changes are not undermi
 by a deliberately cacheable public image endpoint. A viewer can still save a photo
 while it is public; later archiving cannot revoke already downloaded copies.
 
+Permanent deletion requires the same browser session, Origin and CSRF checks as
+other administrator changes. Import credentials cannot delete. A transaction
+removes the photo metadata, import identity and selected-cover reference while
+recording a private cleanup job in the existing library database. Media access
+is revoked before asynchronous removal of the original and both derivatives.
+Successful deletion returns only after file cleanup. Failed cleanup stays queued
+for an idempotent retry, restart recovery or a bounded periodic pass. At most two
+cleanup operations run concurrently, with at most 16 jobs per background pass.
+Deletion does not alter unrelated photos, settings or authentication state.
+
 The runtime account alone owns the mode `0700` state directory. Nginx proxies
 media requests through the API and never serves that directory as static content.
 The production archive verifier rejects database extensions and undeclared native

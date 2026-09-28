@@ -72,7 +72,7 @@ PUBLIC_HOST=kyapup.com NODE_BIN_DIR=/opt/node-24.18.1/bin \
 
 The promoter treats candidate code only as data and verifies it against the original protected archive. An exclusive lock protects the transaction. It atomically changes `current`, restarts only the reviewed API, and checks health, readiness, exact release identity, page headers, probe method restrictions and unknown-route behavior through local IPv4 and IPv6 TLS paths. Manifests require readiness; legacy pre-manifest releases retain the older health gate.
 
-After a successful promotion, verify the same page and gallery on `https://kyagirl.com`, then sign in at `/admin`, upload a harmless photo to the archive, preview it, publish it, feature it, change the timer, and return it to the archive. Check that an anonymous browser can no longer open its media URL. Keep the test photo archived afterward; do not remove individual storage files by hand. These are operator checks; source delivery does not establish that either domain is live.
+After a successful promotion, verify the same page and gallery on `https://kyagirl.com`, then sign in at `/admin`, upload a harmless synthetic photo to the archive, preview it, publish it, feature it, change the timer, and return it to the archive. Check that an anonymous browser can no longer open its media URL. Exercise Delete and Cancel with this synthetic photo, then confirm Delete permanently and verify it disappears from the library and its media URLs return 404. Do not delete an owner's photo for acceptance or remove individual storage files by hand. These are operator checks; source delivery does not establish that either domain is live.
 
 ## Backups, restart and rollback
 
@@ -85,6 +85,15 @@ Routine restart: `systemctl restart kyapup-api.service`. Check `systemctl status
 Unsuccessful promotion, including HUP/INT/TERM, restores the previous release pointer and verifies that release. On first deployment failure, the helper removes only the newly created pointer and stops the new service. Recovery continues after individual errors; a failed rollback retains a mode `0600` record inside the protected mode `0700` `.deployment-recovery/` directory. Preserve it and the retained release for operator recovery.
 
 Application rollback preserves `/var/lib/kyapup` and all uploads. The initial application uses SQLite schema 2, including an additive private import-identity table. Preserve these identities with the rest of the library so repeat imports remain duplicates. Future schema changes must declare backward compatibility before release. Do not restore an older database over newer uploads as part of ordinary code rollback. If a future migration is incompatible, stop the API and restore the complete matching state snapshot only after reviewing any uploads created since that snapshot.
+
+The v1.2.0 photo-removal feature adds only a `photo_deletions` journal table and
+keeps schema version 2. Existing releases can read the remaining library and
+ignore this additional table. Preserve the whole database during rollback;
+unfinished file cleanup resumes when v1.2.0 or newer runs again. Do not restore
+an older photo database to undo a code deployment, because doing so can revive
+deleted metadata or lose newer uploads. This release requires no new environment
+settings or service permissions. Preserve primary/import credentials and any
+secondary-authentication settings and activation date exactly as installed.
 
 Administrative path operands must be absolute without `.` or `..`. For reviewed alternate topology, use `SERVICE_NAME` and `HEALTH_URL`; readiness preserves the same origin/port and changes `/health` or `/healthz` to `/readyz`. A custom health path requires an explicit same-origin `READINESS_URL`.
 
