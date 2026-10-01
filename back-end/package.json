@@ -26,11 +26,11 @@
   "author": "Jacob Anderson",
   "license": "MIT",
   "dependencies": {
-    "dotenv": "^17.4.2",
+    "dotenv": "^18.0.4",
     "express": "^5.2.1",
     "express-rate-limit": "^8.6.1",
     "helmet": "^8.1.0",
-    "sharp": "^0.35.4"
+    "sharp": "^0.35.5"
   },
   "overrides": {
     "nanoid@^3": "3.3.18",
