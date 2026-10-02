@@ -52,16 +52,16 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^9.2.0",
-    "@netlify/functions": "^5.3.0",
-    "@types/node": "^24.13.3",
-    "@typescript-eslint/types": "^8.65.0",
+    "@netlify/functions": "^6.0.0",
+    "@types/node": "^24.19.0",
+    "@typescript-eslint/types": "^8.71.0",
     "@unocss/eslint-plugin": "^66.7.5",
     "axe-core": "^4.11.4",
     "eslint": "^10.8.0",
     "eslint-plugin-format": "^2.0.1",
-    "puppeteer-core": "^25.4.0",
+    "puppeteer-core": "^25.12.0",
     "simple-git-hooks": "^2.13.1",
-    "taze": "^19.16.0",
+    "taze": "^21.2.0",
     "typescript": "^6.0.3"
   },
   "allowScripts": {
