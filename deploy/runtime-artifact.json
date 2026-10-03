@@ -25,8 +25,8 @@
     "front-end/.output/public/404.html",
     "front-end/.output/public/release.json",
     "back-end/node_modules/sharp/dist/index.mjs",
-    "back-end/node_modules/@img/sharp-linux-arm64/lib/sharp-linux-arm64-0.35.4.node",
-    "back-end/node_modules/@img/sharp-libvips-linux-arm64/lib/libvips-cpp.so.8.18.6"
+    "back-end/node_modules/@img/sharp-linux-arm64/lib/sharp-linux-arm64-0.35.5.node",
+    "back-end/node_modules/@img/sharp-libvips-linux-arm64/lib/libvips-cpp.so.8.18.7"
   ],
   "runtime": {
     "os": "linux",
@@ -38,8 +38,8 @@
   "modulesOutsideDist": [],
   "generatedClients": [],
   "nativeBindings": [
-    "back-end/node_modules/@img/sharp-linux-arm64/lib/sharp-linux-arm64-0.35.4.node",
-    "back-end/node_modules/@img/sharp-libvips-linux-arm64/lib/libvips-cpp.so.8.18.6"
+    "back-end/node_modules/@img/sharp-linux-arm64/lib/sharp-linux-arm64-0.35.5.node",
+    "back-end/node_modules/@img/sharp-libvips-linux-arm64/lib/libvips-cpp.so.8.18.7"
   ],
   "staticAssets": [
     "front-end/.output/public"

@@ -6,3 +6,5 @@ Kyapup adopts the reviewed Vitesse template `v2.1.4` fixes for two unpatched tra
 - `vendor/braces` bounds parser and AST-walker nesting while preserving ordinary patterns. This addresses [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm).
 
 The root test command checks fork behavior and lockfile resolution. Retain these forks until reviewed upstream fixes pass the same tests, full/production/API audits, and exact runtime-artifact acceptance. This change does not relax protected gallery, upload, authentication, or host promotion boundaries.
+
+The refreshed lock also carries Sharp `0.35.5` and its Linux ARM64 libvips package `1.3.4`. The runtime contract names their verified native filenames exactly, so the artifact gate rejects mismatched or missing bindings.
