@@ -34,7 +34,7 @@
     "@unocss/eslint-config": "^66.5.4",
     "@unocss/nuxt": "^66.5.4",
     "@vue/compiler-sfc": "^3.5.40",
-    "@vueuse/nuxt": "^14.0.0",
+    "@vueuse/nuxt": "^15.0.0",
     "c12": "^3.3.4",
     "nuxt": "^4.5.1",
     "nuxt-security": "^2.6.0",
