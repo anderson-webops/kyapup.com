@@ -62,7 +62,13 @@ assert(/--ipv4/.test(directPromote) && /--ipv6/.test(directPromote), 'Promotion 
 assert(/if \[\[ -L "\$current_link" \]\]; then/.test(directPromote), 'First promotion must not invent a rollback target')
 assert(/restoring the previous direct release/i.test(directPromote), 'Promotion must provide source rollback')
 
-for (const removedPath of ['.dockerignore', 'Dockerfile', 'compose.yaml', 'docker-compose.yml', 'nginx.conf']) {
+for (const removedPath of [
+  '.dockerignore',
+  'Dockerfile',
+  'compose.yaml',
+  'docker-compose.yml',
+  'nginx.conf',
+]) {
   try {
     await access(resolve(projectRoot, removedPath))
     throw new Error(`${removedPath} must be absent from the direct production template`)

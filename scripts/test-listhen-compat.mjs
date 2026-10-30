@@ -66,7 +66,10 @@ test('local listhen fork preserves HTTP and certificate modes without node-forge
   assert.ok(Object.entries(lockfile.packages).every(([path, entry]) =>
     !/(?:^|\/)node_modules\/node-forge$/u.test(path) && !entry.dependencies?.['node-forge']))
 
-  const cli = spawnSync(process.execPath, [join(projectRoot, 'vendor/listhen/bin/listhen.mjs'), '--help'], { encoding: 'utf8' })
+  const cli = spawnSync(process.execPath, [
+    join(projectRoot, 'vendor/listhen/bin/listhen.mjs'),
+    '--help',
+  ], { encoding: 'utf8' })
   assert.equal(cli.status, 0, cli.stderr)
   assert.match(`${cli.stdout}\n${cli.stderr}`, /listhen|Usage/iu)
 
@@ -80,7 +83,10 @@ test('local listhen fork preserves HTTP and certificate modes without node-forge
   const directory = await mkdtemp(join(scratchRoot, 'listhen-compat-'))
   scratchDirectories.push(directory)
   let certificate
-  await withListener(esm.listen, { domains: ['localhost', '127.0.0.1', '::1'], validityDays: 1 }, async (listener) => {
+  await withListener(esm.listen, {
+    domains: ['localhost', '127.0.0.1', '::1'],
+    validityDays: 1,
+  }, async (listener) => {
     assert.deepEqual(await getSecureResponse(listener.url), { status: 200, body: 'ok' })
     const issued = new X509Certificate(listener.https.cert)
     assert.equal(issued.checkHost('localhost'), 'localhost')

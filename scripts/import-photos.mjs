@@ -15,7 +15,9 @@ function safeMessage(error) {
     return 'The manifest is not valid JSON.'
   if (error && typeof error === 'object' && 'code' in error)
     return 'An exported file or manifest could not be read. Check that it exists and is accessible.'
-  return error instanceof Error ? error.message : 'Import failed.'
+  return error instanceof Error
+    ? error.message
+    : 'Import failed.'
 }
 
 function imageHeader(bytes) {
@@ -96,7 +98,12 @@ export async function runImport(photos, { site, token, log = console.log }) {
     for (let attempt = 0; ; attempt++) {
       const response = await fetch(url, {
         method,
-        headers: { Authorization: `Bearer ${token}`, ...(body ? { 'Content-Type': 'application/octet-stream' } : {}) },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          ...(body
+            ? { 'Content-Type': 'application/octet-stream' }
+            : {}),
+        },
         body,
         redirect: 'error',
         signal: AbortSignal.timeout(120_000),
@@ -110,7 +117,9 @@ export async function runImport(photos, { site, token, log = console.log }) {
       }
       if (response.status === 429 && attempt < 3) {
         const requested = Number(response.headers.get('Retry-After') ?? 60)
-        const seconds = Number.isFinite(requested) ? Math.min(120, Math.max(1, requested)) : 60
+        const seconds = Number.isFinite(requested)
+          ? Math.min(120, Math.max(1, requested))
+          : 60
         log('The server is busy; pausing before retrying this photo.')
         await wait(seconds * 1000 + 250)
         continue
@@ -124,7 +133,7 @@ export async function runImport(photos, { site, token, log = console.log }) {
     try {
       const status = await api('status', photo)
       if (typeof status.exists !== 'boolean')
-        throw new Error('The server returned an unexpected import status.')
+        throw new TypeError('The server returned an unexpected import status.')
       if (status.exists) {
         result.skipped++
         log(`Photo ${index + 1}/${photos.length}: already saved; unchanged.`)

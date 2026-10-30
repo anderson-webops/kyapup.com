@@ -10,7 +10,9 @@ import os from 'node:os'
 import path from 'node:path'
 import process from 'node:process'
 
-const repositoryRoot = process.argv[2] ? path.resolve(process.argv[2]) : path.resolve(import.meta.dirname, '..')
+const repositoryRoot = process.argv[2]
+  ? path.resolve(process.argv[2])
+  : path.resolve(import.meta.dirname, '..')
 
 async function reservePort() {
   const server = net.createServer()
@@ -20,7 +22,9 @@ async function reservePort() {
   })
   const address = server.address()
   assert.ok(address && typeof address === 'object')
-  await new Promise((resolveClose, reject) => server.close(error => error ? reject(error) : resolveClose()))
+  await new Promise((resolveClose, reject) => server.close(error => error
+    ? reject(error)
+    : resolveClose()))
   return address.port
 }
 
@@ -48,7 +52,9 @@ async function waitForExit(child, timeoutMs) {
 async function stopProcessTree(child) {
   if (!child.pid || !isRunning(child))
     return
-  const target = process.platform === 'win32' ? child.pid : -child.pid
+  const target = process.platform === 'win32'
+    ? child.pid
+    : -child.pid
   try {
     process.kill(target, 'SIGTERM')
   }
@@ -70,7 +76,9 @@ async function waitForHealth(baseUrl, child, diagnostics) {
     if (!isRunning(child))
       throw new Error(`Direct API exited before health: ${diagnostics()}`)
     try {
-      const response = await fetch(`${baseUrl}/api/health`, { signal: AbortSignal.timeout(2_000) })
+      const response = await fetch(`${baseUrl}/api/health`, {
+        signal: AbortSignal.timeout(2_000),
+      })
       await response.arrayBuffer()
       if (response.ok)
         return
@@ -91,7 +99,12 @@ const authDirectory = await realpath(await mkdtemp(path.join(os.tmpdir(), 'kyapu
 const backupDirectory = await mkdtemp(path.join(os.tmpdir(), 'kyapup-backup-runtime-'))
 const password = 'Synthetic-gallery-password-only'
 const salt = Buffer.alloc(16, 7)
-const passwordHash = `scrypt$32768$8$1$${salt.toString('hex')}$${scryptSync(password, salt, 64, { N: 32768, r: 8, p: 1, maxmem: 64 * 1024 * 1024 }).toString('hex')}`
+const passwordHash = `scrypt$32768$8$1$${salt.toString('hex')}$${scryptSync(password, salt, 64, {
+  N: 32768,
+  r: 8,
+  p: 1,
+  maxmem: 64 * 1024 * 1024,
+}).toString('hex')}`
 const allowedOrigin = 'https://kyapup.fixture'
 const importToken = Buffer.alloc(32, 11).toString('base64url')
 const importTokenHash = createHash('sha256').update(importToken).digest('hex')
@@ -99,7 +112,12 @@ const importQuery = '?source=apple-photos&externalId=synthetic-runtime-photo-001
 const importHeaders = { authorization: `Bearer ${importToken}` }
 const secondaryPassword = 'pup'
 const secondarySalt = Buffer.alloc(16, 17)
-const secondaryHash = `scrypt$32768$8$1$${secondarySalt.toString('hex')}$${scryptSync(secondaryPassword, secondarySalt, 64, { N: 32768, r: 8, p: 1, maxmem: 64 * 1024 * 1024 }).toString('hex')}`
+const secondaryHash = `scrypt$32768$8$1$${secondarySalt.toString('hex')}$${scryptSync(secondaryPassword, secondarySalt, 64, {
+  N: 32768,
+  r: 8,
+  p: 1,
+  maxmem: 64 * 1024 * 1024,
+}).toString('hex')}`
 const secondaryIdentityKey = Buffer.alloc(32, 19).toString('hex')
 let secondaryNotBefore = new Date(Date.now() + 86_400_000).toISOString()
 let diagnosticOutput = ''
@@ -127,7 +145,9 @@ function startRuntime(importEnabled = true) {
       ADMIN_SECONDARY_STATE_MAX_ENTRIES: '10000',
       ADMIN_SECONDARY_STATE_PATH: path.join(authDirectory, 'login-state.sqlite'),
       ADMIN_SECONDARY_ID_HMAC_KEY: secondaryIdentityKey,
-      ...(importEnabled ? { PHOTO_IMPORT_TOKEN_SHA256: importTokenHash } : {}),
+      ...(importEnabled
+        ? { PHOTO_IMPORT_TOKEN_SHA256: importTokenHash }
+        : {}),
     },
     stdio: ['ignore', 'pipe', 'pipe'],
   })
@@ -174,7 +194,12 @@ async function signIn() {
 async function change(route, body) {
   const response = await fetch(`${baseUrl}${route}`, {
     method: 'PATCH',
-    headers: { 'content-type': 'application/json', 'origin': allowedOrigin, cookie, 'x-csrf-token': csrfToken },
+    headers: {
+      'content-type': 'application/json',
+      'origin': allowedOrigin,
+      cookie,
+      'x-csrf-token': csrfToken,
+    },
     body: JSON.stringify(body),
     signal: AbortSignal.timeout(5000),
   })
@@ -182,14 +207,19 @@ async function change(route, body) {
   return response.json()
 }
 async function assertPhotoDeleted(id) {
-  const library = await fetch(`${baseUrl}/api/admin/library`, { headers: { cookie } })
+  const library = await fetch(`${baseUrl}/api/admin/library`, {
+    headers: { cookie },
+  })
   assert.equal(library.status, 200)
   const saved = await library.json()
   assert.equal(saved.photos.some(item => item.id === id), false, 'Deleted photos must be absent from the library')
   const publicGallery = await (await fetch(`${baseUrl}/api/gallery`)).json()
   assert.equal(publicGallery.photos.some(item => item.id === id), false, 'Deleted photos must be absent from the public gallery')
   for (const variant of ['thumb.webp', 'full.webp']) {
-    for (const headers of [{}, { cookie }]) {
+    for (const headers of [
+      {},
+      { cookie },
+    ]) {
       const response = await fetch(`${baseUrl}/api/media/${id}/${variant}`, { headers })
       assert.equal(response.status, 404, 'Deleted media must be unavailable to visitors and administrators')
       await response.arrayBuffer()
@@ -202,7 +232,9 @@ async function assertPhotoDeleted(id) {
 try {
   await waitForHealth(baseUrl, child, () => diagnosticOutput.trim())
 
-  const health = await fetch(`${baseUrl}/api/health`, { signal: AbortSignal.timeout(5_000) })
+  const health = await fetch(`${baseUrl}/api/health`, {
+    signal: AbortSignal.timeout(5_000),
+  })
   assert.equal(health.status, 200)
   assert.deepEqual(await health.json(), { ok: true })
   assert.equal(health.headers.get('cache-control'), 'no-store')
@@ -219,13 +251,24 @@ try {
   assert.equal(mutation.status, 405)
   assert.deepEqual(await mutation.json(), { error: 'method_not_allowed' })
 
-  const reserved = await fetch(`${baseUrl}/admin`, { signal: AbortSignal.timeout(5_000) })
+  const reserved = await fetch(`${baseUrl}/admin`, {
+    signal: AbortSignal.timeout(5_000),
+  })
   assert.equal(reserved.status, 404)
   assert.deepEqual(await reserved.json(), { error: 'not_found' })
 
-  for (const route of ['/healthz', '/readyz', '/api/healthz', '/api/readyz']) {
+  for (const route of [
+    '/healthz',
+    '/readyz',
+    '/api/healthz',
+    '/api/readyz',
+  ]) {
     for (const method of ['GET', 'HEAD']) {
-      const response = await fetch(`${baseUrl}${route}`, { method, signal: AbortSignal.timeout(2000), redirect: 'manual' })
+      const response = await fetch(`${baseUrl}${route}`, {
+        method,
+        signal: AbortSignal.timeout(2000),
+        redirect: 'manual',
+      })
       assert.equal(response.status, 200)
       assert.equal(response.headers.get('cache-control'), 'no-store')
       assert.equal(response.headers.get('set-cookie'), null)
@@ -243,10 +286,22 @@ try {
   await secondaryLogin(secondaryPassword, 401)
   const require = createRequire(path.join(repositoryRoot, 'back-end/package.json'))
   const sharp = require('sharp')
-  const fixture = await sharp({ create: { width: 32, height: 24, channels: 3, background: '#db9e63' } }).png().toBuffer()
+  const fixture = await sharp({
+    create: {
+      width: 32,
+      height: 24,
+      channels: 3,
+      background: '#db9e63',
+    },
+  }).png().toBuffer()
   const upload = await fetch(`${baseUrl}/api/admin/photos`, {
     method: 'POST',
-    headers: { 'content-type': 'application/octet-stream', 'origin': allowedOrigin, cookie, 'x-csrf-token': csrfToken },
+    headers: {
+      'content-type': 'application/octet-stream',
+      'origin': allowedOrigin,
+      cookie,
+      'x-csrf-token': csrfToken,
+    },
     body: fixture,
     signal: AbortSignal.timeout(10000),
   })
@@ -254,14 +309,18 @@ try {
   const photo = await upload.json()
   assert.equal(typeof photo.id, 'string')
   assert.deepEqual(await readFile(path.join(dataDirectory, 'photos', photo.id, 'original')), fixture)
-  const original = await fetch(`${baseUrl}/api/media/${photo.id}/original`, { headers: { cookie } })
+  const original = await fetch(`${baseUrl}/api/media/${photo.id}/original`, {
+    headers: { cookie },
+  })
   assert.equal(original.status, 404, 'Original uploads must never have a serving route')
   await original.arrayBuffer()
   const mediaUrl = `${baseUrl}/api/media/${photo.id}/full.webp`
   let media = await fetch(mediaUrl)
   assert.equal(media.status, 404, 'A new upload must remain private until selected')
   await media.arrayBuffer()
-  media = await fetch(mediaUrl, { headers: { cookie } })
+  media = await fetch(mediaUrl, {
+    headers: { cookie },
+  })
   assert.equal(media.status, 200)
   assert.match(media.headers.get('content-type'), /^image\/webp/)
   const rendered = await sharp(Buffer.from(await media.arrayBuffer())).metadata()
@@ -284,7 +343,9 @@ try {
   const anonymousImport = await fetch(importStatusUrl)
   assert.equal(anonymousImport.status, 401)
   await anonymousImport.arrayBuffer()
-  const wrongImportCredential = await fetch(importStatusUrl, { headers: { authorization: `Bearer ${Buffer.alloc(32, 12).toString('base64url')}` } })
+  const wrongImportCredential = await fetch(importStatusUrl, {
+    headers: { authorization: `Bearer ${Buffer.alloc(32, 12).toString('base64url')}` },
+  })
   assert.equal(wrongImportCredential.status, 401)
   await wrongImportCredential.arrayBuffer()
   const absentImport = await fetch(importStatusUrl, { headers: importHeaders })
@@ -316,7 +377,14 @@ try {
   assert.equal(importSettings.status, 401, 'An import token must not change site settings')
   await importSettings.arrayBuffer()
   await change(`/api/admin/photos/${importedId}`, { visible: true, featured: true, alt: 'Owner-edited imported photo' })
-  const alternateFixture = await sharp({ create: { width: 32, height: 24, channels: 3, background: '#456abc' } }).png().toBuffer()
+  const alternateFixture = await sharp({
+    create: {
+      width: 32,
+      height: 24,
+      channels: 3,
+      background: '#456abc',
+    },
+  }).png().toBuffer()
   const duplicateImport = await fetch(importPhotoUrl, {
     method: 'POST',
     headers: { ...importHeaders, 'content-type': 'application/octet-stream' },
@@ -333,10 +401,17 @@ try {
   assert.deepEqual(await readFile(path.join(dataDirectory, 'photos', importedId, 'original')), fixture, 'Duplicate imports must preserve the original bytes')
   await change(`/api/admin/photos/${importedId}`, { visible: false })
 
-  const retainedLibrary = await (await fetch(`${baseUrl}/api/admin/library`, { headers: { cookie } })).json()
+  const retainedLibrary = await (await fetch(`${baseUrl}/api/admin/library`, {
+    headers: { cookie },
+  })).json()
   const disposableUpload = await fetch(`${baseUrl}/api/admin/photos`, {
     method: 'POST',
-    headers: { 'content-type': 'application/octet-stream', 'origin': allowedOrigin, cookie, 'x-csrf-token': csrfToken },
+    headers: {
+      'content-type': 'application/octet-stream',
+      'origin': allowedOrigin,
+      cookie,
+      'x-csrf-token': csrfToken,
+    },
     body: alternateFixture,
     signal: AbortSignal.timeout(10000),
   })
@@ -345,10 +420,22 @@ try {
   await change(`/api/admin/photos/${deletedId}`, { visible: true, featured: true, alt: 'Disposable synthetic runtime photo' })
   const deletionUrl = `${baseUrl}/api/admin/photos/${deletedId}`
   for (const [headers, expected] of [
-    [{ origin: allowedOrigin }, 401],
-    [{ origin: allowedOrigin, ...importHeaders }, 401],
-    [{ origin: allowedOrigin, cookie }, 403],
-    [{ 'origin': 'https://unrelated.fixture', cookie, 'x-csrf-token': csrfToken }, 403],
+    [
+      { origin: allowedOrigin },
+      401,
+    ],
+    [
+      { origin: allowedOrigin, ...importHeaders },
+      401,
+    ],
+    [
+      { origin: allowedOrigin, cookie },
+      403,
+    ],
+    [
+      { 'origin': 'https://unrelated.fixture', cookie, 'x-csrf-token': csrfToken },
+      403,
+    ],
   ]) {
     const denied = await fetch(deletionUrl, { method: 'DELETE', headers })
     assert.equal(denied.status, expected, 'Deletion must enforce session, Origin and CSRF protections')
@@ -388,7 +475,9 @@ try {
   media = await fetch(mediaUrl)
   assert.equal(media.status, 200, 'Rendered images must survive a process restart')
   await media.arrayBuffer()
-  const expiredSession = await (await fetch(`${baseUrl}/api/admin/session`, { headers: { cookie } })).json()
+  const expiredSession = await (await fetch(`${baseUrl}/api/admin/session`, {
+    headers: { cookie },
+  })).json()
   assert.equal(expiredSession.authenticated, false, 'A restart must invalidate process-local sessions')
   const restoredImport = await fetch(importStatusUrl, { headers: importHeaders })
   assert.equal(restoredImport.status, 200)
@@ -453,7 +542,9 @@ try {
   await secondaryLogin(secondaryPassword, 429)
   await secondaryLogin(password, 200)
   await signIn()
-  const restoredLibrary = await fetch(`${baseUrl}/api/admin/library`, { headers: { cookie } })
+  const restoredLibrary = await fetch(`${baseUrl}/api/admin/library`, {
+    headers: { cookie },
+  })
   assert.equal(restoredLibrary.status, 200)
   const restoredState = await restoredLibrary.json()
   const restoredPhotos = restoredState.photos
@@ -467,10 +558,29 @@ try {
   assert.equal(disabledImport.status, 503)
   assert.deepEqual(await disabledImport.json(), { error: 'import_not_configured' })
 
-  for (const secret of [password, passwordHash, secondaryPassword, secondaryHash, secondaryIdentityKey, importToken, importTokenHash])
+  for (const secret of [
+    password,
+    passwordHash,
+    secondaryPassword,
+    secondaryHash,
+    secondaryIdentityKey,
+    importToken,
+    importTokenHash,
+  ])
     assert.equal(allDiagnostics.includes(secret), false, 'Runtime logs must not contain fixture credentials')
   assert.ok(allDiagnostics.length < 16_384, 'Authentication must not emit per-attempt diagnostics')
-  console.log(JSON.stringify({ directRuntime: 'passed', loopback: true, probeMutations: 'denied', gallery: 'upload, publication, archive and persistence passed', deletion: 'authorized, idempotent, media removed and persistent; retained library and settings preserved', machineImports: 'scoped, archived, idempotent and persistent', secondaryLogin: 'schedule, lockout, primary recovery and restart passed', consistentBackupRestore: 'photos and auth state preserved', probes: 'GET/HEAD passed', repeatedSignals: 'drained' }))
+  console.log(JSON.stringify({
+    directRuntime: 'passed',
+    loopback: true,
+    probeMutations: 'denied',
+    gallery: 'upload, publication, archive and persistence passed',
+    deletion: 'authorized, idempotent, media removed and persistent; retained library and settings preserved',
+    machineImports: 'scoped, archived, idempotent and persistent',
+    secondaryLogin: 'schedule, lockout, primary recovery and restart passed',
+    consistentBackupRestore: 'photos and auth state preserved',
+    probes: 'GET/HEAD passed',
+    repeatedSignals: 'drained',
+  }))
 }
 finally {
   await stopProcessTree(child)
