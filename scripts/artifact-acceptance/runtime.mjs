@@ -12,13 +12,24 @@ assert.equal(process.platform, 'linux')
 assert.equal(process.arch, 'arm64')
 assert.equal(process.version, 'v24.18.1')
 assert.equal(process.cwd(), '/app')
-for (const absent of ['/home/builder', '/mnt/input', '/app/node_modules', '/app/back-end/src', '/app/.git'])
+for (const absent of [
+  '/home/builder',
+  '/mnt/input',
+  '/app/node_modules',
+  '/app/back-end/src',
+  '/app/.git',
+])
   await assert.rejects(access(absent))
 
 if (process.argv[2] === 'missing-module') {
   const result = spawnSync(process.execPath, ['/app/back-end/dist/server.js'], {
     timeout: 5000,
-    env: { NODE_ENV: 'production', DOTENV_CONFIG_PATH: '/absent', HOST: '127.0.0.1', PORT: '18767' },
+    env: {
+      NODE_ENV: 'production',
+      DOTENV_CONFIG_PATH: '/absent',
+      HOST: '127.0.0.1',
+      PORT: '18767',
+    },
     encoding: 'utf8',
   })
   assert.equal(result.signal, null)
@@ -36,28 +47,46 @@ else {
   const { PhotoStore } = await import('/app/back-end/dist/photo-store.js')
   const store = new PhotoStore(dataDirectory)
   const salt = Buffer.alloc(16, 9)
-  const key = scryptSync('Synthetic-readiness-password', salt, 64, { N: 32768, r: 8, p: 1, maxmem: 64 * 1024 * 1024 })
+  const key = scryptSync('Synthetic-readiness-password', salt, 64, {
+    N: 32768,
+    r: 8,
+    p: 1,
+    maxmem: 64 * 1024 * 1024,
+  })
   const passwordHash = `scrypt$32768$8$1$${salt.toString('hex')}$${key.toString('hex')}`
   const { createApp } = await import('/app/back-end/dist/app.js')
   let ready = false
-  const server = createServer(createApp({ store, passwordHash, allowedOrigins: ['https://kyapup.fixture'], secureCookies: true, isReady: () => ready }))
+  const server = createServer(createApp({
+    store,
+    passwordHash,
+    allowedOrigins: ['https://kyapup.fixture'],
+    secureCookies: true,
+    isReady: () => ready,
+  }))
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve))
   try {
     const origin = `http://127.0.0.1:${server.address().port}`
     for (const value of [false, true, false, true]) {
       ready = value
       for (const method of ['GET', 'HEAD']) {
-        const response = await fetch(`${origin}/readyz`, { method, signal: AbortSignal.timeout(2000) })
+        const response = await fetch(`${origin}/readyz`, {
+          method,
+          signal: AbortSignal.timeout(2000),
+        })
         assert.equal(response.status, value ? 200 : 503)
         assert.equal(response.headers.get('cache-control'), 'no-store')
         assert.equal(response.headers.get('set-cookie'), null)
         assert.equal(response.headers.get('location'), null)
-        assert.equal(await response.text(), method === 'HEAD' ? '' : JSON.stringify({ ok: value }))
+        assert.equal(await response.text(), method === 'HEAD'
+          ? ''
+          : JSON.stringify({ ok: value }))
       }
     }
   }
   finally {
-    await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()))
+    await new Promise((resolve, reject) => server.close(error => error
+      ? reject(error)
+      : resolve()))
     store.close()
     await rm(dataDirectory, { recursive: true, force: true })
   }
@@ -68,7 +97,12 @@ else {
   const activation = Date.parse('2026-12-24T10:00:00Z')
   const secondaryPassword = 'toy'
   const secondarySalt = Buffer.alloc(16, 23)
-  const secondaryHash = `scrypt$32768$8$1$${secondarySalt.toString('hex')}$${scryptSync(secondaryPassword, secondarySalt, 64, { N: 32768, r: 8, p: 1, maxmem: 64 * 1024 * 1024 }).toString('hex')}`
+  const secondaryHash = `scrypt$32768$8$1$${secondarySalt.toString('hex')}$${scryptSync(secondaryPassword, secondarySalt, 64, {
+    N: 32768,
+    r: 8,
+    p: 1,
+    maxmem: 64 * 1024 * 1024,
+  }).toString('hex')}`
   const config = readSecondaryConfig({
     ADMIN_SECONDARY_PASSWORD_HASH: secondaryHash,
     ADMIN_SECONDARY_NOT_BEFORE: '2026-12-24T10:00:00Z',
@@ -114,5 +148,18 @@ else {
     assert.equal(result.signal, null)
     assert.equal(result.status, 0)
   }
-  console.log(JSON.stringify({ sterileArtifact: 'passed', commit: manifest.commit, readinessRecovery: true, photoProcessing: true, archiveAuthentication: true, scopedMachineImports: true, persistentImportIdentity: true, secondaryActivationBoundary: true, concurrentSecondaryFailures: true, secondaryLockoutExpiryAndRestart: true, persistence: true, restart: true }))
+  console.log(JSON.stringify({
+    sterileArtifact: 'passed',
+    commit: manifest.commit,
+    readinessRecovery: true,
+    photoProcessing: true,
+    archiveAuthentication: true,
+    scopedMachineImports: true,
+    persistentImportIdentity: true,
+    secondaryActivationBoundary: true,
+    concurrentSecondaryFailures: true,
+    secondaryLockoutExpiryAndRestart: true,
+    persistence: true,
+    restart: true,
+  }))
 }

@@ -6,10 +6,21 @@ import path from 'node:path'
 const repositoryRoot = path.resolve(import.meta.dirname, '..')
 const backendModules = path.join(repositoryRoot, 'back-end/node_modules')
 
-for (const packageName of ['dotenv', 'express', 'express-rate-limit', 'helmet'])
+for (const packageName of [
+  'dotenv',
+  'express',
+  'express-rate-limit',
+  'helmet',
+])
   await access(path.join(backendModules, packageName, 'package.json'))
 
-for (const packageName of ['@types', 'supertest', 'tsx', 'typescript-eslint', 'vitest'])
+for (const packageName of [
+  '@types',
+  'supertest',
+  'tsx',
+  'typescript-eslint',
+  'vitest',
+])
   await assert.rejects(access(path.join(backendModules, packageName)), undefined, `${packageName} must be absent from production`)
 
 for (const removedPath of ['node_modules', 'front-end/node_modules', 'front-end/.nuxt'])

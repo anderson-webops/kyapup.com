@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import type { Gallery, Photo } from '~/types/gallery'
 
-const gallery = ref<Gallery>({ photos: [], settings: { mode: 'static', intervalSeconds: 8, heroPhotoId: null } })
+const gallery = ref<Gallery>({
+  photos: [],
+  settings: { mode: 'static', intervalSeconds: 8, heroPhotoId: null },
+})
 const loading = ref(true)
 const error = ref(false)
 const selectedHero = ref<string | null>(null)
@@ -12,7 +15,9 @@ const lightbox = useTemplateRef('lightbox')
 const reducedMotion = usePreferredReducedMotion()
 const visibility = useDocumentVisibility()
 const featured = computed(() => gallery.value.photos.filter(photo => photo.featured))
-const heroPool = computed(() => featured.value.length ? featured.value : gallery.value.photos.slice(0, 1))
+const heroPool = computed(() => featured.value.length
+  ? featured.value
+  : gallery.value.photos.slice(0, 1))
 const hero = computed(() => heroPool.value.find(photo => photo.id === selectedHero.value) || heroPool.value.find(photo => photo.id === gallery.value.settings.heroPhotoId) || heroPool.value[0])
 const otherPhotos = computed(() => gallery.value.photos.filter(photo => photo.id !== hero.value?.id))
 const sidePhotos = computed(() => otherPhotos.value.filter(photo => !photo.featured).slice(0, 2))
@@ -46,7 +51,11 @@ function resetCycle() {
     selectedHero.value = heroPool.value[next]?.id || null
   }, gallery.value.settings.intervalSeconds * 1000)
 }
-watch([canCycle, paused, () => gallery.value.settings.intervalSeconds], resetCycle)
+watch([
+  canCycle,
+  paused,
+  () => gallery.value.settings.intervalSeconds,
+], resetCycle)
 watch(visibility, (value) => {
   if (value === 'visible')
     void refresh()

@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import type { Gallery, GallerySettings, Photo } from '~/types/gallery'
 
-useHead({ title: 'Kya · Photos', meta: [{ name: 'robots', content: 'noindex, nofollow' }] })
+useHead({
+  title: 'Kya · Photos',
+  meta: [
+    { name: 'robots', content: 'noindex, nofollow' },
+  ],
+})
 const authenticated = ref(false)
 const checking = ref(true)
 const password = ref('')
@@ -35,7 +40,9 @@ const selectedRemovalPending = computed(() => selected.value.some(id => pendingR
 let deleteTrigger: HTMLElement | null = null
 const visiblePhotos = computed(() => photos.value.filter(photo => photo.visible))
 const favorites = computed(() => photos.value.filter(photo => photo.featured && photo.visible))
-const shownPhotos = computed(() => photos.value.filter(photo => filter.value === 'all' || (filter.value === 'visible' ? photo.visible : !photo.visible)))
+const shownPhotos = computed(() => photos.value.filter(photo => filter.value === 'all' || (filter.value === 'visible'
+  ? photo.visible
+  : !photo.visible)))
 const archiveCount = computed(() => photos.value.length - visiblePhotos.value.length)
 const currentCover = computed(() => favorites.value.find(photo => photo.id === settings.value.heroPhotoId) || favorites.value[0])
 
@@ -72,10 +79,14 @@ async function request<T>(path: string, body?: object | File, method: 'POST' | '
   return $fetch<T>(path, {
     method,
     body,
-    ...(method === 'DELETE' ? { retry: 0 } : {}),
+    ...(method === 'DELETE'
+      ? { retry: 0 }
+      : {}),
     headers: {
       'X-CSRF-Token': csrfToken.value,
-      ...(body instanceof File ? { 'Content-Type': 'application/octet-stream' } : {}),
+      ...(body instanceof File
+        ? { 'Content-Type': 'application/octet-stream' }
+        : {}),
     },
   })
 }
@@ -90,7 +101,10 @@ async function login() {
   busy.value = true
   error.value = ''
   try {
-    const session = await $fetch<{ authenticated: boolean, csrfToken: string }>('/api/admin/login', { method: 'POST', body: { password: password.value } })
+    const session = await $fetch<{ authenticated: boolean, csrfToken: string }>('/api/admin/login', {
+      method: 'POST',
+      body: { password: password.value },
+    })
     authenticated.value = session.authenticated
     csrfToken.value = session.csrfToken
     password.value = ''
@@ -112,7 +126,9 @@ async function logout() {
 }
 async function updatePhoto(photo: Photo, change: Partial<Photo>) {
   const updated = await request<Photo>(`/api/admin/photos/${photo.id}`, change, 'PATCH')
-  photos.value = photos.value.map(item => item.id === updated.id ? updated : item)
+  photos.value = photos.value.map(item => item.id === updated.id
+    ? updated
+    : item)
   if ((!updated.visible || !updated.featured) && settings.value.heroPhotoId === updated.id)
     settings.value.heroPhotoId = null
 }
@@ -166,7 +182,13 @@ async function upload(files: FileList | File[] | null) {
   }
   uploading.value = false
   uploadProgress.value = ''
-  message.value = added ? `${added} ${added === 1 ? 'photo added' : 'photos added'}. Choose “Show selected” to put ${added === 1 ? 'it' : 'them'} on the site.` : ''
+  message.value = added
+    ? `${added} ${added === 1
+      ? 'photo added'
+      : 'photos added'}. Choose “Show selected” to put ${added === 1
+      ? 'it'
+      : 'them'} on the site.`
+    : ''
   error.value = failures.join(' ')
   if (fileInput.value)
     fileInput.value.value = ''
@@ -189,7 +211,9 @@ async function bulkVisibility(visible: boolean) {
       }
     }
     selected.value = []
-    message.value = visible ? `${changed} photos are on the site.` : `${changed} photos saved for later.`
+    message.value = visible
+      ? `${changed} photos are on the site.`
+      : `${changed} photos saved for later.`
   }
   catch (cause) { error.value = errorMessage(cause) }
   finally { busy.value = false }
@@ -200,7 +224,9 @@ async function openDelete(items: Photo[]) {
   deletePhotos.value = items.filter(photo => photos.value.some(item => item.id === photo.id))
   if (!deletePhotos.value.length)
     return
-  deleteTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null
+  deleteTrigger = document.activeElement instanceof HTMLElement
+    ? document.activeElement
+    : null
   deleteError.value = ''
   deleteResult.value = ''
   error.value = ''
@@ -282,7 +308,9 @@ async function confirmDelete() {
           // Keep a retry target locally while the server finishes removing files.
           if (!pendingRemovals.value.includes(photo.id))
             pendingRemovals.value.push(photo.id)
-          photos.value = photos.value.map(item => item.id === photo.id ? { ...item, visible: false, featured: false } : item)
+          photos.value = photos.value.map(item => item.id === photo.id
+            ? { ...item, visible: false, featured: false }
+            : item)
           if (settings.value.heroPhotoId === photo.id)
             settings.value.heroPhotoId = null
         }
@@ -294,12 +322,20 @@ async function confirmDelete() {
         }
       }
     }
-    message.value = removed ? `${removed === 1 ? '1 photo' : `${removed} photos`} deleted.` : ''
+    message.value = removed
+      ? `${removed === 1
+        ? '1 photo'
+        : `${removed} photos`} deleted.`
+      : ''
     deleteResult.value = message.value
     deletePhotos.value = remaining
     if (remaining.length) {
-      deleteError.value = `${remaining.length === 1 ? '1 photo still needs' : `${remaining.length} photos still need`} to be removed. ${reason}`
-      error.value = `${!authenticated.value && message.value ? `${message.value} ` : ''}${deleteError.value}`
+      deleteError.value = `${remaining.length === 1
+        ? '1 photo still needs'
+        : `${remaining.length} photos still need`} to be removed. ${reason}`
+      error.value = `${!authenticated.value && message.value
+        ? `${message.value} `
+        : ''}${deleteError.value}`
       // Failed removals remain selected even if an incomplete removal hid a photo.
       filter.value = 'all'
       await nextTick()

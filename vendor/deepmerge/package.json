@@ -1,0 +1,19 @@
+{
+  "name": "deepmerge",
+  "version": "4.3.2-webops.1",
+  "description": "Deep object merging with guarded prototype keys",
+  "license": "MIT",
+  "repository": "TehShrike/deepmerge",
+  "main": "dist/cjs.js",
+  "types": "index.d.ts",
+  "files": [
+    "dist",
+    "index.js",
+    "index.d.ts",
+    "LICENSE",
+    "README.md"
+  ],
+  "dependencies": {
+    "is-mergeable-object": "1.1.0"
+  }
+}

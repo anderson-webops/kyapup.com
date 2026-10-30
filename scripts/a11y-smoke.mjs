@@ -21,8 +21,20 @@ const chromePath = [
 ].filter(Boolean).find(candidate => existsSync(candidate))
 const colorSchemes = (process.env.A11Y_COLOR_SCHEMES || 'light,dark').split(',').map(value => value.trim()).filter(Boolean)
 const viewports = [
-  { name: 'desktop', width: 1280, height: 1000, deviceScaleFactor: 1 },
-  { name: 'mobile', width: 390, height: 844, deviceScaleFactor: 1, isMobile: true, hasTouch: true },
+  {
+    name: 'desktop',
+    width: 1280,
+    height: 1000,
+    deviceScaleFactor: 1,
+  },
+  {
+    name: 'mobile',
+    width: 390,
+    height: 844,
+    deviceScaleFactor: 1,
+    isMobile: true,
+    hasTouch: true,
+  },
 ]
 const fixturePhotos = Array.from({ length: 7 }, (_, index) => ({
   id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
@@ -47,23 +59,40 @@ async function availablePort() {
     server.listen(0, '127.0.0.1', resolveListen)
   })
   const port = server.address().port
-  await new Promise((resolveClose, reject) => server.close(error => error ? reject(error) : resolveClose()))
+  await new Promise((resolveClose, reject) => server.close(error => error
+    ? reject(error)
+    : resolveClose()))
   return port
 }
 
-const externalFrontend = process.env.A11Y_BASE_URL ? new URL(process.env.A11Y_BASE_URL) : null
+const externalFrontend = process.env.A11Y_BASE_URL
+  ? new URL(process.env.A11Y_BASE_URL)
+  : null
 if (externalFrontend) {
   assert.equal(externalFrontend.protocol, 'http:', 'An external accessibility frontend must use local HTTP')
   assert.ok(['127.0.0.1', 'localhost', '[::1]'].includes(externalFrontend.hostname), 'Accessibility fixtures may only run on loopback')
 }
-const frontendPort = externalFrontend ? Number(externalFrontend.port) : await availablePort()
+const frontendPort = externalFrontend
+  ? Number(externalFrontend.port)
+  : await availablePort()
 const baseUrl = externalFrontend?.origin || `http://127.0.0.1:${frontendPort}`
 function delay(milliseconds) {
   return new Promise(resolveDelay => setTimeout(resolveDelay, milliseconds))
 }
 
 function startFrontend() {
-  const child = spawn('npm', ['exec', '-w', 'front-end', '--', 'nuxt', 'dev', '--host', '127.0.0.1', '--port', String(frontendPort)], {
+  const child = spawn('npm', [
+    'exec',
+    '-w',
+    'front-end',
+    '--',
+    'nuxt',
+    'dev',
+    '--host',
+    '127.0.0.1',
+    '--port',
+    String(frontendPort),
+  ], {
     cwd: projectRoot,
     detached: process.platform !== 'win32',
     env: {
@@ -92,7 +121,9 @@ async function waitForFrontend(child) {
     if (child && child.exitCode !== null)
       throw new Error('Accessibility frontend exited before it became ready')
     try {
-      const response = await fetch(baseUrl, { signal: AbortSignal.timeout(2000) })
+      const response = await fetch(baseUrl, {
+        signal: AbortSignal.timeout(2000),
+      })
       await response.arrayBuffer()
       if (response.ok)
         return
@@ -107,7 +138,9 @@ function signalProcessTree(child, signal) {
   if (!child.pid)
     return
   try {
-    process.kill(process.platform === 'win32' ? child.pid : -child.pid, signal)
+    process.kill(process.platform === 'win32'
+      ? child.pid
+      : -child.pid, signal)
   }
   catch (error) {
     if (error?.code !== 'ESRCH')
@@ -118,7 +151,10 @@ async function stopFrontend(child) {
   signalProcessTree(child, 'SIGTERM')
   await delay(1000)
   signalProcessTree(child, 'SIGKILL')
-  await Promise.race([new Promise(resolveClose => child.once('close', resolveClose)), delay(1000)])
+  await Promise.race([
+    new Promise(resolveClose => child.once('close', resolveClose)),
+    delay(1000),
+  ])
 }
 
 const failures = []
@@ -133,7 +169,9 @@ async function newFixturePage(browser, viewport, scheme, empty = false) {
   ])
   let authenticated = false
   let settings = { ...fixtureSettings }
-  const photos = empty ? [] : structuredClone(fixturePhotos)
+  const photos = empty
+    ? []
+    : structuredClone(fixturePhotos)
   const deletedIds = []
   const incompleteDeletes = new Set()
   const errors = []
@@ -146,18 +184,36 @@ async function newFixturePage(browser, viewport, scheme, empty = false) {
       return
     }
     const headers = { 'cache-control': 'no-store', 'cross-origin-resource-policy': 'same-origin' }
-    const json = (body, status = 200) => request.respond({ status, contentType: 'application/json', headers, body: JSON.stringify(body) })
-    const session = () => ({ authenticated, ...(authenticated ? { csrfToken: 'synthetic-accessibility-token' } : {}) })
+    const json = (body, status = 200) => request.respond({
+      status,
+      contentType: 'application/json',
+      headers,
+      body: JSON.stringify(body),
+    })
+    const session = () => ({
+      authenticated,
+      ...(authenticated
+        ? { csrfToken: 'synthetic-accessibility-token' }
+        : {}),
+    })
     if (url.pathname.startsWith('/api/media/')) {
       if (!photos.some(photo => [photo.thumbnailUrl, photo.url].includes(url.pathname))) {
         await json({ error: 'not_found' }, 404)
         return
       }
-      await request.respond({ status: 200, contentType: 'image/svg+xml', headers, body: '<svg xmlns="http://www.w3.org/2000/svg" width="960" height="720" viewBox="0 0 960 720"><rect width="960" height="720" fill="#42634e"/><circle cx="480" cy="360" r="190" fill="#cba87a"/><ellipse cx="430" cy="330" rx="18" ry="24" fill="#23382d"/><ellipse cx="540" cy="330" rx="18" ry="24" fill="#23382d"/></svg>' })
+      await request.respond({
+        status: 200,
+        contentType: 'image/svg+xml',
+        headers,
+        body: '<svg xmlns="http://www.w3.org/2000/svg" width="960" height="720" viewBox="0 0 960 720"><rect width="960" height="720" fill="#42634e"/><circle cx="480" cy="360" r="190" fill="#cba87a"/><ellipse cx="430" cy="330" rx="18" ry="24" fill="#23382d"/><ellipse cx="540" cy="330" rx="18" ry="24" fill="#23382d"/></svg>',
+      })
       return
     }
     if (url.pathname === '/api/gallery') {
-      await json({ photos: photos.filter(photo => photo.visible), settings })
+      await json({
+        photos: photos.filter(photo => photo.visible),
+        settings,
+      })
       return
     }
     if (url.pathname === '/api/admin/session') {
@@ -179,7 +235,10 @@ async function newFixturePage(browser, viewport, scheme, empty = false) {
       return
     }
     if (url.pathname === '/api/admin/settings' && request.method() === 'PATCH') {
-      settings = { ...settings, ...JSON.parse(request.postData() || '{}') }
+      settings = {
+        ...settings,
+        ...JSON.parse(request.postData() || '{}'),
+      }
       await json(settings)
       return
     }
@@ -220,14 +279,35 @@ async function newFixturePage(browser, viewport, scheme, empty = false) {
     })
     const violations = await page.evaluate(async () => (await globalThis.axe.run(document, {
       resultTypes: ['violations'],
-      runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] },
+      runOnly: {
+        type: 'tag',
+        values: [
+          'wcag2a',
+          'wcag2aa',
+          'wcag21a',
+          'wcag21aa',
+        ],
+      },
     })).violations)
-    const result = { state, viewport: name, scheme, url: page.url(), violations, errors: [...errors] }
+    const result = {
+      state,
+      viewport: name,
+      scheme,
+      url: page.url(),
+      violations,
+      errors: [...errors],
+    }
     if (violations.length || errors.length)
       failures.push(result)
     else console.log(`a11y ok: ${state} [${name}, ${scheme}]`)
   }
-  return { page, navigate, scan, failNextDelete: id => incompleteDeletes.add(id), fixtureState: () => structuredClone({ photos, settings, deletedIds }) }
+  return {
+    page,
+    navigate,
+    scan,
+    failNextDelete: id => incompleteDeletes.add(id),
+    fixtureState: () => structuredClone({ photos, settings, deletedIds }),
+  }
 }
 
 async function publicChecks(browser, viewport, scheme) {
@@ -370,11 +450,17 @@ async function adminChecks(browser, viewport, scheme) {
   finally { await admin.page.close() }
 }
 
-const frontendProcess = externalFrontend ? null : startFrontend()
+const frontendProcess = externalFrontend
+  ? null
+  : startFrontend()
 let browser
 try {
   await waitForFrontend(frontendProcess)
-  browser = await puppeteer.launch({ executablePath: chromePath, headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage'] })
+  browser = await puppeteer.launch({
+    executablePath: chromePath,
+    headless: true,
+    args: ['--no-sandbox', '--disable-dev-shm-usage'],
+  })
   for (const viewport of viewports) {
     for (const scheme of colorSchemes) {
       await publicChecks(browser, viewport, scheme)

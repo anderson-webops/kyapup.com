@@ -49,8 +49,11 @@ function onTouchEnd(event: TouchEvent) {
   if (zoomed.value)
     return
   const distance = (event.changedTouches[0]?.clientX ?? touchStart.value) - touchStart.value
-  if (Math.abs(distance) > 60)
-    move(distance < 0 ? 1 : -1)
+  if (Math.abs(distance) > 60) {
+    move(distance < 0
+      ? 1
+      : -1)
+  }
 }
 watch(photo, (value) => {
   if (!value && dialog.value?.open)
