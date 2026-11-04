@@ -13,7 +13,7 @@ const { build } = require('esbuild')
 const root = fileURLToPath(new URL('..', import.meta.url))
 const source = path.join(root, 'vendor/qs')
 const destination = path.join(root, 'back-end/vendor')
-const archiveName = 'qs-6.17.2-webops.2.tgz'
+const archiveName = 'qs-6.17.2-webops.4.tgz'
 const check = process.argv.length === 3 && process.argv[2] === '--check'
 assert.ok(process.argv.length === 2 || check, 'Only --check is supported')
 assert.ok(process.env.npm_execpath, 'Run through the selected npm executable')

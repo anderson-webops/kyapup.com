@@ -97,13 +97,37 @@ var setProperty = function setProperty(obj, key, value) {
     }
 };
 
+var isLargerIndex = function isLargerIndex(key, current) {
+    var previous = String(current);
+    return /^(0|[1-9][0-9]*)$/.test(key) && (
+        previous === '-1'
+        || key.length > previous.length
+        || (key.length === previous.length && key > previous)
+    );
+};
+
+var incrementIndex = function incrementIndex(index) {
+    if (typeof index === 'number' && index < 0x1FFFFFFFFFFFFF) {
+        return index + 1;
+    }
+    var digits = String(index).split('');
+    for (var position = digits.length - 1; position >= 0; position -= 1) {
+        if (digits[position] !== '9') {
+            digits[position] = String(Number(digits[position]) + 1);
+            return digits.join('');
+        }
+        digits[position] = '0';
+    }
+    digits.unshift('1');
+    return digits.join('');
+};
+
 var maxNumericIndex = function maxNumericIndex(obj, min) {
     var max = min;
     var keys = Object.keys(obj);
     for (var i = 0; i < keys.length; ++i) {
-        var num = parseInt(keys[i], 10);
-        if (String(num) === keys[i] && num > max) {
-            max = num;
+        if (isLargerIndex(keys[i], max)) {
+            max = keys[i];
         }
     }
 
@@ -150,19 +174,20 @@ var merge = function merge(target, source, options) {
         } else if (target && typeof target === 'object') {
             if (isOverflow(target)) {
                 // Add at next numeric index for overflow objects
-                var newIndex = getMaxIndex(target) + 1;
-                target[newIndex] = source;
+                var newIndex = incrementIndex(getMaxIndex(target));
+                setProperty(target, newIndex, source);
                 setMaxIndex(target, newIndex);
             } else if (options && options.strictMerge && isConflict(target)) {
-                var nextConflict = getConflictIndex(target) + 1;
+                var nextConflict = incrementIndex(getConflictIndex(target));
                 if (
                     options.throwOnLimitExceeded
                     && typeof options.arrayLimit === 'number'
+                    && options.arrayLimit !== Infinity
                     && nextConflict >= options.arrayLimit
                 ) {
                     throw new RangeError('Array limit exceeded. Only ' + options.arrayLimit + ' element' + (options.arrayLimit === 1 ? '' : 's') + ' allowed in an array.');
                 }
-                target[nextConflict] = source;
+                setProperty(target, nextConflict, source);
                 markConflict(target, nextConflict);
             } else if (options && options.strictMerge) {
                 var conflict = limitedPair(target, source, options);
@@ -188,10 +213,11 @@ var merge = function merge(target, source, options) {
                 ? { __proto__: null, 0: target }
                 : { 0: target };
             for (var m = 0; m < sourceKeys.length; m++) {
-                var oldKey = parseInt(sourceKeys[m], 10);
-                result[oldKey + 1] = source[sourceKeys[m]];
+                var oldKey = sourceKeys[m];
+                var shiftedKey = isLargerIndex(oldKey, -1) ? incrementIndex(oldKey) : oldKey;
+                setProperty(result, shiftedKey, source[oldKey]);
             }
-            return markOverflow(result, getMaxIndex(source) + 1);
+            return markOverflow(result, maxNumericIndex(result, 0));
         }
         var combined = [target].concat(source);
         if (options && typeof options.arrayLimit === 'number' && combined.length > options.arrayLimit) {
@@ -247,15 +273,13 @@ var merge = function merge(target, source, options) {
             markOverflow(acc, maxNumericIndex(acc, getMaxIndex(source)));
         }
         if (isOverflow(acc)) {
-            var keyNum = parseInt(key, 10);
-            if (String(keyNum) === key && keyNum >= 0 && keyNum > getMaxIndex(acc)) {
-                setMaxIndex(acc, keyNum);
+            if (isLargerIndex(key, getMaxIndex(acc))) {
+                setMaxIndex(acc, key);
             }
         }
         if (isConflict(acc)) {
-            var conflictKey = parseInt(key, 10);
-            if (String(conflictKey) === key && conflictKey > getConflictIndex(acc)) {
-                markConflict(acc, conflictKey);
+            if (isLargerIndex(key, getConflictIndex(acc))) {
+                markConflict(acc, key);
             }
         }
 
@@ -560,8 +584,8 @@ var combine = function combine(a, b, arrayLimit, plainObjects, throwOnLimitExcee
         var bValues = isArray(b) ? b : [b];
         var newIndex = getMaxIndex(a);
         for (var i = 0; i < bValues.length; ++i) {
-            newIndex += 1;
-            a[newIndex] = bValues[i];
+            newIndex = incrementIndex(newIndex);
+            setProperty(a, newIndex, bValues[i]);
         }
         setMaxIndex(a, newIndex);
         return a;

@@ -43,7 +43,128 @@ for (const mode of ['module', 'global', 'amd']) {
   })
 }
 
+function* largeArrayLimitOptions() {
+  for (const arrayLimit of [Infinity, 1e20]) {
+    for (const allowSparse of [false, true]) {
+      for (const plainObjects of [false, true]) {
+        for (const throwOnLimitExceeded of [false, true]) {
+          yield {
+            arrayLimit,
+            allowSparse,
+            plainObjects,
+            throwOnLimitExceeded,
+          }
+        }
+      }
+    }
+  }
+}
+
 for (const { name, library, input, evaluate, prototype } of variants) {
+  test(`${name}: large configured array limits preserve non-array indexes`, () => {
+    for (const options of largeArrayLimitOptions()) {
+      for (const index of ['4294967295', '9007199254740992']) {
+        const next = String(BigInt(index) + 1n)
+        for (const [query, expected] of [
+          [
+            `a=first&a[${index}]=second`,
+            { 0: 'first', [next]: 'second' },
+          ],
+          [
+            `a[${index}]=first&a=second`,
+            { [index]: 'first', [next]: 'second' },
+          ],
+        ]) {
+          const result = library.parse(query, options).a
+          assert.equal(Array.isArray(result), false)
+          assert.deepEqual(Object.entries(result), Object.entries(expected))
+          assert.equal(Object.getPrototypeOf(result), options.plainObjects ? null : prototype)
+        }
+      }
+      assert.equal(JSON.stringify(library.parse('a[0]=first&a[1]=second', options)), '{"a":["first","second"]}')
+    }
+    assert.throws(() => library.parse('a[4294967295]=blocked', {
+      arrayLimit: 20,
+      throwOnLimitExceeded: true,
+    }), { name: 'RangeError' })
+  })
+
+  test(`${name}: overflow indexes retain precision and every original value`, () => {
+    const cases = [
+      [
+        'a[9007199254740992]=first&a=second',
+        {
+          '9007199254740992': 'first',
+          '9007199254740993': 'second',
+        },
+      ],
+      [
+        'a=first&a[9007199254740992]=second',
+        {
+          '0': 'first',
+          '9007199254740993': 'second',
+        },
+      ],
+      [
+        'a[9007199254740992]=first&a[9007199254740993]=second&a=third',
+        {
+          '9007199254740992': 'first',
+          '9007199254740993': 'second',
+          '9007199254740994': 'third',
+        },
+      ],
+      [
+        'a[999999999999999999999999999999]=first&a[21]=second&a=third',
+        {
+          '21': 'second',
+          '999999999999999999999999999999': 'first',
+          '1000000000000000000000000000000': 'third',
+        },
+      ],
+    ]
+    for (const plainObjects of [false, true]) {
+      for (const strictMerge of [false, true]) {
+        for (const [query, expected] of cases) {
+          const result = library.parse(query, { plainObjects, strictMerge }).a
+          assert.deepEqual(Object.entries(result), Object.entries(expected))
+          assert.equal(Object.getPrototypeOf(result), plainObjects ? null : prototype)
+        }
+      }
+    }
+  })
+
+  test(`${name}: overflow appends preserve numeric own keys and prototypes`, () => {
+    for (const plainObjects of [false, true]) {
+      const options = {
+        arrayLimit: 1,
+        plainObjects,
+        allowDots: true,
+        allowPrototypes: true,
+      }
+      const ordinary = library.parse('values=first&values=second&values=__proto__&values=constructor', options)
+      assert.equal(Array.isArray(ordinary.values), false)
+      assert.deepEqual(Object.keys(ordinary.values), ['0', '1', '2', '3'])
+      assert.deepEqual(Object.values(ordinary.values), [
+        'first',
+        'second',
+        '__proto__',
+        'constructor',
+      ])
+      assert.equal(Object.getPrototypeOf(ordinary.values), plainObjects ? null : prototype)
+      for (const query of [
+        'values=first&values=second&values=third&values[__proto__][qsOverflowInjected]=yes',
+        'values=first&values=second&values=third&values[%5F%5Fproto%5F%5F][qsOverflowInjected]=yes',
+        'values=first&values=second&values=third&values.__proto__.qsOverflowInjected=yes',
+      ]) {
+        const result = library.parse(query, options)
+        assert.deepEqual(Object.keys(result.values), ['0', '1', '2'])
+        assert.deepEqual(Object.values(result.values), ['first', 'second', 'third'])
+        assert.equal(Object.getPrototypeOf(result.values), plainObjects ? null : prototype)
+        assert.equal(prototype.qsOverflowInjected, undefined)
+      }
+    }
+  })
+
   test(`${name}: zero-depth parsing guards the bracket-normalized prototype key`, () => {
     for (const depth of [0, false]) {
       for (const query of ['[toString]=blocked', '%5BhasOwnProperty%5D=blocked', '.toString=blocked']) {
@@ -349,6 +470,73 @@ for (const { name, library, input, evaluate, prototype } of variants) {
       parameterLimit: 1,
       throwOnLimitExceeded: true,
     }), { name: 'RangeError' })
+  })
+}
+
+for (const entrypoint of ['qs/lib/utils', '../vendor/qs/lib/utils']) {
+  const utilities = backendRequire(entrypoint)
+  test(`${entrypoint}: overflow merge, combine and shift keep exact numeric keys`, () => {
+    for (const plainObjects of [false, true]) {
+      for (const index of [
+        '0',
+        '4294967294',
+        '9007199254740991',
+        '9007199254740992',
+        '9007199254740993',
+        '999999999999999999999999999999',
+      ]) {
+        const next = String(BigInt(index) + 1n)
+        const last = String(BigInt(index) + 3n)
+        const original = { [index]: 'first' }
+        if (plainObjects)
+          Object.setPrototypeOf(original, null)
+        utilities.markOverflow(original, index)
+        utilities.combine(original, ['second', 'third'], 1, plainObjects, false)
+        const appended = utilities.merge(original, 'fourth', { plainObjects })
+        assert.equal(appended[index], 'first')
+        assert.equal(appended[next], 'second')
+        assert.equal(appended[last], 'fourth')
+        assert.equal(Object.keys(appended).length, 4)
+        assert.equal(Object.getPrototypeOf(appended), plainObjects ? null : Object.prototype)
+
+        const mixed = JSON.parse(`{"${index}":"indexed","label":"named","01":"leading-zero","__proto__":{"injected":true}}`)
+        utilities.markOverflow(mixed, index)
+        const shifted = utilities.merge('prefix', mixed, { plainObjects })
+        assert.equal(shifted[0], 'prefix')
+        assert.equal(shifted[next], 'indexed')
+        assert.equal(shifted.label, 'named')
+        assert.equal(shifted['01'], 'leading-zero')
+        assert.equal(Object.hasOwn(shifted, '__proto__'), true)
+        assert.equal(shifted.injected, undefined)
+        assert.equal(Object.getPrototypeOf(shifted), plainObjects ? null : Object.prototype)
+      }
+      const empty = utilities.markOverflow(plainObjects
+        ? Object.create(null)
+        : {}, -1)
+      assert.equal(utilities.combine(empty, 'first', 0, plainObjects, false)[0], 'first')
+    }
+  })
+
+  test(`${entrypoint}: strict conflict appends preserve indexes and limit errors`, () => {
+    for (const plainObjects of [false, true]) {
+      const options = { strictMerge: true, plainObjects, arrayLimit: Infinity }
+      let conflict = utilities.merge({ label: 'first' }, 'second', options)
+      conflict = utilities.merge(conflict, { 9007199254740992: 'third' }, options)
+      conflict = utilities.merge(conflict, 'fourth', options)
+      assert.equal(conflict[0].label, 'first')
+      assert.equal(conflict[1], 'second')
+      assert.equal(conflict['9007199254740992'], 'third')
+      assert.equal(conflict['9007199254740993'], 'fourth')
+      assert.throws(() => utilities.merge(conflict, 'fifth', {
+        ...options,
+        arrayLimit: 20,
+        throwOnLimitExceeded: true,
+      }), { name: 'RangeError' })
+      assert.equal(Object.keys(conflict).length, 4)
+      const overflow = utilities.markOverflow({}, 1)
+      assert.throws(() => utilities.combine(overflow, 'blocked', 1, plainObjects, true), { name: 'RangeError' })
+      assert.equal(Object.keys(overflow).length, 0)
+    }
   })
 }
 

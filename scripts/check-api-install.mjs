@@ -20,7 +20,7 @@ try {
   for (const filename of ['package.json', 'package-lock.json'])
     await copyFile(resolve(projectRoot, 'back-end', filename), resolve(fixture, filename))
   await mkdir(resolve(fixture, 'vendor'))
-  await copyFile(resolve(projectRoot, 'back-end/vendor/qs-6.17.2-webops.2.tgz'), resolve(fixture, 'vendor/qs-6.17.2-webops.2.tgz'))
+  await copyFile(resolve(projectRoot, 'back-end/vendor/qs-6.17.2-webops.4.tgz'), resolve(fixture, 'vendor/qs-6.17.2-webops.4.tgz'))
   const install = spawnSync('npm', [
     'ci',
     '--omit=dev',

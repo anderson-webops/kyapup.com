@@ -1,25 +1,44 @@
 import assert from 'node:assert/strict'
+import { Buffer } from 'node:buffer'
 import { readFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
+import { dirname, resolve } from 'node:path'
 import test from 'node:test'
+import { pathToFileURL } from 'node:url'
 
-import archiver, { JsonArchive, TarArchive, ZipArchive } from '../vendor/archiver-nitro-compat/index.js'
+const root = createRequire(new URL('../package.json', import.meta.url))
+const nitro = createRequire(root.resolve('nitropack/package.json'))
 
-test('Archiver compatibility bridge preserves Nitro default factory behavior', () => {
-  assert.ok(archiver('zip') instanceof ZipArchive)
-  assert.ok(archiver.create('tar') instanceof TarArchive)
-  assert.ok(archiver('json') instanceof JsonArchive)
-  assert.equal(archiver.isRegisteredFormat('zip'), true)
-  assert.throws(() => archiver('unknown'), /format not registered/u)
-})
+for (const [name, consumer] of [
+  ['root', root],
+  ['Nitro', nitro],
+]) {
+  test(`Archiver 8 provides ${name}'s supported named API and real archive streams`, { timeout: 5000 }, async () => {
+    const entrypoint = consumer.resolve('archiver')
+    const metadata = JSON.parse(readFileSync(resolve(dirname(entrypoint), 'package.json'), 'utf8'))
+    assert.equal(metadata.version, '8.0.0')
+    const { ZipArchive, TarArchive } = await import(pathToFileURL(entrypoint))
+    for (const Archive of [ZipArchive, TarArchive]) {
+      const archive = new Archive({ store: true })
+      const chunks = []
+      const completed = new Promise((resolve, reject) => {
+        archive.on('data', chunk => chunks.push(chunk))
+        archive.once('error', reject)
+        archive.once('end', resolve)
+      })
+      archive.append('static-build-fixture', { name: 'fixture.txt' })
+      await archive.finalize()
+      await completed
+      const contents = Buffer.concat(chunks)
+      assert.ok(contents.includes(Buffer.from('fixture.txt')))
+      assert.ok(contents.includes(Buffer.from('static-build-fixture')))
+    }
+  })
+}
 
-test('Archiver compatibility bridge uses the reviewed major version', () => {
-  const rootPackage = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'))
-  const compatibilityPackage = JSON.parse(
-    readFileSync(new URL('../vendor/archiver-nitro-compat/package.json', import.meta.url), 'utf8'),
-  )
-
-  assert.equal(rootPackage.devDependencies.archiver, 'file:vendor/archiver-nitro-compat')
-  assert.ok(rootPackage.workspaces.includes('vendor/archiver-nitro-compat'))
-  assert.equal(compatibilityPackage.version, '7.0.1+local.vitesse')
-  assert.equal(compatibilityPackage.dependencies['archiver-modern'], 'npm:archiver@8.0.0')
+test('the template uses Archiver 8 only as a build dependency', () => {
+  const manifest = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'))
+  assert.equal(manifest.devDependencies.archiver, '^8.0.0')
+  assert.equal(manifest.dependencies.archiver, undefined)
+  assert.deepEqual(manifest.workspaces, ['front-end', 'back-end'])
 })

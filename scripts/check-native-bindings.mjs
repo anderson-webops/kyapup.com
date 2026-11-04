@@ -1,85 +1,104 @@
-#!/usr/bin/env node
-import { readFile } from 'node:fs/promises'
-import { resolve } from 'node:path'
+import { existsSync, readFileSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
+import process from 'node:process'
+import { fileURLToPath } from 'node:url'
+import { resolveOptionalBinding } from './lockfile-native-bindings.mjs'
 
-const projectRoot = resolve(import.meta.dirname, '..')
-const lockfile = JSON.parse(await readFile(resolve(projectRoot, 'package-lock.json'), 'utf8'))
-const npmConfig = await readFile(resolve(projectRoot, '.npmrc'), 'utf8')
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const lockfile = JSON.parse(readFileSync(resolve(repoRoot, 'package-lock.json'), 'utf8'))
 const packages = lockfile.packages || {}
-const nativeNamePattern = /linux-arm64-(?:gnu|musl)$/
+const npmConfig = readFileSync(resolve(repoRoot, '.npmrc'), 'utf8')
+if (lockfile.lockfileVersion !== 3)
+  throw new Error('package-lock.json must use lockfile v3')
+for (const requirement of ['include=optional', 'engine-strict=true', 'strict-allow-scripts=true']) {
+  if (!npmConfig.split(/\r?\n/u).includes(requirement))
+    throw new Error(`.npmrc must retain ${requirement}`)
+}
+const requiredBindingNames = [
+  '@typescript/typescript-linux-arm64',
+  '@esbuild/linux-arm64',
+  '@oxc-parser/binding-linux-arm64-gnu',
+  '@oxc-parser/binding-linux-arm64-musl',
+  '@oxfmt/binding-linux-arm64-gnu',
+  '@oxfmt/binding-linux-arm64-musl',
+  '@rolldown/binding-linux-arm64-gnu',
+  '@rolldown/binding-linux-arm64-musl',
+  '@rollup/rollup-linux-arm64-gnu',
+  '@rollup/rollup-linux-arm64-musl',
+  '@unrs/resolver-binding-linux-arm64-gnu',
+  '@unrs/resolver-binding-linux-arm64-musl',
+  'lightningcss-linux-arm64-gnu',
+  'lightningcss-linux-arm64-musl',
+]
 
-function assert(condition, message) {
-  if (!condition)
-    throw new Error(message)
+const expectedBindings = Object.entries(packages).flatMap(([packagePath, packageRecord]) => {
+  const optionalDependencies = packageRecord.optionalDependencies || {}
+  return Object.entries(optionalDependencies)
+    .filter(([dependencyName]) => dependencyName.includes('linux-arm64'))
+    .map(([dependencyName, declaredVersion]) => ({
+      declaredVersion,
+      dependencyName,
+      packagePath: resolveOptionalBinding(packages, packagePath, dependencyName)?.packagePath
+        || `${packagePath}/node_modules/${dependencyName}`,
+      parentPath: packagePath,
+    }))
+})
+
+if (!expectedBindings.length)
+  throw new Error('No Linux ARM64 native optional dependencies were discovered in package-lock.json')
+
+const discoveredBindingNames = new Set(expectedBindings.map(binding => binding.dependencyName))
+for (const dependencyName of requiredBindingNames) {
+  if (!discoveredBindingNames.has(dependencyName))
+    throw new Error(`Required Linux ARM64 binding family is no longer declared: ${dependencyName}`)
 }
 
-function nearestBinding(parentKey, packageName, version) {
-  const lastNodeModules = parentKey.lastIndexOf('node_modules/')
-  const nearestKey = `${parentKey.slice(0, lastNodeModules)}node_modules/${packageName}`
-  if (packages[nearestKey]?.version === version)
-    return [nearestKey, packages[nearestKey]]
-
-  return Object.entries(packages).find(([key, metadata]) => (
-    key.endsWith(`node_modules/${packageName}`) && metadata.version === version
-  ))
-}
-
-assert(lockfile.lockfileVersion === 3, 'package-lock.json must use lockfile v3')
-assert(/^include=optional$/m.test(npmConfig), '.npmrc must include optional dependencies')
-assert(/^engine-strict=true$/m.test(npmConfig), '.npmrc must enforce runtime engines')
-assert(/^strict-allow-scripts=true$/m.test(npmConfig), '.npmrc must fail on unreviewed dependency scripts')
-
-let verifiedBindings = 0
-const resolvedFamilies = new Set()
-
-for (const [parentKey, parent] of Object.entries(packages)) {
-  const optionalDependencies = parent.optionalDependencies || {}
-  for (const [packageName, version] of Object.entries(optionalDependencies)) {
-    if (!nativeNamePattern.test(packageName))
-      continue
-
-    const binding = nearestBinding(parentKey, packageName, version)
-    assert(binding, `Missing Linux ARM64 lock entry for ${packageName}@${version} required by ${parentKey}`)
-
-    const [bindingKey, metadata] = binding
-    const expectedLibc = packageName.endsWith('-musl')
-      ? 'musl'
-      : 'glibc'
-    assert(metadata.os?.includes('linux'), `${bindingKey} must target Linux`)
-    assert(metadata.cpu?.includes('arm64'), `${bindingKey} must target arm64`)
-    assert(metadata.libc?.includes(expectedLibc), `${bindingKey} must target ${expectedLibc}`)
-    assert(metadata.optional === true, `${bindingKey} must remain an optional dependency`)
-    assert(
-      typeof metadata.integrity === 'string' && metadata.integrity.startsWith('sha512-'),
-      `${bindingKey} must include registry integrity metadata`,
+for (const expected of expectedBindings) {
+  if (expected.dependencyName === '@typescript/typescript-linux-arm64'
+    && expected.declaredVersion !== packages[expected.parentPath].version) {
+    throw new Error('The native compiler must pin its matching Linux ARM64 executable')
+  }
+  const packageRecord = packages[expected.packagePath]
+  if (!packageRecord)
+    throw new Error(`Missing ${expected.packagePath}, required by ${expected.parentPath}`)
+  if (packageRecord.optional !== true)
+    throw new Error(`${expected.packagePath} must remain optional`)
+  if (!packageRecord.cpu?.includes('arm64'))
+    throw new Error(`${expected.packagePath} must target arm64`)
+  if (!packageRecord.os?.includes('linux'))
+    throw new Error(`${expected.packagePath} must target Linux`)
+  if (!packageRecord.integrity?.startsWith('sha512-'))
+    throw new Error(`${expected.packagePath} must retain registry integrity metadata`)
+  if (/^\d+\.\d+\.\d+(?:[-+].+)?$/u.test(expected.declaredVersion) && packageRecord.version !== expected.declaredVersion) {
+    throw new Error(
+      `${expected.packagePath} resolved ${packageRecord.version}, but ${expected.parentPath} declares ${expected.declaredVersion}`,
     )
+  }
+  if (expected.dependencyName.endsWith('-gnu') && !packageRecord.libc?.includes('glibc'))
+    throw new Error(`${expected.packagePath} must target glibc`)
+  if (expected.dependencyName.endsWith('-musl') && !packageRecord.libc?.includes('musl'))
+    throw new Error(`${expected.packagePath} must target musl`)
+}
 
-    if (packageName.startsWith('@oxc-parser/'))
-      resolvedFamilies.add('oxc-parser')
-    if (packageName.startsWith('@rolldown/'))
-      resolvedFamilies.add('rolldown')
-    verifiedBindings += 1
+if (process.platform === 'linux' && process.arch === 'arm64') {
+  const runtimeVariant = process.report.getReport().header.glibcVersionRuntime
+    ? 'gnu'
+    : 'musl'
+  const expectedInstalledBindings = expectedBindings.filter(({ dependencyName }) =>
+    !dependencyName.endsWith('-gnu') && !dependencyName.endsWith('-musl')
+      ? true
+      : dependencyName.endsWith(`-${runtimeVariant}`),
+  )
+
+  for (const expected of expectedInstalledBindings) {
+    if (!existsSync(resolve(repoRoot, expected.packagePath, 'package.json'))) {
+      throw new Error(
+        `Linux ARM64 ${runtimeVariant} package was not installed: ${expected.packagePath}`,
+      )
+    }
   }
 }
 
-for (const family of ['oxc-parser', 'rolldown'])
-  assert(resolvedFamilies.has(family), `package-lock.json must include Linux ARM64 bindings for ${family}`)
-
-assert(verifiedBindings > 0, 'package-lock.json does not contain Linux ARM64 native optional packages')
-let compilerBindings = 0
-for (const [parentKey, parent] of Object.entries(packages)) {
-  if (!parentKey.endsWith('/typescript-native'))
-    continue
-  const packageName = '@typescript/typescript-linux-arm64'
-  const version = parent.optionalDependencies?.[packageName]
-  assert(version === parent.version, 'The native compiler must pin its matching Linux ARM64 executable')
-  const binding = nearestBinding(parentKey, packageName, version)
-  assert(binding, 'The native compiler Linux ARM64 executable must be locked')
-  const [bindingKey, metadata] = binding
-  assert(metadata.os?.includes('linux') && metadata.cpu?.includes('arm64'), `${bindingKey} must target Linux ARM64`)
-  assert(metadata.optional === true, `${bindingKey} must remain optional`)
-  assert(metadata.integrity?.startsWith('sha512-'), `${bindingKey} must retain registry integrity`)
-  compilerBindings += 1
-}
-assert(compilerBindings > 0, 'The backend TypeScript 7 compiler must retain Linux ARM64 support')
-console.log(`Native binding lockfile check passed for ${verifiedBindings} Linux ARM64 packages.`)
+console.log(
+  `Linux ARM64 native binding lockfile and installation checks passed for ${expectedBindings.length} entries.`,
+)

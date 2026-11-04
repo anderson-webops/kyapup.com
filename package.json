@@ -1,7 +1,7 @@
 {
 	"name": "vitesse-nuxt-monorepo",
 	"type": "module",
-	"version": "2.1.17",
+	"version": "2.1.18",
 	"private": true,
 	"packageManager": "npm@12.2.1",
 	"engines": {
@@ -14,8 +14,7 @@
 	"keywords": [],
 	"workspaces": [
 		"front-end",
-		"back-end",
-		"vendor/archiver-nitro-compat"
+		"back-end"
 	],
 	"scripts": {
 		"build": "npm run -w front-end build && npm run -w back-end build",
@@ -32,7 +31,7 @@
 		"lint": "npm run lint:root && npm run -w front-end lint && npm run -w back-end lint",
 		"lint-fix": "eslint \"*.{js,ts,mjs,cjs}\" scripts netlify --fix && npm run -w front-end lint-fix && npm run -w back-end lint-fix",
 		"typecheck": "npm run -w front-end typecheck && npm run -w back-end typecheck && tsc -p netlify/tsconfig.json --noEmit",
-		"test": "npm run -w back-end test && node --test scripts/test-archiver-compat.mjs scripts/test-glob-compat.mjs scripts/test-listhen-compat.mjs scripts/test-braces-compat.mjs scripts/test-deepmerge-compat.mjs scripts/test-qs-compat.mjs scripts/test-vendored-qs-packaging.mjs scripts/test-vue-devtools-compat.mjs scripts/test-toolchain-compat.mjs scripts/test-frontend-command.mjs scripts/test-devtools-provider.mjs && npm run test:devtools && python3 -B -m unittest discover -s scripts -p test_runtime_artifact.py -v",
+		"test": "npm run -w back-end test && node --test scripts/test-archiver-compat.mjs scripts/test-glob-compat.mjs scripts/test-listhen-compat.mjs scripts/test-braces-compat.mjs scripts/test-deepmerge-compat.mjs scripts/test-qs-compat.mjs scripts/test-vendored-qs-packaging.mjs scripts/test-vue-devtools-compat.mjs scripts/test-toolchain-compat.mjs scripts/test-native-bindings.mjs scripts/test-frontend-command.mjs scripts/test-devtools-provider.mjs && npm run test:devtools && python3 -B -m unittest discover -s scripts -p test_runtime_artifact.py -v",
 		"test:devtools": "node scripts/test-vue-devtools-host.mjs",
 		"clean": "node scripts/clean.mjs",
 		"deps:check": "taze",
@@ -63,7 +62,8 @@
 		"@types/node": "^26.6.6",
 		"@typescript-eslint/types": "^8.72.1",
 		"@unocss/eslint-plugin": "^66.12.0",
-		"archiver": "file:vendor/archiver-nitro-compat",
+		"@vitejs/devtools-kit": "0.7.6",
+		"archiver": "^8.0.0",
 		"axe-core": "^4.14.0",
 		"braces": "file:vendor/braces",
 		"deepmerge": "file:vendor/deepmerge",
@@ -75,7 +75,7 @@
 		"listhen": "file:vendor/listhen",
 		"nitropack": "2.13.6",
 		"puppeteer-core": "^25.16.0",
-		"qs": "file:back-end/vendor/qs-6.17.2-webops.2.tgz",
+		"qs": "file:back-end/vendor/qs-6.17.2-webops.4.tgz",
 		"simple-git-hooks": "^2.14.0",
 		"taze": "^21.3.0",
 		"typescript": "^6.0.3",

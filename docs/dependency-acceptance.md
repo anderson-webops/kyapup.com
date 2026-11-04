@@ -1,8 +1,11 @@
 # Dependency acceptance
 
-Nuxt DevTools 4.1.0 uses Vite DevTools 0.8.0. The unmodified Vue plugin's
-9.0.0-rc.2 distribution declares the 0.7.6 API line, so the frontend provides
-compatible 0.7 dependencies separately from DevTools 4's own 0.8 dependencies.
+Nuxt DevTools 4.1.0 uses the tested Vite DevTools 0.8.2 host and kit. The
+frontend declares that current pair directly. The original Vue plugin's
+9.0.0-rc.2 distribution and Unhead 3 retain their supported 0.7 API consumers.
+The root compatibility kit and explicit hoisted npm layout preserve those
+original peer contracts while the frontend uses 0.8.2. A layout with an
+incompatible kit at either consumer must fail the complete installed graph.
 The former metadata-only peer patch and local archive are retired. The original
 registry metadata, integrity and all 38 payload hashes remain checked against
 `vendor/vite-plugin-vue-devtools/UPSTREAM.json`. The complete installed graph
@@ -16,12 +19,22 @@ outside its declared range, and neither dependency warnings nor checks are
 suppressed. The host test selects 0.8 explicitly through its public integration
 API rather than silently accepting the root's compatible 0.7 provider.
 
-The private qs 6.17.2-webops.2 patch is based on current upstream 6.17.1.
+The private qs 6.17.2-webops.4 patch is based on current upstream 6.17.1.
 It retains that release's input-copy prototype protection and fixes native
 comma-array coercion across realms. The source, license and compatibility
 boundary are in `vendor/qs/UPSTREAM.md`. The installed CommonJS files and all
 three browser interfaces pass the same security and ordinary-input fixtures.
 The locked build reproduces both the browser distribution and local npm archive.
+Exact decimal overflow/conflict counters preserve every existing value when
+indexes exceed the safe integer range, including merges and shifted containers.
+Named properties and own data properties retain their keys and prototypes;
+strict limit errors remain unchanged. This fixes a separately reproduced data
+loss defect, not a demonstrated prototype-pollution exploit. Both workspace and
+independent API locks and the exact unpacked runtime use the same reviewed bytes.
+An independently reviewed large-limit case also retains non-array indexes as
+objects when `arrayLimit` exceeds JavaScript's array-index range or is infinite.
+Both sparse modes, ordinary/null objects, prepend/append and strict/non-strict
+limit settings have regressions; ordinary small arrays remain arrays.
 
 Intrinsic-array coercion reads each index once and converts it before reading
 the next index. This prevents changing getters from bypassing normalization and
@@ -73,11 +86,21 @@ boundary are recorded in `vendor/deepmerge/UPSTREAM.md`; the security regression
 and complete consumer-lock assertions remain part of `npm test`.
 
 Glob 14.0.3 and Minimatch 11.0.4 replace vulnerable older transitive majors.
-Nitro 2 still calls Archiver through its legacy default factory, so the local
-`archiver` workspace bridges that API to unmodified Archiver 8.0.0. Its source
-and dependency identity remain visible in the lockfile. Exact installed-graph,
-file-matching, archive-factory, Nuxt build and artifact regressions are required
-because these upgrades cross the parent packages' declared major ranges.
-Remove the bridge when Nitro natively supports the modern Archiver interface.
+Nitro 2.13.6 imports the named `ZipArchive` API directly, so the obsolete local
+factory bridge is retired. Both root and actual Nitro consumers use the original
+Archiver 8 package and produce real ZIP/TAR streams in regression tests. Full
+graph, file-matching, Nuxt build and exact-artifact checks remain required.
 The standalone backend lock pins the same patched Minimatch major, and both
 full and production backend audits are required before artifact packaging.
+
+Native optional bindings follow actual Node lookup from each declaring package,
+including nested aliases, hoisted workspace packages and scoped parents. An
+unrelated workspace or a matching version hidden behind an incompatible nearer
+package cannot satisfy the declaration. The complete platform, libc, version,
+integrity and installed Linux ARM64 checks remain strict, including the real
+TypeScript 7 compiler. Negative and positive resolver fixtures run in normal CI.
+
+The HTTPS fixture client trusts only its explicitly supplied certificate and
+retains hostname authentication. Missing or unrelated trust and an incorrect
+hostname reject; generated certificates, inline PEM, PEM files and PFX remain
+supported. The trust is request-local, with bounded transport failure and cleanup.

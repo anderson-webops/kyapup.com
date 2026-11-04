@@ -8,7 +8,7 @@ for (const version of ['0.8.0', '0.8.1', '0.8.2']) {
   })
 }
 
-test('the frontend legacy peer is not accepted as the Nuxt-selected host', () => {
+test('a legacy peer is not accepted as the Nuxt-selected host', () => {
   assert.throws(() => assertDevtoolsProviderVersions({ version: '0.7.6' }, { version: '0.7.6' }))
 })
 

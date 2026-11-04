@@ -1,6 +1,6 @@
 {
 	"name": "back-end",
-  "version": "2.1.17",
+  "version": "2.1.18",
 	"private": true,
 	"description": "Minimal Express API for the vitesse-nuxt monorepo template.",
 	"type": "module",
@@ -34,7 +34,7 @@
 		"express": "^5.3.0",
 		"express-rate-limit": "^8.7.1",
 		"helmet": "^8.3.0",
-		"qs": "file:vendor/qs-6.17.2-webops.2.tgz"
+		"qs": "file:vendor/qs-6.17.2-webops.4.tgz"
 	},
 	"overrides": {
 		"minimatch": "11.0.4",

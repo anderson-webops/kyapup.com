@@ -275,10 +275,10 @@ var parseObject = function (chain, val, options, valuesParsed) {
                 && options.parseArrays;
             if (!options.parseArrays && decodedRoot === '') {
                 obj[0] = leaf;
-            } else if (isValidArrayIndex && index < options.arrayLimit) {
+            } else if (isValidArrayIndex && index < options.arrayLimit && index < 0xFFFFFFFF) {
                 obj = [];
                 obj[index] = leaf;
-            } else if (isValidArrayIndex && options.throwOnLimitExceeded) {
+            } else if (isValidArrayIndex && options.throwOnLimitExceeded && !(index < options.arrayLimit)) {
                 throw new RangeError('Array limit exceeded. Only ' + options.arrayLimit + ' element' + (options.arrayLimit === 1 ? '' : 's') + ' allowed in an array.');
             } else if (isValidArrayIndex) {
                 obj[index] = leaf;
