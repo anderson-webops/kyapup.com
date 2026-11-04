@@ -32,7 +32,7 @@
 		"lint": "npm run lint:root && npm run -w front-end lint && npm run -w back-end lint",
 		"lint-fix": "eslint \"*.{js,ts,mjs,cjs}\" scripts netlify --fix && npm run -w front-end lint-fix && npm run -w back-end lint-fix",
 		"typecheck": "npm run -w front-end typecheck && npm run -w back-end typecheck && tsc -p netlify/tsconfig.json --noEmit",
-		"test": "npm run -w back-end test && node --test scripts/test-archiver-compat.mjs scripts/test-glob-compat.mjs scripts/test-listhen-compat.mjs scripts/test-braces-compat.mjs scripts/test-deepmerge-compat.mjs scripts/test-qs-compat.mjs scripts/test-vendored-qs-packaging.mjs scripts/test-vue-devtools-compat.mjs scripts/test-toolchain-compat.mjs scripts/test-frontend-command.mjs && npm run test:devtools && python3 -B -m unittest discover -s scripts -p test_runtime_artifact.py -v",
+		"test": "npm run -w back-end test && node --test scripts/test-archiver-compat.mjs scripts/test-glob-compat.mjs scripts/test-listhen-compat.mjs scripts/test-braces-compat.mjs scripts/test-deepmerge-compat.mjs scripts/test-qs-compat.mjs scripts/test-vendored-qs-packaging.mjs scripts/test-vue-devtools-compat.mjs scripts/test-toolchain-compat.mjs scripts/test-frontend-command.mjs scripts/test-devtools-provider.mjs && npm run test:devtools && python3 -B -m unittest discover -s scripts -p test_runtime_artifact.py -v",
 		"test:devtools": "node scripts/test-vue-devtools-host.mjs",
 		"clean": "node scripts/clean.mjs",
 		"deps:check": "taze",

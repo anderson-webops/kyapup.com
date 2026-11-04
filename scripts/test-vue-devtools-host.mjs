@@ -4,16 +4,21 @@ import { createHash } from 'node:crypto'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import path from 'node:path'
+import process from 'node:process'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { createServer } from 'vite'
-import { vueDevtools } from 'vite-plugin-vue-devtools'
+import { assertDevtoolsProviderVersions } from './devtools-provider.mjs'
 
-const root = fileURLToPath(new URL('..', import.meta.url))
+const root = process.argv[2]
+  ? path.resolve(process.argv[2])
+  : fileURLToPath(new URL('..', import.meta.url))
 const require = createRequire(path.join(root, 'package.json'))
+const { createServer } = await import(pathToFileURL(require.resolve('vite')))
+const { vueDevtools } = await import(pathToFileURL(require.resolve('vite-plugin-vue-devtools')))
 const frontend = createRequire(path.join(root, 'front-end/package.json'))
 const providerRequire = createRequire(frontend.resolve('@nuxt/devtools'))
 const provider = JSON.parse(await readFile(providerRequire.resolve('@vitejs/devtools/package.json'), 'utf8'))
-assert.equal(provider.version, '0.8.0')
+const kit = JSON.parse(await readFile(providerRequire.resolve('@vitejs/devtools-kit/package.json'), 'utf8'))
+assertDevtoolsProviderVersions(provider, kit)
 const { DevToolsIntegration } = await import(pathToFileURL(providerRequire.resolve('@vitejs/devtools/integration')))
 const installedPlugin = path.dirname(require.resolve('vite-plugin-vue-devtools/package.json'))
 const scratchRoot = path.join(root, '.ai-work/runs')
