@@ -1,7 +1,7 @@
 {
 	"name": "vitesse-nuxt-monorepo",
 	"type": "module",
-	"version": "2.1.16",
+	"version": "2.1.17",
 	"private": true,
 	"packageManager": "npm@12.2.1",
 	"engines": {
