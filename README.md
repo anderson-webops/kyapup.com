@@ -21,7 +21,9 @@ npm ci --include=optional --strict-allow-scripts
 Bootstrap uses the selected Node's existing npm only to install the reviewed,
 locked build-tool graph. Application installation and checks use the repaired
 profile. The private installation survives application `npm ci`, and global
-tools remain unchanged. Each bootstrap creates a fresh private installation;
+tools remain unchanged. The bootstrap-only graph accepts the stock Node 26.13.0
+npm 11.20.0 seed; application and release commands still require the verified
+npm 12.2.2 profile. Each bootstrap creates a fresh private installation;
 registry download caches remain reusable. `NPM_CONFIG_CACHE` places it under
 that cache's `_site-toolchains`, otherwise it stays in repository-owned scratch.
 Windows and hosted-editor execution require their own acceptance; source CI

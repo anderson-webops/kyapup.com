@@ -27,6 +27,10 @@ Normal audits include that graph. Integrity, cancellation, bounded pattern
 expansion, offline pack/install/executable delivery and source-only cold
 bootstrap are required regressions. Seed-only ignored-script settings do not
 leak into application installation. No global tool or security setting changes.
+The bootstrap-only manifest accepts Node 26.13.0's bundled npm 11.20.0. Its role
+is a script-free locked installation of the reviewed profile, not application
+installation or release qualification. The application engine and selected
+build-profile checks remain pinned to the repaired npm 12.2.2 distribution.
 
 Netlify's existing automatic installation is scoped to `build-toolchain` through
 its supported npm flags; the build command then performs a clean application

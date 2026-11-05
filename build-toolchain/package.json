@@ -4,7 +4,7 @@
   "private": true,
   "engines": {
     "node": ">=26.13.0 <27",
-    "npm": ">=12.2.1 <13"
+    "npm": ">=11.20.0 <13"
   },
   "dependencies": {
     "npm": "file:vendor/npm-12.2.2-webops.1.tgz"

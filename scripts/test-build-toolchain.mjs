@@ -17,6 +17,15 @@ const root = path.resolve(import.meta.dirname, '..')
 const scratch = path.join(root, '.ai-work/runs/toolchain-fixtures')
 mkdirSync(scratch, { recursive: true })
 
+test('the stock Node npm seed is compatible only with bootstrap, not application qualification', () => {
+  const seedManifest = JSON.parse(readFileSync(path.join(toolchainSource, 'package.json'), 'utf8'))
+  const applicationManifest = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'))
+  const semver = consumer('semver')
+  assert.equal(semver.satisfies('11.20.0', seedManifest.engines.npm), true)
+  assert.equal(semver.satisfies('11.20.0', applicationManifest.engines.npm), false)
+  assert.equal(semver.satisfies(toolchainMetadata.npm, applicationManifest.engines.npm), true)
+})
+
 test('the active npm, npx and Node sibling commands retain the reviewed independent profile', () => {
   assert.equal(verifyBuildToolchain().profile, toolchainMetadata.profile)
   const selected = execFileSync('npm', [
