@@ -25,9 +25,6 @@ jobs:
           node-version: 26.13.0
           package-manager-cache: false
 
-      - name: Pin npm
-        run: npm install --global npm@12.2.2 --allow-scripts=npm
-
       - name: Prepare exact tagged direct runtime
         env:
           CI: "true"
@@ -54,7 +51,9 @@ jobs:
           package-manager-cache: false
       - name: Prepare isolated artifact-test tools
         run: |
-          npm install --global npm@12.2.2 --allow-scripts=npm
+          bin="$(node scripts/build-toolchain.mjs --print-bin)"
+          printf '%s\n' "$bin" >> "$GITHUB_PATH"
+          "$bin/node" scripts/check-build-toolchain.mjs
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends bubblewrap apparmor
           if test -d /sys/kernel/security/apparmor; then
@@ -100,6 +99,9 @@ jobs:
           assert receipt["commit"] == manifest["commit"] == commit
           assert receipt["sha256"] == hashlib.sha256(archive.read_bytes()).hexdigest()
           assert manifest["contract"] == contract
+          assert receipt["buildToolchain"]["profile"] == contract["runtime"]["npmBuildProfile"]
+          assert receipt["buildToolchain"]["lockSha256"] == contract["runtime"]["npmBuildLockSha256"]
+          assert hashlib.sha256(Path("build-toolchain/package-lock.json").read_bytes()).hexdigest() == contract["runtime"]["npmBuildLockSha256"]
           assert contract["deployment"]["schemaVersion"] == 1
           assert contract["deployment"]["applicationId"] == "vitesse-nuxt-template"
           PY

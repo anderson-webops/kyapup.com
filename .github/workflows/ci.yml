@@ -33,11 +33,11 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Align npm with the repository policy
+      - name: Prepare the independent locked build toolchain
         run: |
-          npm install --global "npm@${NPM_VERSION}" --allow-scripts=npm
-          node --version
-          npm --version
+          bin="$(node scripts/build-toolchain.mjs --print-bin)"
+          printf '%s\n' "$bin" >> "$GITHUB_PATH"
+          "$bin/node" scripts/check-build-toolchain.mjs
 
       - name: Install locked dependencies
         run: npm ci --include=optional --strict-allow-scripts

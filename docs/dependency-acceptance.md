@@ -9,14 +9,33 @@ Toolchain regressions inspect the actual selected npm and child commands
 and exercise preservation of function-valued TLS policy before any connection.
 Both production artifact profiles continue excluding npm and other build tools.
 
-Release qualification also includes the installed npm bundle, not just the
-application lockfiles. As of 2026-11-05, npm 12.2.2 still includes Glob 13.0.6
-and Minimatch 10.2.5, affected by GHSA-3g3m-2fjr-6pw4 and
-GHSA-g3hv-75wg-m249 respectively. The application graphs already select
-Glob 14.0.3 and Minimatch 11.0.4, but those overrides do not repair npm itself.
-The npm upgrade is intermediate source progress, not a clean toolchain or a
-release authorization. A maintained toolchain repair and its full installed
-dependency audit remain required before tagging this candidate.
+Release qualification includes the selected npm dependency graph, not just the
+application lockfiles. The original npm 12.2.2 distribution still bundles Glob
+13.0.6 and Minimatch 10.2.5, affected by GHSA-3g3m-2fjr-6pw4 and
+GHSA-g3hv-75wg-m249. `build-toolchain/` retains the original CLI code, license
+and documentation while removing prebundled dependencies and their packaging
+declarations. A separate locked graph selects Glob 14.0.3, Minimatch 11.0.4 and
+the supported registry-resolved dependencies. This is a maintained local
+distribution profile, not a claim that the original upstream bundle is clean.
+
+`scripts/package-npm-toolchain.py` verifies the original registry SHA-512 and
+reproduces the archive and all original-file digests. Bootstrap installs that
+graph before application dependencies, verifies the CLI contents and lock,
+runs full/production audits and registry verification, and pairs the selected
+Node with the exact npm/npx CLI entrypoints outside application `node_modules`.
+Normal audits include that graph. Integrity, cancellation, bounded pattern
+expansion, offline pack/install/executable delivery and source-only cold
+bootstrap are required regressions. Seed-only ignored-script settings do not
+leak into application installation. No global tool or security setting changes.
+
+Netlify's existing automatic installation is scoped to `build-toolchain` through
+its supported npm flags; the build command then performs a clean application
+installation using the repaired profile. StackBlitz automatic installation is
+disabled in favor of the same explicit bootstrap. Hosted runtime acceptance
+remains distinct from these source-side contracts. Direct preparation keeps
+the private toolchain cache outside its prepared runtime and removes the
+toolchain source inputs before runtime acceptance. Exact archive receipts bind
+the profile and lock digest, and the runtime verifier's allowlist is unchanged.
 
 Nuxt DevTools 4.1.0 uses the tested Vite DevTools 0.8.2 host and kit. The
 frontend declares that current pair directly. The original Vue plugin's

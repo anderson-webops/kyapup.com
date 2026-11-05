@@ -53,8 +53,8 @@ for environment_directory in "$candidate" "$candidate/front-end" "$candidate/bac
 	done < <(find "$environment_directory" -maxdepth 1 \( -name '.env' -o -name '.env.*' \) -print0)
 done
 
-if [[ "$(node --version)" != "v26.13.0" || "$(npm --version)" != "12.2.2" ]]; then
-	echo "Preparation requires Node 26.13.0 and npm 12.2.2." >&2
+if [[ "$(node --version)" != "v26.13.0" ]]; then
+	echo "Preparation requires Node 26.13.0." >&2
 	exit 1
 fi
 
@@ -88,9 +88,17 @@ npm_cache="${NPM_CONFIG_CACHE:-$(dirname "$release_root_real")/shared/npm-cache}
 mkdir -p "$npm_cache"
 NPM_CONFIG_CACHE="$(cd -- "$npm_cache" && pwd -P)"
 export NPM_CONFIG_CACHE
+case "$NPM_CONFIG_CACHE/" in
+  "$candidate/"*) echo "Build-tool caches must remain outside the prepared runtime." >&2; exit 1 ;;
+esac
 
 unset NODE_ENV
 cd -- "$candidate"
+toolchain_bin="$(node scripts/build-toolchain.mjs --print-bin)"
+PATH="$toolchain_bin:$PATH"
+export PATH
+unset npm_execpath npm_node_execpath
+node scripts/check-build-toolchain.mjs
 npm ci --include=dev --include=optional --strict-allow-scripts
 npm run audit:all
 npm run audit:prod

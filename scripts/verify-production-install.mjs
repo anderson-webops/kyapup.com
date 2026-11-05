@@ -25,7 +25,12 @@ for (const packageName of [
 ])
   await assert.rejects(access(path.join(backendModules, packageName)), undefined, `${packageName} must be absent from production`)
 
-for (const removedPath of ['node_modules', 'front-end/node_modules', 'front-end/.nuxt'])
+for (const removedPath of [
+  'node_modules',
+  'front-end/node_modules',
+  'front-end/.nuxt',
+  'build-toolchain',
+])
   await assert.rejects(access(path.join(repositoryRoot, removedPath)), undefined, `${removedPath} must be absent from production`)
 
 for (const requiredPath of [

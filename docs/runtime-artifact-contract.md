@@ -26,8 +26,9 @@ make artifact acceptance pass.
 
 ## Build and accept away from production
 
-Use an unprivileged disposable Linux ARM64 builder with Node 26.13.0, npm 12.2.2,
-Python 3.11 or newer, libatomic and Bubblewrap with user namespaces available. Start from a
+Use an unprivileged disposable Linux ARM64 builder with Node 26.13.0 and npm
+12.2.2 selected through the locked `webops-locked-npm-v1` profile. Python 3.11 or
+newer, libatomic and Bubblewrap with user namespaces must be available. Start from a
 clean, exact source commit. Record that commit. Run the repository's clean install,
 full/production audits, signatures, lint, types, tests, build, native declarations
 and deployment-output gates. Accessibility can run on the same source in a
