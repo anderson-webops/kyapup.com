@@ -36,7 +36,7 @@ test('the npm-bundled Agent preserves function-valued TLS validation without a n
   const { Agent } = npmPackage().require('undici')
   const checkServerIdentity = () => new Error('synthetic certificate rejection')
   const captured = new Error('synthetic transport stopped before connection')
-  let received
+  const failures = []
   const agent = new Agent({
     tls: { checkServerIdentity },
     factory(_origin, options) {
@@ -45,10 +45,15 @@ test('the npm-bundled Agent preserves function-valued TLS validation without a n
     },
   })
   try {
-    agent.dispatch({ origin: 'https://registry.invalid', path: '/', method: 'GET' }, {
-      onError(error) { received = error },
-    })
-    assert.equal(received, captured)
+    try {
+      agent.dispatch({ origin: 'https://registry.invalid', path: '/', method: 'GET' }, {
+        onError(error) { failures.push(error) },
+      })
+    }
+    catch (error) {
+      failures.push(error)
+    }
+    assert.deepEqual(failures, [captured])
   }
   finally {
     await agent.close()
