@@ -7,6 +7,7 @@ from pathlib import Path
 import tarfile
 import tempfile
 import unittest
+from unittest.mock import patch
 
 
 spec = importlib.util.spec_from_file_location("npm_toolchain_package", Path(__file__).with_name("package-npm-toolchain.py"))
@@ -61,6 +62,21 @@ class BuildToolchainPackageTests(unittest.TestCase):
         original, metadata = self.fixture()
         with self.assertRaisesRegex(ValueError, "upstream integrity"):
             self.rebuild(original + b"changed", metadata)
+
+    def test_archive_is_independent_of_interpreter_compression_defaults(self):
+        original, metadata = self.fixture()
+        expected, records = self.rebuild(original, metadata)
+        original_gzip = packager.gzip.GzipFile
+        for compression_default in [6, 9]:
+            with self.subTest(compression_default=compression_default):
+                def changed_default(*args, **kwargs):
+                    if len(args) < 3:
+                        kwargs.setdefault("compresslevel", compression_default)
+                    return original_gzip(*args, **kwargs)
+                with patch.object(packager.gzip, "GzipFile", side_effect=changed_default):
+                    actual, repeated = self.rebuild(original, metadata)
+                self.assertEqual(actual, expected)
+                self.assertEqual(repeated, records)
 
     def test_links_traversal_and_duplicate_members_are_rejected(self):
         for name, link in [("package/../outside", False), ("/outside", False), ("package/LICENSE", False), ("package/linked", True)]:

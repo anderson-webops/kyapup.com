@@ -17,7 +17,7 @@ def rebuild(source_path, metadata):
     retained = []
     names = set()
     with tarfile.open(fileobj=io.BytesIO(original), mode="r:gz") as source:
-        with gzip.GzipFile(fileobj=output, mode="wb", mtime=0, filename="") as compressed:
+        with gzip.GzipFile(fileobj=output, mode="wb", compresslevel=6, mtime=0, filename="") as compressed:
             with tarfile.open(fileobj=compressed, mode="w|") as archive:
                 for member in source.getmembers():
                     parts = PurePosixPath(member.name).parts

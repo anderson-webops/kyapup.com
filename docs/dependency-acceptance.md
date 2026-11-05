@@ -19,7 +19,9 @@ the supported registry-resolved dependencies. This is a maintained local
 distribution profile, not a claim that the original upstream bundle is clean.
 
 `scripts/package-npm-toolchain.py` verifies the original registry SHA-512 and
-reproduces the archive and all original-file digests. Bootstrap installs that
+reproduces the archive and all original-file digests. An explicit compression
+level preserves identical archive bytes across Python versions with different
+gzip defaults. Bootstrap installs the
 graph before application dependencies, verifies the CLI contents and lock,
 runs full/production audits and registry verification, and pairs the selected
 Node with the exact npm/npx CLI entrypoints outside application `node_modules`.
