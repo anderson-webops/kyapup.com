@@ -37,7 +37,7 @@ export function verifyBuildToolchain(cli = selectedNpmCli()) {
     const installed = path.join(prefix, name)
     const state = lstatSync(installed)
     assert.ok(state.isFile() && !state.isSymbolicLink(), `Toolchain input must be a regular file: ${name}`)
-    assert.deepEqual(readFileSync(installed), readFileSync(path.join(toolchainSource, name)), `Toolchain input differs: ${name}`)
+    assert.ok(readFileSync(installed).equals(readFileSync(path.join(toolchainSource, name))), `Toolchain input differs: ${name}`)
   }
   assert.equal(sha256(readFileSync(path.join(prefix, 'package-lock.json'))), toolchainMetadata.lockSha256)
   assert.equal(sha256(readFileSync(path.join(prefix, toolchainMetadata.archive))), toolchainMetadata.archiveSha256)

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { Buffer } from 'node:buffer'
 import { execFileSync } from 'node:child_process'
 import { copyFileSync, cpSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
@@ -63,9 +64,29 @@ test('changed locks, substituted CLI bytes and symlinked CLI files cannot qualif
     ])
       copyFileSync(path.join(profile, name), path.join(directory, name))
     const copiedCli = path.join(copiedNpm, 'bin/npm-cli.js')
+    const rejectInputWithBoundedHeap = () => {
+      const output = execFileSync(process.execPath, [
+        '--max-old-space-size=128',
+        '--input-type=module',
+        '-e',
+        `import assert from 'node:assert/strict';
+import { verifyBuildToolchain } from ${JSON.stringify(new URL('./build-toolchain-state.mjs', import.meta.url).href)};
+assert.throws(() => verifyBuildToolchain(process.argv[1]), /Toolchain input differs/u);
+process.stdout.write('bounded input rejection');`,
+        copiedCli,
+      ], { encoding: 'utf8', timeout: 10_000, maxBuffer: 64 * 1024 })
+      assert.equal(output, 'bounded input rejection')
+    }
     writeFileSync(path.join(directory, 'package-lock.json'), '{}')
+    rejectInputWithBoundedHeap()
     assert.throws(() => verifyBuildToolchain(copiedCli), /input differs/u)
     copyFileSync(path.join(toolchainSource, 'package-lock.json'), path.join(directory, 'package-lock.json'))
+    const archive = path.join(directory, toolchainMetadata.archive)
+    const alteredArchive = Buffer.from(readFileSync(archive))
+    alteredArchive[0] ^= 1
+    writeFileSync(archive, alteredArchive)
+    rejectInputWithBoundedHeap()
+    copyFileSync(path.join(toolchainSource, toolchainMetadata.archive), archive)
     const victim = path.join(copiedNpm, victimPath.slice('package/'.length))
     const original = readFileSync(victim)
     writeFileSync(victim, 'process.exit(0)\n')
@@ -83,7 +104,7 @@ test('changed locks, substituted CLI bytes and symlinked CLI files cannot qualif
   }
 })
 
-test('a clean source-only bootstrap installs the application through its isolated npm without leaking seed flags', { timeout: 300_000 }, () => {
+test('a clean source-only bootstrap installs the application through its isolated npm without leaking seed flags', { timeout: 300_000 }, (context) => {
   const directory = mkdtempSync(path.join(scratch, 'bootstrap-'))
   let constructedProfile
   try {
@@ -110,6 +131,7 @@ test('a clean source-only bootstrap installs the application through its isolate
       },
     }))
     writeFileSync(path.join(directory, 'observe-install.cjs'), 'require("node:fs").writeFileSync("observed.json", JSON.stringify({cli:process.env.npm_execpath, cwd:process.cwd(), ignored:process.env.npm_config_ignore_scripts}))\n')
+    context.diagnostic('Preparing, auditing and installing the independent cold profile')
     const output = execFileSync(process.execPath, [
       path.join(directory, 'scripts/build-toolchain.mjs'),
       '--install',
@@ -124,6 +146,7 @@ test('a clean source-only bootstrap installs the application through its isolate
       maxBuffer: 4 * 1024 * 1024,
       env: { ...process.env, NPM_CONFIG_CACHE: process.env.NPM_CONFIG_CACHE || path.join(root, '.ai-work/runs/npm-cache') },
     })
+    context.diagnostic('Cold profile and application commands completed; verifying source and executable identity')
     const selected = JSON.parse(output.trim().split('\n').at(-1))
     const observedProfile = path.resolve(path.dirname(selected.node), '..')
     const managedRoot = realpathSync(path.join(process.env.NPM_CONFIG_CACHE || path.join(root, '.ai-work/runs/npm-cache'), '_site-toolchains'))
@@ -145,7 +168,7 @@ test('a clean source-only bootstrap installs the application through its isolate
   }
 })
 
-test('Glob cancellation bounds traversal while retaining ordinary file matching', { timeout: 10_000 }, async () => {
+test('Glob cancellation bounds traversal while retaining ordinary file matching', { timeout: 10_000 }, async (context) => {
   const directory = mkdtempSync(path.join(scratch, 'glob-'))
   try {
     for (let branch = 0; branch < 4; branch += 1) {
@@ -169,6 +192,7 @@ test('Glob cancellation bounds traversal while retaining ordinary file matching'
         })
       },
     }
+    context.diagnostic('Checking cancellation before ordinary traversal')
     await assert.rejects(glob('**/*', { cwd: directory, fs: measuredFs, signal: controller.signal }), reason)
     await new Promise(resolve => setTimeout(resolve, 200))
     assert.equal(reads, 1)

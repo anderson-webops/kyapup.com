@@ -36,6 +36,9 @@ build-profile checks remain pinned to the repaired npm 12.2.2 distribution.
 Offline executable fixtures use their own packed package, cache and empty global
 prefix. Both npm exec and npx must preserve the audited CLI and paired Node
 identity without resolving a separate global or cached Node package.
+Input verification compares exact bytes with bounded failure messages rather
+than constructing binary assertion diffs. Changed lock and archive regressions
+must reject in a separate process with a 128 MiB heap and a ten-second deadline.
 
 Netlify's existing automatic installation is scoped to `build-toolchain` through
 its supported npm flags; the build command then performs a clean application
@@ -132,6 +135,10 @@ boundary are recorded in `vendor/deepmerge/UPSTREAM.md`; the security regression
 and complete consumer-lock assertions remain part of `npm test`.
 
 Glob 14.0.3 and Minimatch 11.0.4 replace vulnerable older transitive majors.
+The complete build-toolchain suite runs in a dedicated test process before the
+other Node compatibility suites. Its cold installation, executable identity,
+tampering and cancellation cases remain required, with phase diagnostics for
+Linux failures rather than interleaved cold-install and compatibility output.
 Nitro 2.13.6 imports the named `ZipArchive` API directly, so the obsolete local
 factory bridge is retired. Both root and actual Nitro consumers use the original
 Archiver 8 package and produce real ZIP/TAR streams in regression tests. Full
