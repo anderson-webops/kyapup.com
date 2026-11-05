@@ -53,8 +53,8 @@ for environment_directory in "$candidate" "$candidate/front-end" "$candidate/bac
 	done < <(find "$environment_directory" -maxdepth 1 \( -name '.env' -o -name '.env.*' \) -print0)
 done
 
-if [[ "$(node --version)" != "v26.13.0" || "$(npm --version)" != "12.2.1" ]]; then
-	echo "Preparation requires Node 26.13.0 and npm 12.2.1." >&2
+if [[ "$(node --version)" != "v26.13.0" || "$(npm --version)" != "12.2.2" ]]; then
+	echo "Preparation requires Node 26.13.0 and npm 12.2.2." >&2
 	exit 1
 fi
 

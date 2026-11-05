@@ -26,7 +26,7 @@ jobs:
           package-manager-cache: false
 
       - name: Pin npm
-        run: npm install --global npm@12.2.1 --allow-scripts=npm
+        run: npm install --global npm@12.2.2 --allow-scripts=npm
 
       - name: Prepare exact tagged direct runtime
         env:
@@ -54,7 +54,7 @@ jobs:
           package-manager-cache: false
       - name: Prepare isolated artifact-test tools
         run: |
-          npm install --global npm@12.2.1 --allow-scripts=npm
+          npm install --global npm@12.2.2 --allow-scripts=npm
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends bubblewrap apparmor
           if test -d /sys/kernel/security/apparmor; then

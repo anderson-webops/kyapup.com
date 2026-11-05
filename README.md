@@ -11,11 +11,11 @@ production, and Netlify each route that path to the Express application without 
 ## Supported toolchain
 
 - Node.js `26.13.0`
-- npm `12.2.1`
+- npm `12.2.2`
 
 Use the repository root for all package operations. The committed npm lockfile includes optional native packages for Linux ARM64 glibc and musl deployments, and npm rejects unreviewed dependency install scripts.
 
-npm uses the nested install strategy so optional peer packages from unrelated tools cannot leak across workspace boundaries. Direct build-time type and lint dependencies are declared explicitly rather than relying on accidental hoisting.
+npm uses the explicit hoisted install strategy, with native bindings checked against their actual dependency ancestry. Direct build-time type and lint dependencies are declared explicitly rather than relying on accidental hoisting.
 
 ```bash
 npm ci

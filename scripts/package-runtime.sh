@@ -6,7 +6,7 @@ cd -- "$root"
 test "$(uname -s)" = Linux
 test "$(uname -m)" = aarch64
 test "$(node --version)" = v26.13.0
-test "$(npm --version)" = 12.2.1
+test "$(npm --version)" = 12.2.2
 test -z "$(git status --porcelain)"
 commit=$(git rev-parse HEAD)
 output=$(realpath "${1:?Pass an empty output directory under .ai-work/runs}")

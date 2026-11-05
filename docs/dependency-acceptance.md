@@ -1,5 +1,23 @@
 # Dependency acceptance
 
+Builds use npm 12.2.2 with Node 26.13.0. Its bundled Undici 6.29.1 replaces
+the affected 6.29.0 copy in npm 12.2.1, covering
+https://github.com/nodejs/undici/security/advisories/GHSA-2m5v-pch6-74hx and
+https://github.com/nodejs/undici/security/advisories/GHSA-qrxm-fqhp-jwvm.
+Application dependency overrides do not update npm's private dependency tree.
+Toolchain regressions inspect the actual selected npm and child commands
+and exercise preservation of function-valued TLS policy before any connection.
+Both production artifact profiles continue excluding npm and other build tools.
+
+Release qualification also includes the installed npm bundle, not just the
+application lockfiles. As of 2026-11-05, npm 12.2.2 still includes Glob 13.0.6
+and Minimatch 10.2.5, affected by GHSA-3g3m-2fjr-6pw4 and
+GHSA-g3hv-75wg-m249 respectively. The application graphs already select
+Glob 14.0.3 and Minimatch 11.0.4, but those overrides do not repair npm itself.
+The npm upgrade is intermediate source progress, not a clean toolchain or a
+release authorization. A maintained toolchain repair and its full installed
+dependency audit remain required before tagging this candidate.
+
 Nuxt DevTools 4.1.0 uses the tested Vite DevTools 0.8.2 host and kit. The
 frontend declares that current pair directly. The original Vue plugin's
 9.0.0-rc.2 distribution and Unhead 3 retain their supported 0.7 API consumers.

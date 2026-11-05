@@ -23,7 +23,7 @@
     "os": "linux",
     "arch": "arm64",
     "node": "26.13.0",
-    "npmBuildOnly": "12.2.1"
+    "npmBuildOnly": "12.2.2"
   },
   "deployment": {
     "schemaVersion": 1,

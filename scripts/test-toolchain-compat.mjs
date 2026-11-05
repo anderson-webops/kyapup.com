@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
+import { readFileSync, realpathSync } from 'node:fs'
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import path from 'node:path'
@@ -9,6 +10,50 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const root = fileURLToPath(new URL('..', import.meta.url))
 const require = createRequire(import.meta.url)
+
+function npmPackage() {
+  const entrypoint = realpathSync(process.env.npm_execpath || path.join(path.dirname(process.execPath), 'npm'))
+  return {
+    entrypoint,
+    require: createRequire(path.resolve(path.dirname(entrypoint), '../package.json')),
+  }
+}
+
+test('the selected npm and child commands use the patched build-only toolchain', () => {
+  const selected = npmPackage()
+  const manifest = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'))
+  assert.equal(manifest.packageManager, 'npm@12.2.2')
+  assert.equal(selected.require('./package.json').version, '12.2.2')
+  assert.equal(execFileSync(process.execPath, [selected.entrypoint, '--version'], { encoding: 'utf8', timeout: 10_000 }).trim(), '12.2.2')
+  const childCommand = process.platform === 'win32'
+    ? 'npm.cmd'
+    : 'npm'
+  assert.equal(execFileSync(childCommand, ['--version'], { encoding: 'utf8', timeout: 10_000 }).trim(), '12.2.2')
+  assert.ok(selected.require('semver').satisfies(selected.require('undici/package.json').version, '^6.29.1 || ^7.30.1 || ^8.12.2'))
+})
+
+test('the npm-bundled Agent preserves function-valued TLS validation without a network request', async () => {
+  const { Agent } = npmPackage().require('undici')
+  const checkServerIdentity = () => new Error('synthetic certificate rejection')
+  const captured = new Error('synthetic transport stopped before connection')
+  let received
+  const agent = new Agent({
+    tls: { checkServerIdentity },
+    factory(_origin, options) {
+      assert.equal(options.tls?.checkServerIdentity, checkServerIdentity)
+      throw captured
+    },
+  })
+  try {
+    agent.dispatch({ origin: 'https://registry.invalid', path: '/', method: 'GET' }, {
+      onError(error) { received = error },
+    })
+    assert.equal(received, captured)
+  }
+  finally {
+    await agent.close()
+  }
+})
 
 test('the backend compiler CLI runs TypeScript 7 independently from Vue and ESLint compiler APIs', () => {
   const frontend = createRequire(path.join(root, 'front-end/package.json'))

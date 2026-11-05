@@ -28,7 +28,7 @@ unchanged and rejected rather than silently normalized.
 The installer does not start or restart a service.
 
 Use Node 26.13.0 from the approved protected location, normally
-`/opt/node-26.13.0/bin`, and npm 12.2.1 for builds. `NODE_BIN_DIR` can select an
+`/opt/node-26.13.0/bin`, and npm 12.2.2 for builds. `NODE_BIN_DIR` can select an
 approved alternative for the helpers; an alternate service ExecStart needs its
 own review. Do not replace the host-wide `/usr/bin/node`. Existing installations
 created with build-owned deployment parents require a separate ownership and
