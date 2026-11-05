@@ -28,22 +28,8 @@ test('the stock Node npm seed is compatible only with bootstrap, not application
 
 test('the active npm, npx and Node sibling commands retain the reviewed independent profile', () => {
   assert.equal(verifyBuildToolchain().profile, toolchainMetadata.profile)
-  const selected = execFileSync('npm', [
-    'exec',
-    '--offline',
-    '--',
-    'node',
-    '-p',
-    'process.env.npm_execpath',
-  ], { encoding: 'utf8', timeout: 30_000 }).trim()
-  assert.equal(verifyBuildToolchain(selected).lockSha256, toolchainMetadata.lockSha256)
-  const npx = execFileSync('npx', [
-    '--offline',
-    'node',
-    '-p',
-    'process.env.npm_execpath',
-  ], { encoding: 'utf8', timeout: 30_000 }).trim()
-  assert.equal(verifyBuildToolchain(npx).lockSha256, toolchainMetadata.lockSha256)
+  for (const executable of ['npm', 'npx'])
+    assert.equal(execFileSync(executable, ['--version'], { encoding: 'utf8', timeout: 10_000 }).trim(), toolchainMetadata.npm)
   const sibling = path.join(path.dirname(process.execPath), process.platform === 'win32'
     ? 'npm.cmd'
     : 'npm')
@@ -200,20 +186,24 @@ test('Minimatch bounds globstar-parent amplification and preserves ordinary matc
   assert.equal(minimatch('outside/item.txt', 'safe/*.txt'), false)
 })
 
-test('the real CLI preserves offline packing, locked installation and executable delivery', { timeout: 60_000 }, () => {
+test('the real CLI preserves offline packing, locked installation and paired executable delivery', { timeout: 60_000 }, () => {
   const directory = mkdtempSync(path.join(scratch, 'cli-'))
   const packageRoot = path.join(directory, 'package')
   const application = path.join(directory, 'consumer')
   const archiveRoot = path.join(directory, 'archives')
+  const environment = {
+    ...process.env,
+    NPM_CONFIG_CACHE: path.join(directory, 'cache'),
+    NPM_CONFIG_PREFIX: path.join(directory, 'empty-global-prefix'),
+    npm_config_cache: path.join(directory, 'cache'),
+    npm_config_prefix: path.join(directory, 'empty-global-prefix'),
+  }
   const run = (args, cwd) => execFileSync(process.execPath, [npmCli, ...args], {
     cwd,
     encoding: 'utf8',
     timeout: 30_000,
     maxBuffer: 2 * 1024 * 1024,
-    env: {
-      ...process.env,
-      NPM_CONFIG_CACHE: path.join(directory, 'cache'),
-    },
+    env: environment,
   })
   try {
     for (const destination of [packageRoot, application, archiveRoot])
@@ -224,7 +214,13 @@ test('the real CLI preserves offline packing, locked installation and executable
       bin: { 'webops-toolchain-fixture': 'cli.cjs' },
       files: ['cli.cjs'],
     }))
-    writeFileSync(path.join(packageRoot, 'cli.cjs'), '#!/usr/bin/env node\nprocess.stdout.write("controlled local npm executable\\n")\n')
+    writeFileSync(path.join(packageRoot, 'cli.cjs'), `#!/usr/bin/env node
+if (process.argv.includes('--identify')) {
+  process.stdout.write(JSON.stringify({ cli: process.env.npm_execpath, node: process.execPath, version: process.version }))
+} else {
+  process.stdout.write('controlled local npm executable\\n')
+}
+`)
     writeFileSync(path.join(packageRoot, 'excluded.txt'), 'not part of the package')
     const packed = Object.values(JSON.parse(run([
       'pack',
@@ -259,6 +255,32 @@ test('the real CLI preserves offline packing, locked installation and executable
       '--',
       'webops-toolchain-fixture',
     ], application).trim(), 'controlled local npm executable')
+    const commandResults = [
+      run([
+        'exec',
+        '--offline',
+        '--',
+        'webops-toolchain-fixture',
+        '--identify',
+      ], application),
+      execFileSync('npx', [
+        '--offline',
+        'webops-toolchain-fixture',
+        '--identify',
+      ], {
+        cwd: application,
+        encoding: 'utf8',
+        timeout: 30_000,
+        maxBuffer: 2 * 1024 * 1024,
+        env: environment,
+      }),
+    ]
+    for (const output of commandResults) {
+      const identity = JSON.parse(output)
+      assert.equal(identity.version, process.version)
+      assert.equal(realpathSync(identity.node), realpathSync(process.execPath))
+      assert.equal(verifyBuildToolchain(identity.cli).lockSha256, toolchainMetadata.lockSha256)
+    }
   }
   finally {
     rmSync(directory, { recursive: true })

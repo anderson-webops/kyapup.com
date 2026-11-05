@@ -33,6 +33,9 @@ The bootstrap-only manifest accepts Node 26.13.0's bundled npm 11.20.0. Its role
 is a script-free locked installation of the reviewed profile, not application
 installation or release qualification. The application engine and selected
 build-profile checks remain pinned to the repaired npm 12.2.2 distribution.
+Offline executable fixtures use their own packed package, cache and empty global
+prefix. Both npm exec and npx must preserve the audited CLI and paired Node
+identity without resolving a separate global or cached Node package.
 
 Netlify's existing automatic installation is scoped to `build-toolchain` through
 its supported npm flags; the build command then performs a clean application
