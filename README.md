@@ -28,6 +28,9 @@ registry download caches remain reusable. `NPM_CONFIG_CACHE` places it under
 that cache's `_site-toolchains`, otherwise it stays in repository-owned scratch.
 Windows and hosted-editor execution require their own acceptance; source CI
 and direct release acceptance target Linux, with local macOS validation.
+Verification binds regular-file checks and reads to one no-follow, nonblocking
+file descriptor, and parses the integrity-verified byte snapshots. Platforms
+without those open capabilities fail explicitly rather than omitting protection.
 
 Use the repository root for all package operations. The committed npm lockfile includes optional native packages for Linux ARM64 glibc and musl deployments, and npm rejects unreviewed dependency install scripts.
 

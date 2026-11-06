@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict'
 import { Buffer } from 'node:buffer'
 import { execFileSync } from 'node:child_process'
-import { copyFileSync, cpSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
+import { constants, copyFileSync, cpSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import path from 'node:path'
 import process from 'node:process'
 import test from 'node:test'
-import { selectedNpmCli, toolchainMetadata, toolchainSource, verifyBuildToolchain } from './build-toolchain-state.mjs'
+import { selectedNpmCli, stableVersionAtLeast, toolchainMetadata, toolchainSource, verifyBuildToolchain } from './build-toolchain-state.mjs'
 
 const npmCli = selectedNpmCli()
 const npmRoot = path.resolve(path.dirname(npmCli), '..')
@@ -101,6 +101,214 @@ process.stdout.write('bounded input rejection');`,
   }
   finally {
     rmSync(directory, { recursive: true })
+  }
+})
+
+test('stable version bounds retain the existing semver minimums without loading profile code', () => {
+  const semver = consumer('semver')
+  const versions = [
+    '6.29.0',
+    '6.29.1',
+    '6.30.0',
+    '7.0.0',
+    '7.30.0',
+    '7.30.1',
+    '8.12.1',
+    '8.12.2',
+    '8.12.4',
+    '8.13.0',
+    '9.0.0',
+    '11.0.0',
+    '11.0.1',
+    '11.0.5',
+    '14.0.1',
+    '14.0.2',
+    '14.0.3',
+    '15.0.0',
+    '8.12.2+build.001',
+    'v8.12.2',
+    'V8.12.2',
+    ' 8.12.2 ',
+    '8.12.02',
+    '8.12.2-rc.1',
+    '8.12.2-0',
+    '8.12.2+',
+    '8.12.2+build.',
+    '9007199254740992.0.0',
+    '1'.repeat(257),
+    '',
+  ]
+  for (const version of versions) {
+    assert.equal(stableVersionAtLeast(version, [14, 0, 2]), semver.satisfies(version, '>=14.0.2'), version)
+    assert.equal(stableVersionAtLeast(version, [11, 0, 1]), semver.satisfies(version, '>=11.0.1'), version)
+    const undici = [
+      [6, 29, 1],
+      [7, 30, 1],
+      [8, 12, 2],
+    ].some(minimum => stableVersionAtLeast(version, minimum, true))
+    assert.equal(undici, semver.satisfies(version, '^6.29.1 || ^7.30.1 || ^8.12.2'), version)
+  }
+})
+
+test('descriptor-bound verification preserves checked bytes across file substitutions', { timeout: 120_000 }, async (context) => {
+  for (const mode of [
+    'profile-symlink',
+    'cli-symlink',
+    'late-lock',
+    'late-npm-manifest',
+    'post-open-swap',
+    'directory',
+    'fifo',
+    'missing',
+    'read-error',
+    'missing-capabilities',
+    'cold-dependency-fifo',
+  ]) {
+    await context.test(mode, () => {
+      const directory = mkdtempSync(path.join(scratch, 'descriptor-'))
+      try {
+        cpSync(path.join(profile, 'node_modules'), path.join(directory, 'node_modules'), {
+          recursive: true,
+          verbatimSymlinks: true,
+          mode: constants.COPYFILE_FICLONE,
+        })
+        mkdirSync(path.join(directory, 'vendor'))
+        for (const name of [
+          'package.json',
+          'package-lock.json',
+          '.npmrc',
+          'UPSTREAM.json',
+          toolchainMetadata.archive,
+        ])
+          copyFileSync(path.join(profile, name), path.join(directory, name))
+        const output = execFileSync(process.execPath, [
+          ...(mode === 'missing-capabilities'
+            ? ['--experimental-test-module-mocks']
+            : []),
+          '--input-type=module',
+          '-e',
+          `import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import filesystem from 'node:fs';
+import { createRequire, syncBuiltinESMExports } from 'node:module';
+import path from 'node:path';
+import { mock } from 'node:test';
+const mode = process.argv[1];
+const prefix = process.argv[2];
+const cli = path.join(prefix, 'node_modules/npm/bin/npm-cli.js');
+const metadata = JSON.parse(filesystem.readFileSync(path.join(prefix, 'UPSTREAM.json'), 'utf8'));
+const require = createRequire(cli);
+const undiciManifest = mode === 'cold-dependency-fifo'
+  ? path.join(prefix, ${JSON.stringify(path.relative(profile, consumer.resolve('undici/package.json')))})
+  : require.resolve('undici/package.json');
+const lockPath = path.join(prefix, 'package-lock.json');
+const npmManifest = path.join(prefix, 'node_modules/npm/package.json');
+const originalUndici = JSON.parse(filesystem.readFileSync(undiciManifest, 'utf8')).version;
+const victim = path.join(prefix, mode === 'cli-symlink'
+  ? 'node_modules/npm/LICENSE'
+  : mode === 'cold-dependency-fifo'
+    ? path.relative(prefix, undiciManifest)
+  : mode === 'post-open-swap'
+    ? metadata.archive
+    : 'package.json');
+const original = {
+  lstatSync: filesystem.lstatSync,
+  openSync: filesystem.openSync,
+  readFileSync: filesystem.readFileSync,
+  fstatSync: filesystem.fstatSync,
+  closeSync: filesystem.closeSync,
+};
+let substituted = false;
+let victimDescriptor;
+let victimCloses = 0;
+function substitute() {
+  if (substituted) return;
+  const retained = path.join(prefix, 'retained-input');
+  filesystem.renameSync(victim, retained);
+  filesystem.symlinkSync(retained, victim);
+  substituted = true;
+}
+if (mode.endsWith('-symlink')) {
+  filesystem.lstatSync = (filename, ...args) => {
+    const state = original.lstatSync(filename, ...args);
+    if (filename === victim) substitute();
+    return state;
+  };
+}
+filesystem.openSync = (filename, ...args) => {
+  if (filename === victim && mode.endsWith('-symlink')) substitute();
+  const descriptor = original.openSync(filename, ...args);
+  if (filename === victim) victimDescriptor = descriptor;
+  return descriptor;
+};
+filesystem.closeSync = (descriptor, ...args) => {
+  if (descriptor === victimDescriptor) victimCloses += 1;
+  return original.closeSync(descriptor, ...args);
+};
+filesystem.readFileSync = (filename, ...args) => {
+  if (mode === 'read-error' && filename === victimDescriptor && typeof filename === 'number')
+    throw Object.assign(new Error('fixture read failure'), { code: 'EIO' });
+  const bytes = original.readFileSync(filename, ...args);
+  if (mode === 'late-lock' && filename === lockPath && args[0] === 'utf8') {
+    const lock = JSON.parse(bytes);
+    const location = path.relative(prefix, path.dirname(undiciManifest)).split(path.sep).join('/');
+    lock.packages[location].version = '8.12.999';
+    return JSON.stringify(lock);
+  }
+  if (mode === 'late-lock' && filename === undiciManifest && args[0] === 'utf8')
+    return JSON.stringify({ ...JSON.parse(bytes), version: '8.12.999' });
+  if (mode === 'late-npm-manifest' && filename === npmManifest && args[0] === 'utf8')
+    return JSON.stringify({ ...JSON.parse(bytes), version: '12.2.999' });
+  return bytes;
+};
+filesystem.fstatSync = (descriptor, ...args) => {
+  const state = original.fstatSync(descriptor, ...args);
+  if (mode === 'post-open-swap' && descriptor === victimDescriptor && !substituted) {
+    filesystem.renameSync(victim, path.join(prefix, 'retained-input'));
+    filesystem.writeFileSync(victim, 'unreviewed replacement bytes');
+    substituted = true;
+  }
+  return state;
+};
+if (mode === 'directory' || mode === 'fifo' || mode === 'missing' || mode === 'cold-dependency-fifo') {
+  filesystem.rmSync(victim);
+  if (mode === 'directory') filesystem.mkdirSync(victim);
+  if (mode === 'fifo' || mode === 'cold-dependency-fifo') execFileSync('mkfifo', [victim]);
+}
+syncBuiltinESMExports();
+if (mode === 'missing-capabilities') {
+  const mocked = { ...filesystem, constants: { ...filesystem.constants, O_NOFOLLOW: undefined } };
+  mock.module('node:fs', { exports: { ...mocked, default: mocked } });
+}
+const { verifyBuildToolchain } = await import(${JSON.stringify(new URL('./build-toolchain-state.mjs', import.meta.url).href)});
+if (mode.endsWith('-symlink') || mode === 'directory' || mode === 'fifo' || mode === 'cold-dependency-fifo') {
+  assert.throws(() => verifyBuildToolchain(cli), /must be (?:a )?regular/u);
+  if (mode.endsWith('-symlink')) assert.equal(substituted, true);
+  else assert.equal(victimCloses, 1);
+} else if (mode === 'missing') {
+  assert.throws(() => verifyBuildToolchain(cli), { code: 'ENOENT' });
+} else if (mode === 'read-error') {
+  assert.throws(() => verifyBuildToolchain(cli), { code: 'EIO' });
+  assert.equal(victimCloses, 1);
+} else if (mode === 'missing-capabilities') {
+  assert.throws(() => verifyBuildToolchain(cli), /requires no-follow and nonblocking/u);
+} else {
+  const result = verifyBuildToolchain(cli);
+  assert.equal(result.lockSha256, metadata.lockSha256);
+  assert.equal(result.versions.npm, metadata.npm);
+  assert.equal(result.versions.undici, originalUndici);
+  if (mode === 'post-open-swap') assert.equal(substituted, true);
+}
+process.stdout.write('descriptor fixture accepted');`,
+          mode,
+          directory,
+        ], { encoding: 'utf8', timeout: 10_000, maxBuffer: 64 * 1024 })
+        assert.equal(output, 'descriptor fixture accepted')
+      }
+      finally {
+        rmSync(directory, { recursive: true })
+      }
+    })
   }
 })
 
