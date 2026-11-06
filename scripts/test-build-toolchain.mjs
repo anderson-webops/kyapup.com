@@ -315,14 +315,13 @@ process.stdout.write('descriptor fixture accepted');`,
 
 test('a clean source-only bootstrap installs the application through its isolated npm without leaking seed flags', { timeout: 300_000 }, (context) => {
   const directory = mkdtempSync(path.join(scratch, 'bootstrap-'))
-  let constructedProfile
   try {
     cpSync(toolchainSource, path.join(directory, 'build-toolchain'), {
       recursive: true,
       filter: filename => !filename.split(path.sep).includes('node_modules'),
     })
     mkdirSync(path.join(directory, 'scripts'))
-    for (const name of ['build-toolchain.mjs', 'build-toolchain-state.mjs'])
+    for (const name of ['build-toolchain.mjs', 'build-toolchain-state.mjs', 'build-toolchain-cache.mjs'])
       cpSync(path.join(root, 'scripts', name), path.join(directory, 'scripts', name))
     const manifest = {
       name: 'webops-bootstrap-fixture',
@@ -353,14 +352,17 @@ test('a clean source-only bootstrap installs the application through its isolate
       encoding: 'utf8',
       timeout: 240_000,
       maxBuffer: 4 * 1024 * 1024,
-      env: { ...process.env, NPM_CONFIG_CACHE: process.env.NPM_CONFIG_CACHE || path.join(root, '.ai-work/runs/npm-cache') },
+      env: {
+        ...process.env,
+        NPM_CONFIG_CACHE: path.join(directory, 'cache'),
+      },
     })
     context.diagnostic('Cold profile and application commands completed; verifying source and executable identity')
     const selected = JSON.parse(output.trim().split('\n').at(-1))
     const observedProfile = path.resolve(path.dirname(selected.node), '..')
-    const managedRoot = realpathSync(path.join(process.env.NPM_CONFIG_CACHE || path.join(root, '.ai-work/runs/npm-cache'), '_site-toolchains'))
+    const managedRoot = realpathSync(path.join(directory, 'cache/_site-toolchains/reuse-v1'))
     assert.equal(path.dirname(observedProfile), managedRoot)
-    assert.ok(path.basename(observedProfile).startsWith(`${toolchainMetadata.profile}-`))
+    assert.match(path.basename(observedProfile), /^slot-[0-2]$/u)
     assert.notEqual(observedProfile, profile)
     assert.equal(selected.cwd, directory)
     const observed = JSON.parse(readFileSync(path.join(directory, 'observed.json'), 'utf8'))
@@ -368,11 +370,22 @@ test('a clean source-only bootstrap installs the application through its isolate
     assert.notEqual(observed.ignored, 'true')
     assert.equal(verifyBuildToolchain(observed.cli).profile, toolchainMetadata.profile)
     assert.ok(observed.cli.startsWith(`${observedProfile}${path.sep}`))
-    constructedProfile = observedProfile
+    const warm = execFileSync(process.execPath, [
+      path.join(directory, 'scripts/build-toolchain.mjs'),
+      '--print-bin',
+    ], {
+      cwd: directory,
+      encoding: 'utf8',
+      timeout: 120_000,
+      maxBuffer: 4 * 1024 * 1024,
+      env: {
+        ...process.env,
+        NPM_CONFIG_CACHE: path.join(directory, 'cache'),
+      },
+    }).trim()
+    assert.equal(warm, path.dirname(selected.node), 'A warm bootstrap must return the identical qualified executable directory')
   }
   finally {
-    if (constructedProfile)
-      rmSync(constructedProfile, { recursive: true })
     rmSync(directory, { recursive: true })
   }
 })

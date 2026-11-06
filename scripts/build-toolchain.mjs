@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
-import { chmodSync, constants, copyFileSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, symlinkSync, writeFileSync } from 'node:fs'
+import { chmodSync, constants, copyFileSync, mkdirSync, readFileSync, realpathSync, symlinkSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
-import { sha256, toolchainMetadata, toolchainSource, verifyBuildToolchain } from './build-toolchain-state.mjs'
+import { cacheIdentity, finishToolchainCache, selectToolchainCache, verifyReusableToolchain } from './build-toolchain-cache.mjs'
+import { sha256, toolchainMetadata, toolchainSource } from './build-toolchain-state.mjs'
 
 const repositoryRoot = path.resolve(import.meta.dirname, '..')
 const argumentsList = process.argv.slice(2)
@@ -80,48 +81,57 @@ const base = process.env.NPM_CONFIG_CACHE || process.env.npm_config_cache
   ? path.join(process.env.NPM_CONFIG_CACHE || process.env.npm_config_cache, '_site-toolchains')
   : path.join(repositoryRoot, '.ai-work/runs/build-toolchains')
 mkdirSync(base, { recursive: true, mode: 0o700 })
-const prefix = mkdtempSync(path.join(realpathSync(base), `${toolchainMetadata.profile}-`))
-chmodSync(prefix, 0o700)
+const identity = cacheIdentity()
+const selection = await selectToolchainCache(realpathSync(base), identity)
+const { prefix } = selection
+let cacheAccepted = selection.reused
 try {
-  mkdirSync(path.join(prefix, 'vendor'))
-  for (const name of [
-    'package.json',
-    'package-lock.json',
-    '.npmrc',
-    'UPSTREAM.json',
-    toolchainMetadata.archive,
-  ])
-    copyFileSync(path.join(toolchainSource, name), path.join(prefix, name), constants.COPYFILE_EXCL)
-  await run(process.execPath, [
-    seedCli,
-    'ci',
-    '--prefix',
-    prefix,
-    '--workspaces=false',
-    '--ignore-scripts',
-    '--no-fund',
-    '--no-audit',
-  ], repositoryRoot, seedEnvironment)
+  if (!selection.reused) {
+    mkdirSync(path.join(prefix, 'vendor'))
+    for (const name of [
+      'package.json',
+      'package-lock.json',
+      '.npmrc',
+      'UPSTREAM.json',
+      'PAYLOAD.json',
+      toolchainMetadata.archive,
+    ])
+      copyFileSync(path.join(toolchainSource, name), path.join(prefix, name), constants.COPYFILE_EXCL)
+    await run(process.execPath, [
+      seedCli,
+      'ci',
+      '--prefix',
+      prefix,
+      '--workspaces=false',
+      '--include=dev',
+      '--include=optional',
+      '--ignore-scripts',
+      '--no-fund',
+      '--no-audit',
+    ], repositoryRoot, seedEnvironment)
+  }
   const bin = path.join(prefix, 'bin')
-  mkdirSync(bin)
   const nodeName = process.platform === 'win32'
     ? 'node.exe'
     : 'node'
-  copyFileSync(process.execPath, path.join(bin, nodeName), constants.COPYFILE_EXCL)
-  chmodSync(path.join(bin, nodeName), 0o755)
+  if (!selection.reused) {
+    mkdirSync(bin)
+    copyFileSync(process.execPath, path.join(bin, nodeName), constants.COPYFILE_EXCL | constants.COPYFILE_FICLONE)
+    chmodSync(path.join(bin, nodeName), 0o755)
+    if (process.platform === 'win32') {
+      for (const [name, filename] of [
+        ['npm', 'npm-cli.js'],
+        ['npx', 'npx-cli.js'],
+      ])
+        writeFileSync(path.join(bin, `${name}.cmd`), `@"%~dp0node.exe" "%~dp0..\\node_modules\\npm\\bin\\${filename}" %*\r\n`, { flag: 'wx' })
+    }
+    else {
+      symlinkSync('../node_modules/npm/bin/npm-cli.js', path.join(bin, 'npm'))
+      symlinkSync('../node_modules/npm/bin/npx-cli.js', path.join(bin, 'npx'))
+    }
+  }
   const npmCli = path.join(prefix, 'node_modules/npm/bin/npm-cli.js')
-  if (process.platform === 'win32') {
-    for (const [name, filename] of [
-      ['npm', 'npm-cli.js'],
-      ['npx', 'npx-cli.js'],
-    ])
-      writeFileSync(path.join(bin, `${name}.cmd`), `@"%~dp0node.exe" "%~dp0..\\node_modules\\npm\\bin\\${filename}" %*\r\n`, { flag: 'wx' })
-  }
-  else {
-    symlinkSync('../node_modules/npm/bin/npm-cli.js', path.join(bin, 'npm'))
-    symlinkSync('../node_modules/npm/bin/npx-cli.js', path.join(bin, 'npx'))
-  }
-  verifyBuildToolchain(npmCli)
+  verifyReusableToolchain(prefix, identity.node)
   const environment = {
     ...process.env,
     PATH: `${bin}${path.delimiter}${process.env.PATH || ''}`,
@@ -146,7 +156,14 @@ try {
       ...args,
     ], prefix, auditEnvironment)
   }
-  writeFileSync(path.join(prefix, 'acceptance.json'), `${JSON.stringify(verifyBuildToolchain(npmCli))}\n`, { flag: 'wx', mode: 0o600 })
+  const accepted = verifyReusableToolchain(prefix, identity.node)
+  assert.deepEqual(cacheIdentity(), identity, 'Bootstrap source changed during qualification')
+  if (!selection.reused) {
+    writeFileSync(path.join(prefix, 'acceptance.json'), `${JSON.stringify(accepted)}\n`, { flag: 'wx', mode: 0o600 })
+    finishToolchainCache(selection, identity, true)
+    cacheAccepted = true
+  }
+  process.stderr.write(`Build-toolchain cache ${selection.reused ? 'reused' : 'created'}; integrity and current audits passed: ${prefix}\n`)
   if (command.length === 0) {
     process.stdout.write(`${bin}\n`)
   }
@@ -175,6 +192,8 @@ try {
   }
 }
 catch (error) {
+  if (!cacheAccepted)
+    finishToolchainCache(selection, identity, false)
   process.stderr.write(`Retained build-toolchain and command evidence at ${prefix}\n`)
   throw error
 }

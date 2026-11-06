@@ -101,6 +101,7 @@ jobs:
           assert manifest["contract"] == contract
           assert receipt["buildToolchain"]["profile"] == contract["runtime"]["npmBuildProfile"]
           assert receipt["buildToolchain"]["lockSha256"] == contract["runtime"]["npmBuildLockSha256"]
+          assert receipt["buildToolchain"]["payloadTreeSha256"] == contract["runtime"]["npmBuildPayloadSha256"]
           assert hashlib.sha256(Path("build-toolchain/package-lock.json").read_bytes()).hexdigest() == contract["runtime"]["npmBuildLockSha256"]
           assert contract["deployment"]["schemaVersion"] == 1
           assert contract["deployment"]["applicationId"] == "vitesse-nuxt-template"
