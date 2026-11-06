@@ -2,14 +2,14 @@ import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 import path from 'node:path'
 import process from 'node:process'
-import { digestRegularFile, verifyReusableToolchain } from './build-toolchain-cache.mjs'
+import { nodeIdentity, verifyReusableToolchain } from './build-toolchain-cache.mjs'
 import { selectedNpmCli } from './build-toolchain-state.mjs'
 
 const argumentsList = process.argv.slice(2)
 assert.ok(argumentsList.every(argument => argument === '--omit=dev'), 'Unsupported toolchain audit option')
 const cli = selectedNpmCli()
 const prefix = path.resolve(path.dirname(cli), '../../..')
-verifyReusableToolchain(prefix, digestRegularFile(process.execPath))
+verifyReusableToolchain(prefix, nodeIdentity())
 const result = spawnSync(process.execPath, [
   cli,
   'audit',

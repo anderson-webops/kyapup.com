@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { Buffer } from 'node:buffer'
 import { createHash } from 'node:crypto'
-import { closeSync, constants, fstatSync, lstatSync, mkdirSync, openSync, readdirSync, readFileSync, readlinkSync, readSync, realpathSync, writeFileSync } from 'node:fs'
+import { closeSync, constants, existsSync, fstatSync, lstatSync, mkdirSync, openSync, readdirSync, readFileSync, readlinkSync, readSync, realpathSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import { sha256, toolchainMetadata, toolchainSource, verifyBuildToolchain } from './build-toolchain-state.mjs'
@@ -108,8 +108,27 @@ export function inspectToolchainPayload(prefix) {
   }
 }
 
+export function nodeIdentity(nodeExecutable = process.execPath) {
+  const filename = realpathSync(nodeExecutable)
+  const libraries = []
+  if (process.platform === 'darwin') {
+    const name = `libnode.${process.versions.modules}.dylib`
+    const library = path.resolve(path.dirname(filename), '../lib', name)
+    if (existsSync(library)) {
+      libraries.push({
+        name,
+        ...digestRegularFile(realpathSync(library)),
+      })
+    }
+  }
+  return {
+    ...digestRegularFile(filename),
+    libraries,
+  }
+}
+
 export function cacheIdentity(nodeExecutable = process.execPath) {
-  const node = digestRegularFile(nodeExecutable)
+  const node = nodeIdentity(nodeExecutable)
   const inputs = [
     'package.json',
     'package-lock.json',
@@ -145,7 +164,21 @@ export function verifyReusableToolchain(prefix, expectedNode) {
   assert.ok(binState.isDirectory() && !binState.isSymbolicLink(), 'Toolchain command directory must be real')
   assert.equal(binState.mode & 0o022, 0, 'Toolchain command directory must not be writable by other accounts')
   const node = path.join(bin, 'node')
-  assert.deepEqual(digestRegularFile(node), expectedNode, 'Cached Node differs from the selected executable')
+  assert.deepEqual(readdirSync(bin).sort(), ['node', 'npm', 'npx'], 'Unexpected paired command')
+  assert.ok(lstatSync(node).isFile() && !lstatSync(node).isSymbolicLink(), 'Cached Node must be regular')
+  const libraries = path.join(prefix, 'lib')
+  if (expectedNode.libraries.length > 0) {
+    privateDirectory(libraries)
+    assert.deepEqual(readdirSync(libraries).sort(), expectedNode.libraries.map(library => library.name).sort())
+    for (const library of expectedNode.libraries) {
+      const state = lstatSync(path.join(libraries, library.name))
+      assert.ok(state.isFile() && !state.isSymbolicLink(), 'Shared Node library must be regular')
+    }
+  }
+  else {
+    assert.equal(existsSync(libraries), false, 'Unexpected paired Node libraries')
+  }
+  assert.deepEqual(nodeIdentity(node), expectedNode, 'Cached Node differs from the selected executable')
   for (const name of ['npm', 'npx']) {
     assert.ok(lstatSync(path.join(bin, name)).isSymbolicLink(), `Cached ${name} must be the paired command link`)
     assert.equal(readlinkSync(path.join(bin, name)), `../node_modules/npm/bin/${name}-cli.js`)

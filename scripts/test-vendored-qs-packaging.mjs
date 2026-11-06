@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict'
+import { Buffer } from 'node:buffer'
 import { spawnSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import { chmod, cp, mkdir, mkdtemp, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
@@ -7,6 +9,7 @@ import path from 'node:path'
 import process from 'node:process'
 import test from 'node:test'
 import { fileURLToPath } from 'node:url'
+import { gunzipSync, gzipSync } from 'node:zlib'
 
 const root = fileURLToPath(new URL('..', import.meta.url))
 const require = createRequire(import.meta.url)
@@ -39,6 +42,8 @@ async function fixture() {
   })
   await cp(path.join(root, 'scripts/package-vendored-qs.mjs'), path.join(directory, 'scripts/package-vendored-qs.mjs'))
   await cp(path.join(root, archivePath), path.join(directory, archivePath))
+  for (const filename of ['package-lock.json', 'back-end/package-lock.json'])
+    await cp(path.join(root, filename), path.join(directory, filename))
   await writeFile(path.join(directory, 'package.json'), JSON.stringify({
     name: 'qs-package-regression',
     private: true,
@@ -97,8 +102,50 @@ test('a mismatched archive fails with a bounded diagnostic instead of a binary d
     const result = check(directory)
     assert.equal(result.status, 1, result.stderr)
     assert.equal(result.signal, null)
-    assert.match(result.stderr, /Vendored qs archive must match reviewed source/)
+    assert.match(result.stderr, /Vendored qs archive must match locked integrity/)
     assert.doesNotMatch(result.stderr, /FATAL ERROR|heap out of memory/)
+  }
+  finally {
+    await rm(directory, { recursive: true, force: true })
+  }
+})
+
+test('recompressing unchanged package contents still requires the exact locked archive', async () => {
+  const directory = await fixture()
+  try {
+    const archive = await readFile(path.join(directory, archivePath))
+    const recompressed = gzipSync(gunzipSync(archive), { level: 1 })
+    assert.ok(!archive.equals(recompressed))
+    await writeFile(path.join(directory, archivePath), recompressed)
+    const result = check(directory)
+    assert.equal(result.status, 1, result.stderr)
+    assert.match(result.stderr, /Vendored qs archive must match locked integrity/)
+  }
+  finally {
+    await rm(directory, { recursive: true, force: true })
+  }
+})
+
+test('changing package contents fails source reproduction even with matching lock integrity', async () => {
+  const directory = await fixture()
+  try {
+    const archive = await readFile(path.join(directory, archivePath))
+    const decoded = gunzipSync(archive)
+    const original = Buffer.from('A querystring parsing and stringifying library')
+    const offset = decoded.indexOf(original)
+    assert.ok(offset >= 0)
+    decoded[offset] = 'B'.charCodeAt(0)
+    const altered = gzipSync(decoded)
+    await writeFile(path.join(directory, archivePath), altered)
+    for (const filename of ['package-lock.json', 'back-end/package-lock.json']) {
+      const lockPath = path.join(directory, filename)
+      const lock = JSON.parse(await readFile(lockPath, 'utf8'))
+      lock.packages['node_modules/qs'].integrity = `sha512-${createHash('sha512').update(altered).digest('base64')}`
+      await writeFile(lockPath, JSON.stringify(lock))
+    }
+    const result = check(directory)
+    assert.equal(result.status, 1, result.stderr)
+    assert.match(result.stderr, /Vendored qs archive must match reviewed source/)
   }
   finally {
     await rm(directory, { recursive: true, force: true })

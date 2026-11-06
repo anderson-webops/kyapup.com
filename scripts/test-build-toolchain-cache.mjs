@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
-import { constants, copyFileSync, cpSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
+import { constants, copyFileSync, cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import test from 'node:test'
-import { cacheIdentity, digestRegularFile, finishToolchainCache, inspectToolchainPayload, maximumCachedProfiles, selectToolchainCache, verifyReusableToolchain } from './build-toolchain-cache.mjs'
+import { cacheIdentity, digestRegularFile, finishToolchainCache, inspectToolchainPayload, maximumCachedProfiles, nodeIdentity, selectToolchainCache, verifyReusableToolchain } from './build-toolchain-cache.mjs'
 import { selectedNpmCli, toolchainSource } from './build-toolchain-state.mjs'
 
 const root = path.resolve(import.meta.dirname, '..')
@@ -20,7 +20,7 @@ test('the complete payload matches a source-pinned digest rather than a mutable 
   const expected = JSON.parse(readFileSync(path.join(toolchainSource, 'PAYLOAD.json'), 'utf8'))
   assert.deepEqual(inspectToolchainPayload(profile), expected)
   assert.ok(expected.files > 3000)
-  assert.equal(verifyReusableToolchain(profile, digestRegularFile(path.join(profile, 'bin/node'))).node, process.versions.node)
+  assert.equal(verifyReusableToolchain(profile, nodeIdentity(path.join(profile, 'bin/node'))).node, process.versions.node)
 })
 
 test('unreviewed dependency bytes, extra code, missing code, command links and Node substitutions fail closed', () => {
@@ -28,6 +28,8 @@ test('unreviewed dependency bytes, extra code, missing code, command links and N
   try {
     for (const name of ['node_modules', 'vendor', 'bin'])
       cpSync(path.join(profile, name), path.join(directory, name), { recursive: true, verbatimSymlinks: true, mode: constants.COPYFILE_FICLONE })
+    if (existsSync(path.join(profile, 'lib')))
+      cpSync(path.join(profile, 'lib'), path.join(directory, 'lib'), { recursive: true, mode: constants.COPYFILE_FICLONE })
     for (const name of [
       'package.json',
       'package-lock.json',
@@ -35,8 +37,21 @@ test('unreviewed dependency bytes, extra code, missing code, command links and N
       'UPSTREAM.json',
     ])
       copyFileSync(path.join(profile, name), path.join(directory, name))
-    const expectedNode = digestRegularFile(path.join(profile, 'bin/node'))
+    const expectedNode = nodeIdentity(path.join(profile, 'bin/node'))
     verifyReusableToolchain(directory, expectedNode)
+    const shadowLibrary = path.join(directory, 'bin/libnode.shadow.dylib')
+    writeFileSync(shadowLibrary, 'unreviewed runtime lookup')
+    assert.throws(() => verifyReusableToolchain(directory, expectedNode), /Unexpected paired command/u)
+    rmSync(shadowLibrary)
+    if (expectedNode.libraries.length > 0) {
+      const library = path.join(directory, 'lib', expectedNode.libraries[0].name)
+      const original = readFileSync(library)
+      rmSync(library)
+      writeFileSync(library, 'unreviewed shared runtime')
+      assert.throws(() => verifyReusableToolchain(directory, expectedNode), /Cached Node differs/u)
+      writeFileSync(library, original)
+      verifyReusableToolchain(directory, expectedNode)
+    }
     const victim = path.join(directory, 'node_modules/undici/index.js')
     const bytes = readFileSync(victim)
     writeFileSync(victim, 'throw new Error("unreviewed dependency implementation")\n')
@@ -77,6 +92,28 @@ test('cache identity is bound to the actual Node bytes as well as source, indepe
       key: first.key,
       node: { ...first.node, executable: false },
     })
+  }
+  finally {
+    rmSync(directory, { recursive: true })
+  }
+})
+
+test('dynamically linked Node cache identity includes its shared runtime bytes', { skip: process.platform !== 'darwin' }, () => {
+  const directory = fixture()
+  try {
+    mkdirSync(path.join(directory, 'bin'))
+    mkdirSync(path.join(directory, 'lib'))
+    const node = path.join(directory, 'bin/node')
+    const library = path.join(directory, 'lib', `libnode.${process.versions.modules}.dylib`)
+    writeFileSync(node, 'controlled Node fixture')
+    writeFileSync(library, 'original shared runtime')
+    const original = cacheIdentity(node)
+    writeFileSync(library, 'changed shared runtime')
+    const changed = cacheIdentity(node)
+    assert.notEqual(changed.key, original.key)
+    assert.equal(original.node.libraries.length, 1)
+    assert.equal(original.node.libraries[0].name, path.basename(library))
+    assert.notEqual(changed.node.libraries[0].sha256, original.node.libraries[0].sha256)
   }
   finally {
     rmSync(directory, { recursive: true })

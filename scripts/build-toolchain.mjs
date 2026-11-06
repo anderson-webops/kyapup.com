@@ -118,6 +118,13 @@ try {
     mkdirSync(bin)
     copyFileSync(process.execPath, path.join(bin, nodeName), constants.COPYFILE_EXCL | constants.COPYFILE_FICLONE)
     chmodSync(path.join(bin, nodeName), 0o755)
+    if (identity.node.libraries.length > 0) {
+      mkdirSync(path.join(prefix, 'lib'), { mode: 0o700 })
+      for (const library of identity.node.libraries) {
+        const source = path.resolve(path.dirname(process.execPath), '../lib', library.name)
+        copyFileSync(source, path.join(prefix, 'lib', library.name), constants.COPYFILE_EXCL | constants.COPYFILE_FICLONE)
+      }
+    }
     if (process.platform === 'win32') {
       for (const [name, filename] of [
         ['npm', 'npm-cli.js'],
