@@ -14,7 +14,7 @@ application lockfiles. The original npm 12.2.2 distribution still bundles Glob
 13.0.6 and Minimatch 10.2.5, affected by GHSA-3g3m-2fjr-6pw4 and
 GHSA-g3hv-75wg-m249. `build-toolchain/` retains the original CLI code, license
 and documentation while removing prebundled dependencies and their packaging
-declarations. A separate locked graph selects Glob 14.0.3, Minimatch 11.0.5 and
+declarations. A separate locked graph selects Glob 14.0.4, Minimatch 11.0.5 and
 the supported registry-resolved dependencies. This is a maintained local
 distribution profile, not a claim that the original upstream bundle is clean.
 
@@ -134,7 +134,7 @@ destination keys as own data properties. Its package provenance and compatibilit
 boundary are recorded in `vendor/deepmerge/UPSTREAM.md`; the security regressions
 and complete consumer-lock assertions remain part of `npm test`.
 
-Glob 14.0.3 and Minimatch 11.0.5 replace vulnerable older transitive majors.
+Glob 14.0.4 and Minimatch 11.0.5 replace vulnerable older transitive majors.
 The Minimatch regression requires oversized globstar-parent expansion to throw,
 preserving complete matching below the expansion limit rather than accepting
 silently truncated patterns. Both application and independent build graphs use
