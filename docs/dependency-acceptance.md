@@ -115,15 +115,14 @@ both legacy API consumers. Full production installation and runtime inventory
 checks reject both compiler packages; Linux ARM64 binding and artifact checks
 remain required.
 
-Nuxt uses 4.6.4. The existing version-scoped exception retains `unimport@7.0.1` while
-7.0.2's advertised npm provenance endpoint returns 404. Version 7.0.1 has
-retrievable provenance. Full registry-signature and provenance verification
-remain required; the unavailable attestation is not treated as a pass.
-
-The upstream patch changes class-export declaration generation and an unused
-TypeScript parameter. Clean installation, Nuxt auto-import/type checking,
-application tests and the generated site must pass with this scoped exception.
-Remove the exception after a compatible successor has verifiable provenance.
+Nuxt 4.6.4 requires `unimport ^7.0.2`. Its locked and installed provider must
+satisfy that original API contract. Version 7.0.2's advertised npm attestation
+endpoint currently returns404, holding release provenance qualification until
+the publisher repairs the endpoint or a compatible successor verifies.
+Full registry-signature and provenance checks remain mandatory. Consumers with
+different declared ranges keep their own compatible providers. Clean installs,
+Nuxt auto-import/type checking, application tests and generated-site checks
+remain required alongside provenance.
 
 The frontend's c12 dependency remains on the stable 3.3 API required by its Nitro 2 dependency.
 The newer 4.0.0-rc.4 distribution is a prerelease outside that parent range;
