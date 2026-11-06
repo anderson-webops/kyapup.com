@@ -84,7 +84,7 @@ try {
   ]
   assert.ok(proxies.length > 0, 'Vite must emit the injected module proxies')
   const injected = await Promise.all(proxies.map(async ([, url]) => {
-    const response = await fetch(new URL(url, origin))
+    const response = await fetch(new URL(url.replaceAll('&amp;', '&'), origin))
     assert.equal(response.status, 200)
     return response.text()
   }))

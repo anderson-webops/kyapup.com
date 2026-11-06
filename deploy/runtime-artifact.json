@@ -25,7 +25,7 @@
     "node": "26.13.0",
     "npmBuildOnly": "12.2.2",
     "npmBuildProfile": "webops-locked-npm-v1",
-    "npmBuildLockSha256": "f1ac1609d8e50515a9c8a8405936ce18ac3a8f827490ac5b1f31f9954deccfd5"
+    "npmBuildLockSha256": "963255f96855279c04af4f11412d4e0952b36b3fc37261ed58e1697f23b2acaa"
   },
   "deployment": {
     "schemaVersion": 1,

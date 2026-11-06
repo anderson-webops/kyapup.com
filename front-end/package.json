@@ -1,7 +1,7 @@
 {
   "name": "front-end",
   "type": "module",
-  "version": "2.1.19",
+  "version": "2.1.20",
   "private": true,
   "description": "Static Nuxt frontend for the Vitesse full-stack template.",
   "author": "Jacob Anderson",
@@ -21,7 +21,7 @@
   "dependencies": {
     "@vueuse/core": "^15.0.0",
     "pinia": "^4.1.0",
-    "vue": "^3.5.44"
+    "vue": "^3.5.45"
   },
   "devDependencies": {
     "@iconify-json/carbon": "^1.2.29",
@@ -35,7 +35,7 @@
     "@unocss/nuxt": "^66.12.0",
     "@vitejs/devtools": "0.8.2",
     "@vitejs/devtools-kit": "0.8.2",
-    "@vue/compiler-sfc": "^3.5.44",
+    "@vue/compiler-sfc": "^3.5.45",
     "@vueuse/nuxt": "^15.0.0",
     "c12": "^3.3.4",
     "nuxt": "^4.6.4",

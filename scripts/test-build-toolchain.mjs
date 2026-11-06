@@ -412,8 +412,16 @@ test('Glob cancellation bounds traversal while retaining ordinary file matching'
 })
 
 test('Minimatch bounds globstar-parent amplification and preserves ordinary matching', () => {
-  const matcher = new Minimatch(`root/${'**/../alpha/beta/'.repeat(6)}file.txt`, { optimizationLevel: 2, braceExpandMax: 4 })
-  assert.ok(matcher.globParts.length <= 4)
+  const options = { optimizationLevel: 2, braceExpandMax: 4 }
+  assert.throws(() => new Minimatch(`root/${'**/../alpha/beta/'.repeat(6)}file.txt`, options), {
+    name: 'RangeError',
+    message: 'optimizationLevel 2: too many patterns from \'**/..\'',
+  })
+  const matcher = new Minimatch(`root/${'**/../alpha/beta/'.repeat(2)}file.txt`, options)
+  assert.equal(matcher.globParts.length, 4)
+  for (const filename of ['alpha/beta/file.txt', 'root/nested/alpha/beta/file.txt'])
+    assert.equal(minimatch(filename, 'root/**/../alpha/beta/file.txt', options), true)
+  assert.equal(minimatch('root/nested/other/file.txt', 'root/**/../alpha/beta/file.txt', options), false)
   assert.equal(minimatch('safe/item.txt', 'safe/*.txt'), true)
   assert.equal(minimatch('outside/item.txt', 'safe/*.txt'), false)
 })
