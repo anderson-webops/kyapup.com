@@ -10,7 +10,7 @@
     "npm": "file:vendor/npm-12.2.2-webops.1.tgz"
   },
   "overrides": {
-    "glob": "14.0.3",
+    "glob": "14.0.4",
     "minimatch": "11.0.5"
   }
 }

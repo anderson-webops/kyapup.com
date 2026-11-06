@@ -124,6 +124,7 @@ test('stable version bounds retain the existing semver minimums without loading 
     '14.0.1',
     '14.0.2',
     '14.0.3',
+    '14.0.4',
     '15.0.0',
     '8.12.2+build.001',
     'v8.12.2',

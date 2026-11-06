@@ -101,7 +101,7 @@
 		"listhen": "$listhen",
 		"nanoid@^3": "3.3.20",
 		"qs": "$qs",
-		"glob": "14.0.3",
+		"glob": "14.0.4",
 		"minimatch": "11.0.5",
 		"esbuild": "^0.28.2",
 		"launch-editor": {
