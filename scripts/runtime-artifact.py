@@ -15,6 +15,36 @@ CONTRACT = Path(__file__).resolve().parent.parent / "deploy/runtime-artifact.jso
 MANIFEST = "runtime-manifest.json"
 
 
+def validate_deployment_contract(contract):
+    deployment = contract.get("deployment")
+    required_capabilities = {
+        "artifact-only-promotion-v1",
+        "verified-source-and-payload-v1",
+        "protected-immutable-staging-v1",
+        "retained-artifact-rollback-v1",
+        "version-aware-readiness-v1",
+        "dual-stack-release-identity-v1",
+    }
+    if (not isinstance(deployment, dict)
+            or set(deployment) != {"schemaVersion", "applicationId", "artifactFormat", "requiredHostCapabilities", "probes", "migrations", "rollback", "hostControlled"}
+            or deployment["schemaVersion"] != 1
+            or not isinstance(deployment["applicationId"], str)
+            or not re.fullmatch(r"[a-z0-9][a-z0-9.-]{2,100}", deployment["applicationId"])
+            or deployment["artifactFormat"] != "vitesse-direct-runtime-v1"
+            or not isinstance(deployment["requiredHostCapabilities"], list)
+            or len(deployment["requiredHostCapabilities"]) != len(required_capabilities)
+            or set(deployment["requiredHostCapabilities"]) != required_capabilities
+            or deployment["probes"] != {
+                "apiHealth": {"path": "/api/health", "methods": ["GET", "HEAD"], "success": 200},
+                "apiReadiness": {"path": "/api/readyz", "methods": ["GET", "HEAD"], "success": 200, "failure": 503},
+                "staticIdentity": {"path": "/release.json", "field": "commitSha", "addressFamilies": ["ipv4", "ipv6"]},
+            }
+            or deployment["migrations"] != "none"
+            or deployment["rollback"] != "verify-retained-artifact-and-identity"
+            or deployment["hostControlled"] != ["service-user", "listener", "reverse-proxy", "protected-environment"]):
+        raise ValueError("unsupported or incomplete deployment compatibility contract")
+
+
 def digest(path):
     with path.open("rb") as stream:
         return hashlib.file_digest(stream, "sha256").hexdigest()
@@ -87,6 +117,7 @@ def runtime_dependencies(root):
 
 def validate(root, manifest):
     contract = json.loads(CONTRACT.read_text())
+    validate_deployment_contract(contract)
     if manifest.get("format") != 1 or manifest.get("contract") != contract:
         raise ValueError("artifact does not match the independently trusted runtime contract")
     if not re.fullmatch(r"[0-9a-f]{40}", manifest.get("commit", "")):
@@ -130,7 +161,7 @@ def validate(root, manifest):
         name = "back-end/" + key
         if "node_modules" in PurePosixPath(name).parts and name not in visited and (root / name / "package.json").is_file():
             raise ValueError(f"unrelated dependency in runtime: {name}")
-    for name in ("back-end/node_modules/tsx", "back-end/node_modules/typescript", "back-end/node_modules/vite", "back-end/node_modules/eslint"):
+    for name in ("back-end/node_modules/tsx", "back-end/node_modules/typescript", "back-end/node_modules/typescript-native", "back-end/node_modules/vite", "back-end/node_modules/eslint"):
         if (root / name).exists():
             raise ValueError(f"development tool in runtime: {name}")
     for name in actual:
@@ -171,6 +202,10 @@ def main():
         manifest = validate(root, json.loads((root / MANIFEST).read_text()))
         if manifest["commit"] != args.commit:
             raise ValueError("artifact source identity mismatch")
+        for directory in root.rglob("*"):
+            if directory.is_dir():
+                directory.chmod(0o755)
+        root.chmod(0o755)
         print(json.dumps({"unpacked": True, "commit": manifest["commit"], "files": len(manifest["files"])}))
     elif args.operation == "pack":
         if platform.system() != "Linux" or platform.machine() != "aarch64":

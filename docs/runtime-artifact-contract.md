@@ -9,18 +9,28 @@ modules, including `secondary-auth.js` and `secondary-state.js`. No database fil
 or uploaded photograph belongs in an archive. Logs stay
 in the service journal.
 
+The versioned `deployment` section is a source requirement, not a claim that an
+installed host supports it. It names the application, artifact format, required
+host capabilities, API and static-identity probes, migration mode and retained
+artifact recovery. The checked-in verifier rejects incomplete or weakened
+requirements and binds the exact declaration into the hashed runtime manifest.
+The tagged Linux ARM64 workflow also checks that binding and uploads only the
+archive, `SHA256SUMS`, manifest and acceptance receipt. Download and compare
+those exact CI bytes before publishing a source release.
+
 Keep protected configuration and any downstream database, email spool, cache or
 uploads outside immutable releases. Preserve durable state on both promotion and
 rollback. Preserve the exact installed service users, paths and loopback ports;
-the `/srv/kyapup` and `/opt/node-24.18.1/bin/node` source adapter defaults are
+the `/srv/kyapup` and `/opt/node-26.13.0/bin/node` source adapter defaults are
 examples for a separately reviewed installation, not instructions to overwrite a
 working host. Never change DNS, IPv4/IPv6, certificates or edge configuration to
 make artifact acceptance pass.
 
 ## Build and accept away from production
 
-Use an unprivileged disposable Linux ARM64 builder with Node 24.18.1, npm 12.0.2,
-Python 3.11 or newer and Bubblewrap with user namespaces available. Start from a
+Use an unprivileged disposable Linux ARM64 builder with Node 26.13.0 and npm
+12.2.2 selected through the locked `webops-locked-npm-v1` profile. Python 3.11 or
+newer, libatomic and Bubblewrap with user namespaces must be available. Start from a
 clean, exact source commit. Record that commit. Run the repository's clean install,
 full/production audits, signatures, lint, types, tests, build, native declarations
 and deployment-output gates. Accessibility can run on the same source in a
@@ -41,6 +51,9 @@ rejects development or unrelated packages. The root workspace lock is retained
 as source provenance, not installed in production. The only removed executable
 links are the reviewed dependency graph's unused `.bin` entries; all other symlinks
 are rejected. There is no dependency-install fallback.
+The back-end production build does not rely on a retained TypeScript incremental
+cache: a missing `dist` tree must be rebuilt before packaging, not hidden by a
+successful no-op compiler exit.
 
 The archive contains a required-path and SHA-256 inventory with its exact source
 commit. Its verifier rejects private paths, undeclared native code, version drift,
@@ -79,6 +92,13 @@ Publish the archive, `SHA256SUMS`, `runtime-manifest.json` and `acceptance.json`
 with the meaningful annotated release. The acceptance receipt records harness
 hashes and completed artifact checks. Full source-gate logs remain separate
 evidence. Download and compare published files before claiming delivery.
+
+Before building or changing production, the installed host adapter should read
+the trusted tagged source contract and compare its supported schema, runtime,
+architecture and capability set. Missing support means `host update required`,
+not a build failure. The adapter must separately verify the downloaded archive
+digest, source commit and actual installed artifact. It must never accept a
+candidate's self-declared capabilities as evidence of host support.
 
 ## Operator acceptance and rollback
 

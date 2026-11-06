@@ -2,11 +2,12 @@ import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 import { X509Certificate } from 'node:crypto'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
-import { request } from 'node:https'
 import { createRequire } from 'node:module'
 import { join, resolve } from 'node:path'
 import process from 'node:process'
 import { after, test } from 'node:test'
+import { rootCertificates } from 'node:tls'
+import { getSecureResponse } from './trusted-https-test-client.mjs'
 
 const require = createRequire(import.meta.url)
 const projectRoot = resolve(import.meta.dirname, '..')
@@ -16,21 +17,6 @@ const scratchDirectories = []
 after(async () => {
   await Promise.all(scratchDirectories.map(directory => rm(directory, { force: true, recursive: true })))
 })
-
-function getSecureResponse(url) {
-  return new Promise((resolveResponse, rejectResponse) => {
-    const client = request(url, { rejectUnauthorized: false }, (response) => {
-      let body = ''
-      response.setEncoding('utf8')
-      response.on('data', (chunk) => {
-        body += chunk
-      })
-      response.on('end', () => resolveResponse({ status: response.statusCode, body }))
-    })
-    client.on('error', rejectResponse)
-    client.end()
-  })
-}
 
 async function withListener(listen, https, callback) {
   const listener = await listen((_request, response) => response.end('ok'), {
@@ -47,6 +33,31 @@ async function withListener(listen, https, callback) {
     await listener.close()
   }
 }
+
+test('both entrypoints use their trusted bundled browser helper without shared temporary execution', async () => {
+  await mkdir(scratchRoot, { recursive: true })
+  for (const entrypoint of ['commonjs', 'esm']) {
+    const directory = await mkdtemp(join(scratchRoot, 'listhen-open-'))
+    scratchDirectories.push(directory)
+    const result = spawnSync(process.execPath, [
+      join(projectRoot, 'scripts/fixtures/listhen-browser.mjs'),
+      entrypoint,
+    ], {
+      cwd: projectRoot,
+      env: {
+        PATH: process.env.PATH,
+        TMPDIR: directory,
+        HOME: directory,
+        NODE_ENV: 'test',
+      },
+      encoding: 'utf8',
+      timeout: 20_000,
+    })
+    assert.equal(result.signal, null)
+    assert.equal(result.status, 0, result.stderr)
+    assert.match(result.stdout, /Trusted browser launcher selected/u)
+  }
+})
 
 test('local listhen fork preserves HTTP and certificate modes without node-forge', async () => {
   const esm = await import('listhen')
@@ -66,7 +77,10 @@ test('local listhen fork preserves HTTP and certificate modes without node-forge
   assert.ok(Object.entries(lockfile.packages).every(([path, entry]) =>
     !/(?:^|\/)node_modules\/node-forge$/u.test(path) && !entry.dependencies?.['node-forge']))
 
-  const cli = spawnSync(process.execPath, [join(projectRoot, 'vendor/listhen/bin/listhen.mjs'), '--help'], { encoding: 'utf8' })
+  const cli = spawnSync(process.execPath, [
+    join(projectRoot, 'vendor/listhen/bin/listhen.mjs'),
+    '--help',
+  ], { encoding: 'utf8' })
   assert.equal(cli.status, 0, cli.stderr)
   assert.match(`${cli.stdout}\n${cli.stderr}`, /listhen|Usage/iu)
 
@@ -80,8 +94,19 @@ test('local listhen fork preserves HTTP and certificate modes without node-forge
   const directory = await mkdtemp(join(scratchRoot, 'listhen-compat-'))
   scratchDirectories.push(directory)
   let certificate
-  await withListener(esm.listen, { domains: ['localhost', '127.0.0.1', '::1'], validityDays: 1 }, async (listener) => {
-    assert.deepEqual(await getSecureResponse(listener.url), { status: 200, body: 'ok' })
+  await withListener(esm.listen, {
+    domains: ['localhost', '127.0.0.1', '::1'],
+    validityDays: 1,
+  }, async (listener) => {
+    certificate = listener.https
+    await assert.rejects(getSecureResponse(listener.url), error =>
+      /SELF_SIGNED_CERT|UNABLE_TO_VERIFY_LEAF_SIGNATURE|UNABLE_TO_GET_ISSUER_CERT/u.test(error.code))
+    await assert.rejects(getSecureResponse(listener.url, rootCertificates[0]), error =>
+      /SELF_SIGNED_CERT|UNABLE_TO_VERIFY_LEAF_SIGNATURE|UNABLE_TO_GET_ISSUER_CERT/u.test(error.code))
+    await assert.rejects(getSecureResponse(listener.url, listener.https.cert, 'wrong-host.invalid'), {
+      code: 'ERR_TLS_CERT_ALTNAME_INVALID',
+    })
+    assert.deepEqual(await getSecureResponse(listener.url, certificate.cert), { status: 200, body: 'ok' })
     const issued = new X509Certificate(listener.https.cert)
     assert.equal(issued.checkHost('localhost'), 'localhost')
     assert.equal(issued.checkIP('127.0.0.1'), '127.0.0.1')
@@ -93,7 +118,7 @@ test('local listhen fork preserves HTTP and certificate modes without node-forge
   })
 
   await withListener(commonjs.listen, { key: certificate.key, cert: certificate.cert }, async (listener) => {
-    assert.deepEqual(await getSecureResponse(listener.url), { status: 200, body: 'ok' })
+    assert.deepEqual(await getSecureResponse(listener.url, certificate.cert), { status: 200, body: 'ok' })
   })
 
   const keyPath = join(directory, 'key.pem')
@@ -105,7 +130,7 @@ test('local listhen fork preserves HTTP and certificate modes without node-forge
   await writeFile(badPfxPath, 'not-a-pfx', { mode: 0o600 })
 
   await withListener(esm.listen, { key: keyPath, cert: certPath }, async (listener) => {
-    assert.deepEqual(await getSecureResponse(listener.url), { status: 200, body: 'ok' })
+    assert.deepEqual(await getSecureResponse(listener.url, certificate.cert), { status: 200, body: 'ok' })
   })
 
   const pfxExport = spawnSync('openssl', [
@@ -123,7 +148,7 @@ test('local listhen fork preserves HTTP and certificate modes without node-forge
   assert.equal(pfxExport.status, 0, pfxExport.stderr)
 
   await withListener(esm.listen, { pfx: pfxPath, passphrase: 'synthetic-test-only' }, async (listener) => {
-    assert.deepEqual(await getSecureResponse(listener.url), { status: 200, body: 'ok' })
+    assert.deepEqual(await getSecureResponse(listener.url, certificate.cert), { status: 200, body: 'ok' })
   })
 
   await assert.rejects(() => esm.listen((_request, response) => response.end('ok'), {

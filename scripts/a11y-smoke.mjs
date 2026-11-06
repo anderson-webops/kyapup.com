@@ -3,9 +3,10 @@ import { spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import net from 'node:net'
-import { resolve } from 'node:path'
+import { relative, resolve } from 'node:path'
 import process from 'node:process'
 import puppeteer from 'puppeteer-core'
+import { frontendCommand } from './frontend-command.mjs'
 
 const require = createRequire(import.meta.url)
 const axeSourcePath = require.resolve('axe-core/axe.min.js')
@@ -21,8 +22,20 @@ const chromePath = [
 ].filter(Boolean).find(candidate => existsSync(candidate))
 const colorSchemes = (process.env.A11Y_COLOR_SCHEMES || 'light,dark').split(',').map(value => value.trim()).filter(Boolean)
 const viewports = [
-  { name: 'desktop', width: 1280, height: 1000, deviceScaleFactor: 1 },
-  { name: 'mobile', width: 390, height: 844, deviceScaleFactor: 1, isMobile: true, hasTouch: true },
+  {
+    name: 'desktop',
+    width: 1280,
+    height: 1000,
+    deviceScaleFactor: 1,
+  },
+  {
+    name: 'mobile',
+    width: 390,
+    height: 844,
+    deviceScaleFactor: 1,
+    isMobile: true,
+    hasTouch: true,
+  },
 ]
 const fixturePhotos = Array.from({ length: 7 }, (_, index) => ({
   id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
@@ -47,27 +60,48 @@ async function availablePort() {
     server.listen(0, '127.0.0.1', resolveListen)
   })
   const port = server.address().port
-  await new Promise((resolveClose, reject) => server.close(error => error ? reject(error) : resolveClose()))
+  await new Promise((resolveClose, reject) => server.close(error => error
+    ? reject(error)
+    : resolveClose()))
   return port
 }
 
-const externalFrontend = process.env.A11Y_BASE_URL ? new URL(process.env.A11Y_BASE_URL) : null
+const externalFrontend = process.env.A11Y_BASE_URL
+  ? new URL(process.env.A11Y_BASE_URL)
+  : null
 if (externalFrontend) {
   assert.equal(externalFrontend.protocol, 'http:', 'An external accessibility frontend must use local HTTP')
   assert.ok(['127.0.0.1', 'localhost', '[::1]'].includes(externalFrontend.hostname), 'Accessibility fixtures may only run on loopback')
 }
-const frontendPort = externalFrontend ? Number(externalFrontend.port) : await availablePort()
+const frontendPort = externalFrontend
+  ? Number(externalFrontend.port)
+  : await availablePort()
 const baseUrl = externalFrontend?.origin || `http://127.0.0.1:${frontendPort}`
 function delay(milliseconds) {
   return new Promise(resolveDelay => setTimeout(resolveDelay, milliseconds))
 }
 
 function startFrontend() {
-  const child = spawn('npm', ['exec', '-w', 'front-end', '--', 'nuxt', 'dev', '--host', '127.0.0.1', '--port', String(frontendPort)], {
-    cwd: projectRoot,
+  const command = frontendCommand(projectRoot)
+  const childTemporaryDirectory = process.platform === 'darwin' && process.env.TMPDIR
+    ? relative(command.cwd, resolve(process.env.TMPDIR))
+    : ''
+  const child = spawn('npm', [
+    ...command.args,
+    'nuxt',
+    'dev',
+    '--host',
+    '127.0.0.1',
+    '--port',
+    String(frontendPort),
+  ], {
+    cwd: command.cwd,
     detached: process.platform !== 'win32',
     env: {
       ...process.env,
+      ...(childTemporaryDirectory && childTemporaryDirectory.length < process.env.TMPDIR.length
+        ? { TMPDIR: childTemporaryDirectory }
+        : {}),
       BROWSER: 'none',
       NUXT_A11Y_SCAN: 'true',
       NUXT_TELEMETRY_DISABLED: '1',
@@ -92,7 +126,9 @@ async function waitForFrontend(child) {
     if (child && child.exitCode !== null)
       throw new Error('Accessibility frontend exited before it became ready')
     try {
-      const response = await fetch(baseUrl, { signal: AbortSignal.timeout(2000) })
+      const response = await fetch(baseUrl, {
+        signal: AbortSignal.timeout(2000),
+      })
       await response.arrayBuffer()
       if (response.ok)
         return
@@ -107,7 +143,9 @@ function signalProcessTree(child, signal) {
   if (!child.pid)
     return
   try {
-    process.kill(process.platform === 'win32' ? child.pid : -child.pid, signal)
+    process.kill(process.platform === 'win32'
+      ? child.pid
+      : -child.pid, signal)
   }
   catch (error) {
     if (error?.code !== 'ESRCH')
@@ -118,7 +156,10 @@ async function stopFrontend(child) {
   signalProcessTree(child, 'SIGTERM')
   await delay(1000)
   signalProcessTree(child, 'SIGKILL')
-  await Promise.race([new Promise(resolveClose => child.once('close', resolveClose)), delay(1000)])
+  await Promise.race([
+    new Promise(resolveClose => child.once('close', resolveClose)),
+    delay(1000),
+  ])
 }
 
 const failures = []
@@ -133,12 +174,45 @@ async function newFixturePage(browser, viewport, scheme, empty = false) {
   ])
   let authenticated = false
   let settings = { ...fixtureSettings }
-  const photos = empty ? [] : structuredClone(fixturePhotos)
+  const photos = empty
+    ? []
+    : structuredClone(fixturePhotos)
   const deletedIds = []
   const incompleteDeletes = new Set()
   const errors = []
   page.on('pageerror', error => errors.push(error.message))
   await page.setRequestInterception(true)
+  async function respondWithMedia(request, url, json, headers) {
+    if (!photos.some(photo => [photo.thumbnailUrl, photo.url].includes(url.pathname))) {
+      await json({ error: 'not_found' }, 404)
+      return
+    }
+    await request.respond({
+      status: 200,
+      contentType: 'image/svg+xml',
+      headers,
+      body: '<svg xmlns="http://www.w3.org/2000/svg" width="960" height="720" viewBox="0 0 960 720"><rect width="960" height="720" fill="#42634e"/><circle cx="480" cy="360" r="190" fill="#cba87a"/><ellipse cx="430" cy="330" rx="18" ry="24" fill="#23382d"/><ellipse cx="540" cy="330" rx="18" ry="24" fill="#23382d"/></svg>',
+    })
+  }
+  async function deleteFixturePhoto(request, url, json, headers) {
+    if (!authenticated || request.headers()['x-csrf-token'] !== 'synthetic-accessibility-token') {
+      errors.push('Deletion must include the authenticated session CSRF token')
+      await json({ error: 'invalid_csrf_token' }, 403)
+      return
+    }
+    const id = url.pathname.split('/').at(-1)
+    const index = photos.findIndex(photo => photo.id === id)
+    deletedIds.push(id)
+    if (index !== -1)
+      photos.splice(index, 1)
+    if (settings.heroPhotoId === id)
+      settings = { ...settings, heroPhotoId: null }
+    if (incompleteDeletes.delete(id)) {
+      await json({ error: 'photo_delete_incomplete' }, 503)
+      return
+    }
+    await request.respond({ status: 204, headers })
+  }
   page.on('request', async (request) => {
     const url = new URL(request.url())
     if (url.origin !== baseUrl || !url.pathname.startsWith('/api/')) {
@@ -146,18 +220,27 @@ async function newFixturePage(browser, viewport, scheme, empty = false) {
       return
     }
     const headers = { 'cache-control': 'no-store', 'cross-origin-resource-policy': 'same-origin' }
-    const json = (body, status = 200) => request.respond({ status, contentType: 'application/json', headers, body: JSON.stringify(body) })
-    const session = () => ({ authenticated, ...(authenticated ? { csrfToken: 'synthetic-accessibility-token' } : {}) })
+    const json = (body, status = 200) => request.respond({
+      status,
+      contentType: 'application/json',
+      headers,
+      body: JSON.stringify(body),
+    })
+    const session = () => ({
+      authenticated,
+      ...(authenticated
+        ? { csrfToken: 'synthetic-accessibility-token' }
+        : {}),
+    })
     if (url.pathname.startsWith('/api/media/')) {
-      if (!photos.some(photo => [photo.thumbnailUrl, photo.url].includes(url.pathname))) {
-        await json({ error: 'not_found' }, 404)
-        return
-      }
-      await request.respond({ status: 200, contentType: 'image/svg+xml', headers, body: '<svg xmlns="http://www.w3.org/2000/svg" width="960" height="720" viewBox="0 0 960 720"><rect width="960" height="720" fill="#42634e"/><circle cx="480" cy="360" r="190" fill="#cba87a"/><ellipse cx="430" cy="330" rx="18" ry="24" fill="#23382d"/><ellipse cx="540" cy="330" rx="18" ry="24" fill="#23382d"/></svg>' })
+      await respondWithMedia(request, url, json, headers)
       return
     }
     if (url.pathname === '/api/gallery') {
-      await json({ photos: photos.filter(photo => photo.visible), settings })
+      await json({
+        photos: photos.filter(photo => photo.visible),
+        settings,
+      })
       return
     }
     if (url.pathname === '/api/admin/session') {
@@ -179,28 +262,15 @@ async function newFixturePage(browser, viewport, scheme, empty = false) {
       return
     }
     if (url.pathname === '/api/admin/settings' && request.method() === 'PATCH') {
-      settings = { ...settings, ...JSON.parse(request.postData() || '{}') }
+      settings = {
+        ...settings,
+        ...JSON.parse(request.postData() || '{}'),
+      }
       await json(settings)
       return
     }
     if (/^\/api\/admin\/photos\/[^/]+$/.test(url.pathname) && request.method() === 'DELETE') {
-      if (!authenticated || request.headers()['x-csrf-token'] !== 'synthetic-accessibility-token') {
-        errors.push('Deletion must include the authenticated session CSRF token')
-        await json({ error: 'invalid_csrf_token' }, 403)
-        return
-      }
-      const id = url.pathname.split('/').at(-1)
-      const index = photos.findIndex(photo => photo.id === id)
-      deletedIds.push(id)
-      if (index !== -1)
-        photos.splice(index, 1)
-      if (settings.heroPhotoId === id)
-        settings = { ...settings, heroPhotoId: null }
-      if (incompleteDeletes.delete(id)) {
-        await json({ error: 'photo_delete_incomplete' }, 503)
-        return
-      }
-      await request.respond({ status: 204, headers })
+      await deleteFixturePhoto(request, url, json, headers)
       return
     }
     errors.push(`Unexpected fixture API request: ${request.method()} ${url.pathname}`)
@@ -220,14 +290,35 @@ async function newFixturePage(browser, viewport, scheme, empty = false) {
     })
     const violations = await page.evaluate(async () => (await globalThis.axe.run(document, {
       resultTypes: ['violations'],
-      runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] },
+      runOnly: {
+        type: 'tag',
+        values: [
+          'wcag2a',
+          'wcag2aa',
+          'wcag21a',
+          'wcag21aa',
+        ],
+      },
     })).violations)
-    const result = { state, viewport: name, scheme, url: page.url(), violations, errors: [...errors] }
+    const result = {
+      state,
+      viewport: name,
+      scheme,
+      url: page.url(),
+      violations,
+      errors: [...errors],
+    }
     if (violations.length || errors.length)
       failures.push(result)
     else console.log(`a11y ok: ${state} [${name}, ${scheme}]`)
   }
-  return { page, navigate, scan, failNextDelete: id => incompleteDeletes.add(id), fixtureState: () => structuredClone({ photos, settings, deletedIds }) }
+  return {
+    page,
+    navigate,
+    scan,
+    failNextDelete: id => incompleteDeletes.add(id),
+    fixtureState: () => structuredClone({ photos, settings, deletedIds }),
+  }
 }
 
 async function publicChecks(browser, viewport, scheme) {
@@ -370,11 +461,17 @@ async function adminChecks(browser, viewport, scheme) {
   finally { await admin.page.close() }
 }
 
-const frontendProcess = externalFrontend ? null : startFrontend()
+const frontendProcess = externalFrontend
+  ? null
+  : startFrontend()
 let browser
 try {
   await waitForFrontend(frontendProcess)
-  browser = await puppeteer.launch({ executablePath: chromePath, headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage'] })
+  browser = await puppeteer.launch({
+    executablePath: chromePath,
+    headless: true,
+    args: ['--no-sandbox', '--disable-dev-shm-usage'],
+  })
   for (const viewport of viewports) {
     for (const scheme of colorSchemes) {
       await publicChecks(browser, viewport, scheme)

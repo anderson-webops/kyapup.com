@@ -26,7 +26,6 @@ function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'defau
 const consola__default = /*#__PURE__*/_interopDefaultCompat(consola);
 const addShutdown__default = /*#__PURE__*/_interopDefaultCompat(addShutdown);
 const childProcess__default = /*#__PURE__*/_interopDefaultCompat(childProcess);
-const fs__default = /*#__PURE__*/_interopDefaultCompat(fs);
 const os__default = /*#__PURE__*/_interopDefaultCompat(os);
 const selfsigned__default = /*#__PURE__*/_interopDefaultCompat(selfsigned);
 
@@ -137,25 +136,9 @@ async function open(target, options = {}) {
     target = Buffer.from(encodedArguments.join(" "), "utf16le").toString("base64");
   } else {
     command = "xdg-open";
-    const useSystemXdgOpen = process.versions.electron || process.platform === "android";
-    if (!useSystemXdgOpen) {
-      command = node_path.join(os__default.tmpdir(), "xdg-open");
-      if (!fs__default.existsSync(command)) {
-        try {
-          fs__default.writeFileSync(
-            node_path.join(os__default.tmpdir(), "xdg-open"),
-            await import('../chunks/xdg-open.cjs').then((r) => r.xdgOpenScript()),
-            "utf8"
-          );
-          fs__default.chmodSync(
-            command,
-            493
-            /* rwx r-x r-x */
-          );
-        } catch {
-          command = "xdg-open";
-        }
-      }
+    if (!process.versions.electron && process.platform !== "android") {
+      command = "/bin/sh";
+      cliArguments.push("-c", await import('../chunks/xdg-open.cjs').then((module) => module.xdgOpenScript()), "xdg-open");
     }
     if (!options.wait) {
       childProcessOptions.stdio = "ignore";

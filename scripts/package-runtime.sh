@@ -5,8 +5,9 @@ root=$(cd -- "$(dirname -- "$0")/.." && pwd)
 cd -- "$root"
 test "$(uname -s)" = Linux
 test "$(uname -m)" = aarch64
-test "$(node --version)" = v24.18.1
-test "$(npm --version)" = 12.0.2
+test "$(node --version)" = v26.13.0
+test "$(npm --version)" = 12.2.2
+toolchain_receipt=$(node scripts/check-build-toolchain.mjs)
 test -z "$(git status --porcelain)"
 commit=$(git rev-parse HEAD)
 output=$(realpath "${1:?Pass an empty output directory under .ai-work/runs}")
@@ -22,6 +23,7 @@ VITESSE_DEPLOYED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 node scripts/write-release-metadata.mjs
 cp package.json package-lock.json .vitesse-release-prepared.json "$stage/"
 cp back-end/package.json back-end/package-lock.json "$stage/back-end/"
+cp -R back-end/vendor "$stage/back-end/"
 cp front-end/package.json "$stage/front-end/"
 cp -R back-end/dist "$stage/back-end/"
 cp -R front-end/.output/public "$stage/front-end/.output/"
@@ -50,20 +52,22 @@ if python3 -B scripts/runtime-artifact.py verify "$output/copied" --archive "$ar
   exit 1
 fi
 bash scripts/test-unpacked-artifact.sh "$output/copied" missing-module
-python3 -B - "$output" <<'PY'
+BUILD_TOOLCHAIN_RECEIPT="$toolchain_receipt" python3 -B - "$output" <<'PY'
 import datetime
 import hashlib
 import json
+import os
 from pathlib import Path
 import sys
 output = Path(sys.argv[1])
 receipt = json.loads((output / "pack.json").read_text())
 receipt["acceptedAt"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+receipt["buildToolchain"] = json.loads(os.environ["BUILD_TOOLCHAIN_RECEIPT"])
 receipt["bytes"] = (output / receipt["archive"]).stat().st_size
 receipt["checks"] = ["production-only locked install", "full and production backend audits", "registry signatures", "manifest and required paths", "isolated unpacked runtime", "readiness failure and recovery", "GET and HEAD minimal probes", "repeated-signal drain", "restart", "authenticated photo upload and image conversion", "publication and archived media authorization", "photo and settings persistence", "authenticated permanent photo deletion", "deleted media and files remain absent after restart and restore", "scoped machine import and duplicate preservation", "persistent import identities", "secondary activation boundary", "atomic concurrent secondary failures", "secondary lockout expiry and restart", "primary recovery during secondary lockout", "consistent photo and auth backup restore", "post-copier verification", "missing-module rejection"]
 receipt["harnessSha256"] = {
     name: hashlib.sha256(Path(name).read_bytes()).hexdigest()
-    for name in ["deploy/runtime-artifact.json", "scripts/runtime-artifact.py", "scripts/package-runtime.sh", "scripts/test-unpacked-artifact.sh", "scripts/direct-runtime-smoke.mjs", "scripts/artifact-acceptance/runtime.mjs", "scripts/write-release-metadata.mjs", "deploy/systemd/install-service.sh", "deploy/systemd/promote-release.sh", "deploy/systemd/trusted-paths.py", "scripts/test-promotion-recovery.py", "scripts/test-promotion-recovery.sh", "scripts/test-bootstrap-in-vm.py"]
+    for name in ["deploy/runtime-artifact.json", "scripts/runtime-artifact.py", "scripts/package-runtime.sh", "scripts/test-unpacked-artifact.sh", "scripts/direct-runtime-smoke.mjs", "scripts/artifact-acceptance/runtime.mjs", "scripts/write-release-metadata.mjs", "deploy/systemd/install-service.sh", "deploy/systemd/promote-release.sh", "deploy/systemd/trusted-paths.py", "scripts/test-promotion-recovery.py", "scripts/test-promotion-recovery.sh", "scripts/test-bootstrap-in-vm.py", "scripts/build-toolchain.mjs", "scripts/build-toolchain-state.mjs", "scripts/build-toolchain-cache.mjs", "scripts/check-build-toolchain.mjs", "build-toolchain/PAYLOAD.json", "build-toolchain/UPSTREAM.json", "build-toolchain/package.json", "build-toolchain/package-lock.json"]
 }
 (output / "acceptance.json").write_text(json.dumps(receipt, indent=2) + "\n")
 PY

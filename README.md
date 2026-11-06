@@ -4,6 +4,8 @@ A photo-first home for Kya. The public page is a large, responsive photo wall wi
 
 The site is based on the existing [anderson-webops/vitesse-nuxt-template](https://github.com/anderson-webops/vitesse-nuxt-template) at `0e893bd` (`v2.1.2`), derived from [antfu/vitesse-nuxt](https://github.com/antfu/vitesse-nuxt). No additional template fork is required. This application lives in [anderson-webops/kyapup.com](https://github.com/anderson-webops/kyapup.com).
 
+The reviewed shared-source baseline and gallery-specific boundaries are recorded in [upstream synchronization](docs/upstream-synchronization.md).
+
 ## Using the gallery
 
 Open `/admin` and sign in. Tap **Add photos**, choose your pictures, then tap **Show selected**. Tap a star to make a photo a favorite; favorites appear largest. Choose **One favorite** or **Rotate favorites** at the top. **Save for later** hides a photo without deleting it. Changes save automatically.
@@ -16,9 +18,10 @@ Photos. Choose **Cancel** to keep the photos, or **Save for later** to hide them
 
 ## Local development
 
-Use Node.js **24.18.1** and npm **12.0.2**. All dependency operations start at the repository root.
+Use Node.js **26.13.0** and npm **12.2.2**. All dependency operations start at the repository root.
 
 ```sh
+export PATH="$(node scripts/build-toolchain.mjs --print-bin):$PATH"
 npm ci
 cp .env.example back-end/.env
 # Set ADMIN_PASSWORD_HASH in back-end/.env using the helper below.

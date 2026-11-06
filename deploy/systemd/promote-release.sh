@@ -22,7 +22,7 @@ if [[ ${EUID:-$(id -u)} -ne 0 ]]; then
 fi
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 helper_root="$(cd -- "$script_dir/../.." && pwd -P)"
-node_bin_dir="${NODE_BIN_DIR:-/opt/node-24.18.1/bin}"
+node_bin_dir="${NODE_BIN_DIR:-/opt/node-26.13.0/bin}"
 node="$node_bin_dir/node"
 archive="$2"
 archive_sha="$3"
@@ -36,8 +36,8 @@ fi
   "$script_dir/promote-release.sh" "$script_dir/trusted-paths.py" \
   "$helper_root/scripts/runtime-artifact.py" "$helper_root/deploy/runtime-artifact.json" \
   "$node" "$archive" "$release_root" "$(dirname -- "$current_link")" --tree "$1"
-if [[ ! -x "$node" || "$("$node" --version)" != v24.18.1 ]]; then
-  echo 'NODE_BIN_DIR must select the approved Node24.18.1 runtime.' >&2; exit 1
+if [[ ! -x "$node" || "$("$node" --version)" != v26.13.0 ]]; then
+  echo 'NODE_BIN_DIR must select the approved Node26.13.0 runtime.' >&2; exit 1
 fi
 if [[ -z "$public_host" || ! "$public_host" =~ ^[A-Za-z0-9][A-Za-z0-9.-]*[A-Za-z0-9]$ ]]; then
 	echo "PUBLIC_HOST must be the certificate-covered production hostname." >&2

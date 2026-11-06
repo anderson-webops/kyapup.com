@@ -31,8 +31,11 @@
   "runtime": {
     "os": "linux",
     "arch": "arm64",
-    "node": "24.18.1",
-    "npmBuildOnly": "12.0.2",
+    "node": "26.13.0",
+    "npmBuildOnly": "12.2.2",
+    "npmBuildProfile": "webops-locked-npm-v1",
+    "npmBuildLockSha256": "bd9366e4e37579a4f85c69a0ca906983d23a6a6ab7795666a97f8903bee66cf3",
+    "npmBuildPayloadSha256": "a55833f14bdb7c7f584d43e5817a4fffcb451dda89d3f1fe643557b05b3cdc33",
     "libc": "glibc"
   },
   "modulesOutsideDist": [],
@@ -65,5 +68,53 @@
     }
   ],
   "privateConfiguration": "The installed host reads root-owned mode0600 /etc/kyapup.com/app.env. The generic first-install adapter uses /etc/kyapup/api.env; preserve the actual installed path. ADMIN_PASSWORD_HASH, ALLOWED_ORIGINS, optional PHOTO_IMPORT_TOKEN_SHA256 and optional ADMIN_SECONDARY_* configuration stay outside archives. Root-owned mode0600 /etc/kyapup.com/pending-admin/secondary-admin.env is staged and unloaded until separately reviewed activation. No secrets, sessions, SQLite data or uploaded photos belong in source, static output or runtime archives. The plaintext import credential belongs only on its client; unset the hash to disable machine imports.",
-  "topology": "Static Nuxt output with one independent Express API, Node built-in SQLite and sharp/libvips. Direct Nginx/systemd deployment uses a loopback listener with exactly one trusted proxy hop. Nginx overwrites X-Forwarded-For with the actual client address. Photo state and separate persistent secondary-authentication state remain outside releases, with only their required service write access. kyapup.com and kyagirl.com serve the same application; preserve reviewed installed users, paths, ports, IPv4/IPv6 and TLS policy. Ephemeral function storage is not a supported stateful deployment."
+  "topology": "Static Nuxt output with one independent Express API, Node built-in SQLite and sharp/libvips. Direct Nginx/systemd deployment uses a loopback listener with exactly one trusted proxy hop. Nginx overwrites X-Forwarded-For with the actual client address. Photo state and separate persistent secondary-authentication state remain outside releases, with only their required service write access. kyapup.com and kyagirl.com serve the same application; preserve reviewed installed users, paths, ports, IPv4/IPv6 and TLS policy. Ephemeral function storage is not a supported stateful deployment.",
+  "deployment": {
+    "schemaVersion": 1,
+    "applicationId": "kyapup",
+    "artifactFormat": "vitesse-direct-runtime-v1",
+    "requiredHostCapabilities": [
+      "artifact-only-promotion-v1",
+      "verified-source-and-payload-v1",
+      "protected-immutable-staging-v1",
+      "retained-artifact-rollback-v1",
+      "version-aware-readiness-v1",
+      "dual-stack-release-identity-v1"
+    ],
+    "probes": {
+      "apiHealth": {
+        "path": "/api/health",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "success": 200
+      },
+      "apiReadiness": {
+        "path": "/api/readyz",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "success": 200,
+        "failure": 503
+      },
+      "staticIdentity": {
+        "path": "/release.json",
+        "field": "commitSha",
+        "addressFamilies": [
+          "ipv4",
+          "ipv6"
+        ]
+      }
+    },
+    "migrations": "none",
+    "rollback": "verify-retained-artifact-and-identity",
+    "hostControlled": [
+      "service-user",
+      "listener",
+      "reverse-proxy",
+      "protected-environment"
+    ]
+  }
 }

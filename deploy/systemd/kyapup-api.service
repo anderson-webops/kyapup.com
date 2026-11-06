@@ -16,7 +16,7 @@ Environment=PHOTO_DATA_DIR=/var/lib/kyapup
 EnvironmentFile=/etc/kyapup/api.env
 StateDirectory=kyapup
 StateDirectoryMode=0700
-ExecStart=/opt/node-24.18.1/bin/node back-end/dist/server.js
+ExecStart=/opt/node-26.13.0/bin/node back-end/dist/server.js
 Restart=on-failure
 RestartSec=5s
 TimeoutStartSec=30s
