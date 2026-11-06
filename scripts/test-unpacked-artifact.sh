@@ -8,12 +8,16 @@ node=$(realpath "$(command -v node)")
 test "$(id -u)" -ne 0
 test "$(uname -s)" = Linux
 test "$(uname -m)" = aarch64
-test "$(node --version)" = v24.18.1
+test "$(node --version)" = v26.13.0
+loaderMounts=()
+if test -d /usr/lib64; then
+  loaderMounts=(--symlink usr/lib64 /lib64)
+fi
 if [[ "$case_name" == complete ]]; then
   python3 -B "$script_dir/runtime-artifact.py" verify "$artifact"
 fi
 timeout -k 5 90 bwrap --unshare-all --die-with-parent --new-session \
-  --ro-bind /usr /usr --symlink usr/bin /bin --symlink usr/lib /lib \
+  --ro-bind /usr /usr --symlink usr/bin /bin --symlink usr/lib /lib "${loaderMounts[@]}" \
   --ro-bind "$node" /runtime/node --proc /proc --dev /dev --tmpfs /tmp \
   --ro-bind "$artifact" /app \
   --ro-bind "$script_dir/artifact-acceptance/runtime.mjs" /harness/runtime.mjs \

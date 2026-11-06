@@ -9,14 +9,40 @@ import test from 'node:test'
 import { readManifest, runImport, siteOrigin } from './import-photos.mjs'
 
 const fixtureUuid = '11111111-2222-3333-4444-555555555555'
-const fixtureJpegHeader = Buffer.from([255, 216, 255, 224, 0, 16, 74, 70, 73, 70, 0, 1, 0, 0, 0, 0])
+const fixtureJpegHeader = Buffer.from([
+  255,
+  216,
+  255,
+  224,
+  0,
+  16,
+  74,
+  70,
+  73,
+  70,
+  0,
+  1,
+  0,
+  0,
+  0,
+  0,
+])
 
 async function fixture(t) {
   const directory = await mkdtemp(join(tmpdir(), 'kya-client-'))
   t.after(() => rm(directory, { recursive: true, force: true }))
   await writeFile(join(directory, 'photo.jpg'), fixtureJpegHeader)
   const manifest = join(directory, 'manifest.json')
-  await writeFile(manifest, JSON.stringify({ version: 1, libraryId: 'photos-main', photos: [{ uuid: fixtureUuid.toUpperCase(), file: 'photo.jpg' }] }))
+  await writeFile(manifest, JSON.stringify({
+    version: 1,
+    libraryId: 'photos-main',
+    photos: [
+      {
+        uuid: fixtureUuid.toUpperCase(),
+        file: 'photo.jpg',
+      },
+    ],
+  }))
   return { directory, manifest, photos: await readManifest(manifest) }
 }
 
@@ -36,7 +62,11 @@ test('manifest produces a stable namespaced identity and rejects repeated UUIDs'
   const { photos, manifest } = await fixture(t)
   assert.equal(photos[0].externalId, `photos-main/${fixtureUuid}`)
   const item = { uuid: fixtureUuid, file: 'photo.jpg' }
-  await writeFile(manifest, JSON.stringify({ version: 1, libraryId: 'photos-main', photos: [item, item] }))
+  await writeFile(manifest, JSON.stringify({
+    version: 1,
+    libraryId: 'photos-main',
+    photos: [item, item],
+  }))
   await assert.rejects(readManifest(manifest), /appears twice/)
 })
 
@@ -50,7 +80,12 @@ test('destination stays on the named HTTPS sites or loopback testing', () => {
   assert.equal(siteOrigin('https://kyapup.com'), 'https://kyapup.com')
   assert.equal(siteOrigin('https://kyagirl.com/'), 'https://kyagirl.com')
   assert.equal(siteOrigin('http://127.0.0.1:3848'), 'http://127.0.0.1:3848')
-  for (const invalid of ['http://kyapup.com', 'https://example.com', 'https://kyapup.com/path', 'https://kyapup.com?token=test'])
+  for (const invalid of [
+    'http://kyapup.com',
+    'https://example.com',
+    'https://kyapup.com/path',
+    'https://kyapup.com?token=test',
+  ])
     assert.throws(() => siteOrigin(invalid))
 })
 
@@ -75,11 +110,24 @@ test('imports once, then skips the already saved identity without uploading agai
     assert.deepEqual(Buffer.concat(chunks), fixtureJpegHeader)
     uploads++
     saved = true
-    reply(response, 201, { created: true, photo: { id: 'fixture-photo' } })
+    reply(response, 201, {
+      created: true,
+      photo: { id: 'fixture-photo' },
+    })
   })
   const log = () => {}
-  assert.deepEqual(await runImport(photos, { site, token, log }), { imported: 1, skipped: 0, failed: 0, remaining: 0 })
-  assert.deepEqual(await runImport(photos, { site, token, log }), { imported: 0, skipped: 1, failed: 0, remaining: 0 })
+  assert.deepEqual(await runImport(photos, { site, token, log }), {
+    imported: 1,
+    skipped: 0,
+    failed: 0,
+    remaining: 0,
+  })
+  assert.deepEqual(await runImport(photos, { site, token, log }), {
+    imported: 0,
+    skipped: 1,
+    failed: 0,
+    remaining: 0,
+  })
   assert.equal(uploads, 1)
 })
 
@@ -88,8 +136,20 @@ test('stops a failed batch without printing a credential', async (t) => {
   const token = randomBytes(32).toString('base64url')
   const site = await server(t, (_request, response) => reply(response, 401, { error: 'import_authentication_required' }))
   const lines = []
-  const result = await runImport([...photos, ...photos], { site, token, log: line => lines.push(line) })
-  assert.deepEqual(result, { imported: 0, skipped: 0, failed: 1, remaining: 1 })
+  const result = await runImport([
+    ...photos,
+    ...photos,
+  ], {
+    site,
+    token,
+    log: line => lines.push(line),
+  })
+  assert.deepEqual(result, {
+    imported: 0,
+    skipped: 0,
+    failed: 1,
+    remaining: 1,
+  })
   assert.match(lines.join('\n'), /not accepted/)
   assert.ok(!lines.join('\n').includes(token))
 })
@@ -106,8 +166,17 @@ test('a rate-limited batch resumes the same photo instead of restarting the mani
     }
     reply(response, 200, { exists: true })
   })
-  const result = await runImport(photos, { site, token: randomBytes(32).toString('base64url'), log: () => {} })
-  assert.deepEqual(result, { imported: 0, skipped: 1, failed: 0, remaining: 0 })
+  const result = await runImport(photos, {
+    site,
+    token: randomBytes(32).toString('base64url'),
+    log: () => {},
+  })
+  assert.deepEqual(result, {
+    imported: 0,
+    skipped: 1,
+    failed: 0,
+    remaining: 0,
+  })
   assert.equal(requests, 2)
 })
 
@@ -116,7 +185,11 @@ test('unreadable upload copies produce a message without paths or source IDs', a
   await rm(photos[0].file)
   const site = await server(t, (_request, response) => reply(response, 200, { exists: false }))
   const lines = []
-  const result = await runImport(photos, { site, token: randomBytes(32).toString('base64url'), log: line => lines.push(line) })
+  const result = await runImport(photos, {
+    site,
+    token: randomBytes(32).toString('base64url'),
+    log: line => lines.push(line),
+  })
   assert.equal(result.failed, 1)
   assert.match(lines.join('\n'), /could not be read/)
   assert.ok(!lines.join('\n').includes(photos[0].file))

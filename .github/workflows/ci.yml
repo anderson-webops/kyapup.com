@@ -14,8 +14,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: 24.18.1
-  NPM_VERSION: 12.0.2
+  NODE_VERSION: 26.13.0
+  NPM_VERSION: 12.2.2
   PUPPETEER_SKIP_DOWNLOAD: "true"
 
 jobs:
@@ -33,11 +33,11 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Align npm with the repository policy
+      - name: Prepare the independent locked build toolchain
         run: |
-          npm install --global "npm@${NPM_VERSION}" --allow-scripts=npm
-          node --version
-          npm --version
+          bin="$(node scripts/build-toolchain.mjs --print-bin)"
+          printf '%s\n' "$bin" >> "$GITHUB_PATH"
+          "$bin/node" scripts/check-build-toolchain.mjs
 
       - name: Install locked dependencies
         run: npm ci --include=optional --strict-allow-scripts
@@ -51,6 +51,19 @@ jobs:
 
       - name: Validate source and deployment output
         run: npm run validate
+
+      - name: Prepare isolated Linux recovery tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends bubblewrap apparmor
+          sudo install -D -m 0755 /usr/bin/bwrap /opt/vitesse-test-tools/bwrap
+          if test -d /sys/kernel/security/apparmor; then
+            printf 'abi <abi/4.0>,\ninclude <tunables/global>\nprofile vitesse-artifact-tests /opt/vitesse-test-tools/bwrap flags=(unconfined) {\n  userns,\n}\n' | sudo tee /etc/apparmor.d/vitesse-artifact-tests >/dev/null
+            sudo apparmor_parser -r /etc/apparmor.d/vitesse-artifact-tests
+          fi
+
+      - name: Verify protected promotion and recovery
+        run: PATH="/opt/vitesse-test-tools:$PATH" npm run test:promotion
 
       - name: Run accessibility smoke checks
         run: npm run a11y

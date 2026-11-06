@@ -1,0 +1,109 @@
+{
+  "registryArchiveSha256": "dbf63a51baca57e45422faed9369b3a1a1b60daa3ca9b320432552189d597d3c",
+  "registryIntegrity": "sha512-hc3x2byuGoyW4K7CvCd+TjTtMSUAZu2GSy/5rIaPHQ1zYyHv8WS988GYpx+MsuwhQ2eRRtj7qPNuREvyI/Myag==",
+  "package": {
+    "name": "vite-plugin-vue-devtools",
+    "version": "9.0.0-rc.2",
+    "description": "A Vite plugin for Vue DevTools",
+    "keywords": [
+      "dx",
+      "vite-plugin",
+      "vite-plugin-vue-devtools",
+      "vue-devtools"
+    ],
+    "homepage": "https://github.com/vuejs/devtools#readme",
+    "bugs": {
+      "url": "https://github.com/vuejs/devtools/issues"
+    },
+    "license": "MIT",
+    "author": "webfansplz",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vuejs/devtools.git",
+      "directory": "packages/vite"
+    },
+    "files": [
+      "client",
+      "dist",
+      "LICENSE",
+      "README.md"
+    ],
+    "type": "module",
+    "sideEffects": false,
+    "main": "./dist/index.mjs",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.mts",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "./client": {
+        "types": "./dist/client.d.mts",
+        "default": "./dist/client.mjs"
+      },
+      "./package.json": "./package.json"
+    },
+    "dependencies": {
+      "@vitejs/devtools-kit": "^0.7.6",
+      "@vue/devtools-agent": "9.0.0-rc.2",
+      "@vue/devtools-kit": "9.0.0-rc.2"
+    },
+    "devDependencies": {
+      "@vue/devtools-client": "9.0.0-rc.2",
+      "tsdown": "^0.23.0",
+      "vite": "^8.3.1"
+    },
+    "peerDependencies": {
+      "@vitejs/devtools": "^0.7.6",
+      "vite": "^8.3.0"
+    },
+    "engines": {
+      "node": ">=22.12.0"
+    },
+    "scripts": {
+      "build": "tsdown && node --input-type=module -e \"import fs from 'node:fs';fs.rmSync('client',{recursive:true,force:true});fs.cpSync('../client/dist','client',{recursive:true})\"",
+      "dev": "tsdown --watch"
+    }
+  },
+  "files": {
+    "LICENSE": "d0ac09e8df2b54625ea1606dfae75d5b6af1cbc5d28a17eca1350be9c367175c",
+    "client/assets/components-BzB47Xnc.css": "2ad76a53eb2259ed9de313748d76f8ccc3045a18c8c471e0fc929b91ef46b3de",
+    "client/assets/index-DeVPR5Sm.css": "a2d23f4b99043af4a506cf3aaf027548c4227775181a21565c46c8d6764b1f88",
+    "client/assets/InspectorTree-CyiZHbQn.css": "bcc5617f329d32cbe6c6ab9896721aa4e56d12249dcc51e4fdd4fa09458ccc19",
+    "client/assets/pages-CybqUBzQ.css": "d6362cbf3b5eb38bfc2682a4dc67bc5c639c70ae6eb1cc8f129c952340d7905d",
+    "client/assets/plugins-OIsWSXcW.css": "63bf142aca7f41f71184936316525d1ee85298febbbae9b19275ba76b61d709d",
+    "client/assets/settings-cOj3bqKq.css": "4f87faa8142434a73c8882e0dd10ce830c6c326c83a51f578228e865a776741c",
+    "client/assets/timeline-JU58z8qA.css": "72fcaa25212cb7594dd034e71edd984dcace6633fa7936b91069352632217a78",
+    "client/index.html": "0dcf25e711e7fcfb76355c372eb78ca378706ea422bb28d306364197326d0f64",
+    "client/assets/_plugin-vue_export-helper-CVBmTk-L.js": "53350ae10a9ca81c92618f6f29fe5a31e10c0e15e4e342e00f0792cd51d43342",
+    "client/assets/browser-agent-rpc-BXhoSh1z-DrvKG05N.js": "2ed9b07ec83a9e4eda6ac01c299cc244ec5a1d1909f8a084fb7da9cd70c6033b",
+    "client/assets/Checkbox-Df0MfFZd.js": "e1355a568a9f3331926c418c5dbffdcadbfcfcd629a46680cc335a992a1307d3",
+    "client/assets/component-tree-C3C12cZe.js": "dddaf04c0ed15617e9ffda81223b064672cc1a71ac7bb24bde79f57db07398fd",
+    "client/assets/components-CA_f0zn5.js": "402306f0bb2d2fb9bd3916ac37087b30535bf272470aed053b64b48d84f21f3d",
+    "client/assets/custom-inspector-ChrPOy08.js": "1abd0e307ea9dfcf9455a2016a7ae6ffadde130be1a8fa851466dfce4343f60f",
+    "client/dock-client.js": "c844747533a75089c3e32fecfeffe53689f505dcc383a03d1350b65b52fb106a",
+    "client/assets/graph-DjbM7QDq.js": "c10614d3deadad2a55b05ca8c4a22c1f6afa113bc3288b3747892075b2e6557a",
+    "client/assets/index-gOL3pdjp.js": "992a70a3fbe181f3b24e8d6f1fc13f8bc9219e652605ae049af8495ae86f48e4",
+    "client/assets/InspectorState-BTXZM1WH.js": "c0e3f4f5fd3343bf23c560f975178f617bc013d2a0e084c67a953ee262530f3d",
+    "client/assets/InspectorTree-HaWX0rBG.js": "37eedd95fffdf73c15d7e5eae00c5623a942bc8aa16a434295a077b8729597f1",
+    "client/assets/nanoid-Cya-tyvy.js": "7163e9270f25f2b71aadf9aa000d3a1ce3b5b03cc93d4fcba80a9542f4dc48dc",
+    "client/assets/nue-glow-CTWFs9wv.js": "5e5639469672d0c2d8e4787906341e5e2c1fcbbc6ac9cb246773aefb97abe6fc",
+    "client/assets/overview-DlhcQzcv.js": "3595e03974328102a11a8cb95f28a116f88db1baf80dbd3da9fc86454d6d4c06",
+    "client/assets/pages-CFl2Pj99.js": "9835e9b7fc90c0467fe8830cfdfeffee9032fb5eed40ebf8e3783444326896ba",
+    "client/assets/plugins-JeK_HZgb.js": "b84fa4d4114fc34b0863e8578012a322957af914097863cb1ba0e9507cf781bf",
+    "client/assets/RecycleScroller.vue_vue_type_script_setup_true_lang-C7mZBLYi-D7DaT_pj.js": "a2c7fcf56d20adb3fed662a374f4ef2d6e100a67c3963cf979457b06359ef8ad",
+    "client/assets/settings-D4iX_P4F.js": "9a7186fd27155189c8f22e24675d6f02c284ce4aabc8423242b89434908e11af",
+    "client/assets/splitpanes.esm-DyLKHMh-.js": "592e72bc9a1e21c49d761558c85572526880f1df5b76c71150f2962ff53d5d65",
+    "client/assets/timeline-eZr84BKr.js": "214df4b9534a0bef1bfcf69f9ff926a4bb3122ca3ad3a3db7327cb7ca0571126",
+    "README.md": "8af40b3d6473282e0fe2e517426713a959d94a8e97d348d4aa4a50d6d4e79790",
+    "dist/client.mjs": "8b872f7841f89f17a3b9dad36fd74f2982a2280e02d67683a1d295c9a4e433fc",
+    "dist/constants-CGjdG_4e.mjs": "d4a024197a75e57b82d666ab1ef4d0fb2f283d9f4ff9b5471f8bc65ba45945a2",
+    "dist/dirs.mjs": "2a619bbdfb96a50d0977a5cb26a7654426f041c16a84dd68241fd6f4f1213bc0",
+    "dist/index.mjs": "aa58ef090896077ba49b1162ab4e39c975ac5474fc633138e3d5edc372d4c6b6",
+    "dist/client.d.mts": "d59abf8c22d3437487bde6a80a58c06092e3ad0bc78aa70271ac11c229c45b9d",
+    "dist/dirs.d.mts": "28834274244af880ba763e6b99d1931b97fe7892a90888023672e3ceda236820",
+    "dist/index.d.mts": "47e88eed0063ab648b50f3fdea10025e29a27e1cdf200a29a4b706b513fafe62",
+    "client/assets/MaterialIcons-Regular-BjVsc-s9.woff2": "a87d66c91b2e7dc5530aef76c03bd6a3d25ea5826110bf4803b561b811cc8726"
+  }
+}

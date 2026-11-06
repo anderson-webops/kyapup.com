@@ -1,30 +1,53 @@
 'use strict';
 
 const fill = require('fill-range');
+const { Buffer } = require('node:buffer');
 const assertDepth = require('./assert-depth');
+const { MAX_EXPANSION_ITEMS, MAX_EXPANSION_BYTES } = require('./constants');
 const stringify = require('./stringify');
 const utils = require('./utils');
 
-const append = (queue = '', stash = '', enclose = false) => {
+const reserve = (budget, value) => {
+  const bytes = Buffer.byteLength(String(value));
+  if (budget.items >= MAX_EXPANSION_ITEMS || bytes > MAX_EXPANSION_BYTES - budget.bytes) {
+    throw new RangeError('brace expansion exceeds cumulative output budget.');
+  }
+  budget.items++;
+  budget.bytes += bytes;
+};
+
+const append = (queue = '', stash = '', enclose = false, budget) => {
   const result = [];
 
   queue = [].concat(queue);
   stash = [].concat(stash);
 
+  if (queue.length > MAX_EXPANSION_ITEMS || stash.length > MAX_EXPANSION_ITEMS ||
+      (queue.length && stash.length && queue.length > MAX_EXPANSION_ITEMS / stash.length)) {
+    throw new RangeError('brace expansion exceeds cumulative output budget.');
+  }
   if (!stash.length) return queue;
   if (!queue.length) {
-    return enclose ? utils.flatten(stash).map(ele => `{${ele}}`) : stash;
+    const values = enclose ? utils.flatten(stash).map(ele => `{${ele}}`) : stash;
+    for (const value of values) reserve(budget, value);
+    return values;
   }
 
   for (const item of queue) {
     if (Array.isArray(item)) {
       for (const value of item) {
-        result.push(append(value, stash, enclose));
+        result.push(append(value, stash, enclose, budget));
       }
     } else {
       for (let ele of stash) {
         if (enclose === true && typeof ele === 'string') ele = `{${ele}}`;
-        result.push(Array.isArray(ele) ? append(item, ele, enclose) : item + ele);
+        if (Array.isArray(ele)) {
+          result.push(append(item, ele, enclose, budget));
+        } else {
+          const value = item + ele;
+          reserve(budget, value);
+          result.push(value);
+        }
       }
     }
   }
@@ -33,6 +56,7 @@ const append = (queue = '', stash = '', enclose = false) => {
 
 const expand = (ast, options = {}) => {
   const rangeLimit = options.rangeLimit === undefined ? 1000 : options.rangeLimit;
+  const budget = { items: 0, bytes: 0 };
 
   const walk = (node, parent = {}, depth = 0) => {
     assertDepth(depth);
@@ -47,19 +71,20 @@ const expand = (ast, options = {}) => {
     }
 
     if (node.invalid || node.dollar) {
-      q.push(append(q.pop(), stringify(node, options)));
+      q.push(append(q.pop(), stringify(node, options), false, budget));
       return;
     }
 
     if (node.type === 'brace' && node.invalid !== true && node.nodes.length === 2) {
-      q.push(append(q.pop(), ['{}']));
+      q.push(append(q.pop(), ['{}'], false, budget));
       return;
     }
 
     if (node.nodes && node.ranges > 0) {
       const args = utils.reduce(node.nodes);
 
-      if (utils.exceedsLimit(...args, options.step, rangeLimit)) {
+      if (utils.exceedsLimit(...args, options.step, rangeLimit) ||
+          utils.exceedsLimit(...args, options.step, MAX_EXPANSION_ITEMS)) {
         throw new RangeError('expanded array length exceeds range limit. Use options.rangeLimit to increase or disable the limit.');
       }
 
@@ -68,7 +93,7 @@ const expand = (ast, options = {}) => {
         range = stringify(node, options);
       }
 
-      q.push(append(q.pop(), range));
+      q.push(append(q.pop(), range, false, budget));
       node.nodes = [];
       return;
     }
@@ -92,12 +117,12 @@ const expand = (ast, options = {}) => {
       }
 
       if (child.type === 'close') {
-        q.push(append(q.pop(), queue, enclose));
+        q.push(append(q.pop(), queue, enclose, budget));
         continue;
       }
 
       if (child.value && child.type !== 'open') {
-        queue.push(append(queue.pop(), child.value));
+        queue.push(append(queue.pop(), child.value, false, budget));
         continue;
       }
 

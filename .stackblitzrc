@@ -1,4 +1,4 @@
 {
-  "installDependencies": true,
-  "startCommand": "npm run dev"
+  "installDependencies": false,
+  "startCommand": "node scripts/build-toolchain.mjs --install -- npm run dev"
 }

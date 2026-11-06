@@ -13,7 +13,14 @@ test('every locked braces dependency resolves to the guarded fork', () => {
   for (const [, entry] of entries) {
     assert.equal(entry.resolved, 'vendor/braces')
   }
-  assert.equal(lock.packages['vendor/braces'].version, '3.0.4-webops.1')
+  assert.equal(lock.packages['vendor/braces'].version, '3.0.4-webops.2')
+})
+
+test('shallow alternatives and ranges share a cumulative expansion budget', () => {
+  assert.equal(braces.expand('{a,b}'.repeat(12)).length, 4096)
+  assert.throws(() => braces.expand('{a,b}'.repeat(14)), /cumulative output budget/u)
+  assert.throws(() => braces.expand(`${'{a,b}'.repeat(9)}${'x'.repeat(2100)}`), /cumulative output budget/u)
+  assert.throws(() => braces.expand('{1..50000}', { rangeLimit: false }), /range limit/u)
 })
 
 test('ordinary brace patterns keep their compile, expand, and stringify behavior', () => {
@@ -31,7 +38,13 @@ test('deep strings are rejected before recursive walkers exhaust the stack', () 
   const nestedParentheses = `${'('.repeat(4000)}x${')'.repeat(4000)}`
 
   for (const input of [nestedBraces, nestedParentheses]) {
-    for (const operation of [braces.parse, braces.compile, braces.expand, braces.stringify, braces]) {
+    for (const operation of [
+      braces.parse,
+      braces.compile,
+      braces.expand,
+      braces.stringify,
+      braces,
+    ]) {
       assert.throws(() => operation(input), {
         name: 'SyntaxError',
         message: 'Brace pattern exceeds maximum nesting depth (256)',
@@ -60,11 +73,18 @@ test('directly supplied ASTs cannot bypass the depth limit', () => {
 })
 
 test('iterable AST nodes cannot bypass recursive walker guards', () => {
-  const ast = { type: 'root', nodes: new Set() }
+  const ast = {
+    type: 'root',
+    nodes: new Set(),
+  }
   let current = ast
 
   for (let depth = 0; depth < 257; depth++) {
-    const child = { type: 'brace', nodes: new Set(), parent: current }
+    const child = {
+      type: 'brace',
+      nodes: new Set(),
+      parent: current,
+    }
     current.nodes.add(child)
     current = child
   }

@@ -49,11 +49,14 @@ Shared Sites policy (`../AGENTS.md` when available) applies. These essentials al
 
 ## Build, Test, and Development Commands
 
-- `npm ci` installs the committed workspace dependency graph. Use Node 24.18.1 and npm 12.0.2 at the repo root; do not mix package managers for normal
+- `npm ci` installs the committed workspace dependency graph. Use Node 26.13.0 and npm 12.2.2 at the repo root; do not mix package managers for normal
   development.
+- Select the maintained build-only profile first: `export PATH="$(node scripts/build-toolchain.mjs --print-bin):$PATH"`. It prepares and audits an independent locked npm graph without changing global tools. Bare npm 12.2.2 has affected private dependencies and is a bootstrap seed, not a qualified build profile.
+- Keep `build-toolchain/package-lock.json`, its reviewed upstream record and `deploy/runtime-artifact.json` build-profile digest aligned. Preserve original npm CLI bytes and licenses, the independent backend graph, strict application install scripts and runtime exclusion. Validate `npm run test:toolchain-package` and the real npm/npx/cold-install/security fixtures as well as full project checks. Reproduce the source archive with `scripts/package-npm-toolchain.py`; changes to its upstream identity require fresh review.
 - `npm run dev` starts the Nuxt front-end on port `3333`.
 - `npm run server` starts the Express API with `tsx watch` on port `3006`.
 - `npm run typecheck` runs both the Nuxt and back-end TypeScript checks.
+- Backend build/watch/typecheck scripts select TypeScript 7 through `back-end/scripts/run-typescript.mjs` and the `typescript-native` alias. Vue and ESLint retain their required TypeScript 6 compiler API; use the named scripts rather than an ambiguous unqualified compiler executable.
 - `npm run lint` runs ESLint across both workspaces.
 - `npm run build` generates the static front-end to `front-end/.output/public` and compiles the back-end to
   `back-end/dist`.
