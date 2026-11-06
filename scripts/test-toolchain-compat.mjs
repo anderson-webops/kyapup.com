@@ -19,6 +19,23 @@ function npmPackage() {
   }
 }
 
+test('the locked Nuxt provider satisfies its original unimport API floor', () => {
+  const lock = JSON.parse(readFileSync(path.join(root, 'package-lock.json'), 'utf8'))
+  const nuxt = lock.packages['node_modules/nuxt']
+  const provider = lock.packages['node_modules/nuxt/node_modules/unimport'] || lock.packages['node_modules/unimport']
+  const semver = npmPackage().require('semver')
+  assert.ok(semver.satisfies(provider.version, nuxt.dependencies.unimport), `Nuxt requires ${nuxt.dependencies.unimport}, locked ${provider.version}`)
+  assert.equal(semver.satisfies('7.0.1', '^7.0.2'), false)
+})
+
+test('the installed Nuxt provider preserves the original unimport dependency contract', () => {
+  const frontend = createRequire(path.join(root, 'front-end/package.json'))
+  const nuxt = createRequire(frontend.resolve('nuxt/package.json'))
+  const metadata = nuxt('./package.json')
+  const provider = JSON.parse(readFileSync(path.resolve(path.dirname(nuxt.resolve('unimport')), '../package.json'), 'utf8'))
+  assert.ok(npmPackage().require('semver').satisfies(provider.version, metadata.dependencies.unimport), `Nuxt requires ${metadata.dependencies.unimport}, resolved ${provider.version}`)
+})
+
 test('the selected npm and child commands use the patched build-only toolchain', () => {
   const selected = npmPackage()
   const manifest = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'))
