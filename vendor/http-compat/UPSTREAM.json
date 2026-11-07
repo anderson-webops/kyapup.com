@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "packages": [
+    {
+      "name": "cookie",
+      "version": "2.0.2",
+      "revision": "a437ef03993af559900010f62c294647589c29db",
+      "repository": "https://github.com/jshttp/cookie",
+      "integrity": "sha512-SL0cVuEdETEp7pN0FuZb01toc3vnODEfVUCooxG1SJN0yIirh7JMb9X9bvfCFf0vzzbT68RdbKDHYTiWy7a7iw==",
+      "dependencies": {}
+    },
+    {
+      "name": "encodeurl",
+      "version": "3.0.0",
+      "revision": "0dc3870231fc7ea068830a66648c99453b4b1210",
+      "repository": "https://github.com/pillarjs/encodeurl",
+      "integrity": "sha512-4McP5wRMkyFkj2+U0GfnZVjUQBSu+6kqbNhZsRqO1UeDVsdY8GDloc1bfAGHJ4MAVgJjo5RHveJA4fUZQMSMMA==",
+      "dependencies": {}
+    },
+    {
+      "name": "raw-body",
+      "version": "4.0.0",
+      "revision": "c3949f885af40733c680eb410b7d1f5aeddc2877",
+      "repository": "https://github.com/stream-utils/raw-body",
+      "integrity": "sha512-TMHtwexrgOt9VJ2E5JF9RO8mRXGNgC5wXvKkc5AVSJUt1L5gxvjg7eiCQl96EqUEpCWrnNEkCnbAplYtyuq1IA==",
+      "dependencies": { "iconv-lite": "0.7.3" }
+    },
+    {
+      "name": "type-is",
+      "version": "3.0.0",
+      "revision": "f61fd0318c775d8e4a9590143eb92487c23afe58",
+      "repository": "https://github.com/jshttp/type-is",
+      "integrity": "sha512-txjx+lbH40MgknWZzdizD8FjUukflN5xG/i8t6tggtJuHkEjHD1t6eYE4LwJRDImCbzU6FCg/IAsoyy/BoFIfw==",
+      "dependencies": { "mime-types": "3.0.2" }
+    }
+  ]
+}

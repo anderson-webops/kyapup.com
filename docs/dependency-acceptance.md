@@ -1,5 +1,16 @@
 # Dependency acceptance
 
+Express 5's legacy CommonJS calls use Cookie 2, Encodeurl 3, Raw-body 4 and
+Type-is 3 through the reviewed bridges in `vendor/http-compat/`. The upstream
+ESM modules, licenses and original metadata remain byte-identical to their
+SHA-512-pinned official archives. Only the CommonJS entrypoints and declared
+decoder/MIME dependencies are adapted. `npm run check:http-compat` reproduces
+all four package payloads and verifies both consuming lock integrities. Their
+full dependency graphs remain included in audits. Runtime acceptance requires
+the bridge and upstream modules independently of the generated inventory and
+exercises cookie serialization, URL encoding, MIME matching, UTF-32 reading
+and body limits without source or development dependencies.
+
 Builds use npm 12.2.2 with Node 26.13.0. Its bundled Undici 6.29.1 replaces
 the affected 6.29.0 copy in npm 12.2.1, covering
 https://github.com/nodejs/undici/security/advisories/GHSA-2m5v-pch6-74hx and

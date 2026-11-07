@@ -24,7 +24,9 @@ node scripts/write-release-metadata.mjs
 cp package.json package-lock.json .vitesse-release-prepared.json "$stage/"
 cp back-end/package.json back-end/package-lock.json "$stage/back-end/"
 mkdir -p "$stage/back-end/vendor"
-cp back-end/vendor/qs-6.17.2-webops.4.tgz "$stage/back-end/vendor/"
+for archive in qs-6.17.2-webops.4 cookie-2.0.2-webops.1 encodeurl-3.0.0-webops.1 raw-body-4.0.0-webops.1 type-is-3.0.0-webops.1; do
+  cp "back-end/vendor/$archive.tgz" "$stage/back-end/vendor/"
+done
 cp front-end/package.json "$stage/front-end/"
 cp -R back-end/dist "$stage/back-end/"
 cp -R front-end/.output/public "$stage/front-end/.output/"
@@ -33,7 +35,9 @@ npm audit --prefix "$stage/back-end" --omit=dev --audit-level=low
 npm audit --prefix "$stage/back-end" --audit-level=low
 npm audit signatures --prefix "$stage/back-end"
 npm ls --prefix "$stage/back-end" --omit=dev --all > "$output/dependency-tree.txt"
-rm -- "$stage/back-end/vendor/qs-6.17.2-webops.4.tgz"
+for archive in qs-6.17.2-webops.4 cookie-2.0.2-webops.1 encodeurl-3.0.0-webops.1 raw-body-4.0.0-webops.1 type-is-3.0.0-webops.1; do
+  rm -- "$stage/back-end/vendor/$archive.tgz"
+done
 rmdir -- "$stage/back-end/vendor"
 # This reviewed JS-only runtime has no executable dependency bins. The verifier
 # rejects any other symlinks; it never follows links into a source checkout.

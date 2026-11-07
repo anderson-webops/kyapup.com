@@ -1,8 +1,11 @@
 import assert from 'node:assert/strict'
+import { Buffer } from 'node:buffer'
 import { spawnSync } from 'node:child_process'
 import { access, readFile } from 'node:fs/promises'
 import { createServer } from 'node:http'
+import { createRequire } from 'node:module'
 import process from 'node:process'
+import { Readable } from 'node:stream'
 
 assert.equal(process.platform, 'linux')
 assert.equal(process.arch, 'arm64')
@@ -38,6 +41,24 @@ else {
   const metadata = JSON.parse(await readFile('/app/front-end/.output/public/release.json', 'utf8'))
   const manifest = JSON.parse(await readFile('/app/runtime-manifest.json', 'utf8'))
   assert.equal(metadata.commitSha, manifest.commit)
+  const runtimeRequire = createRequire('/app/back-end/package.json')
+  const expressRequire = createRequire(runtimeRequire.resolve('express'))
+  const bodyParserRequire = createRequire(expressRequire.resolve('body-parser'))
+  const cookie = expressRequire('cookie')
+  const encodeUrl = expressRequire('encodeurl')
+  const getRawBody = bodyParserRequire('raw-body')
+  const typeIs = bodyParserRequire('type-is')
+  assert.equal(cookie.serialize('runtime', 'value /', { httpOnly: true, sameSite: 'strict' }), 'runtime=value%20%2F; HttpOnly; SameSite=Strict')
+  assert.equal(encodeUrl('/runtime path'), '/runtime%20path')
+  assert.equal(typeIs({
+    headers: { 'content-type': 'application/problem+json', 'content-length': '1' },
+  }, '+json'), 'application/problem+json')
+  assert.equal(await getRawBody(Readable.from([
+    Buffer.from([118, 0, 0, 0]),
+  ]), { encoding: 'utf-32le' }), 'v')
+  await assert.rejects(getRawBody(Readable.from([
+    Buffer.alloc(3),
+  ]), { limit: 2 }), { status: 413, type: 'entity.too.large' })
   // Dependencies added by a downstream must feed this bounded readiness state.
   // The baseline API itself has no external database or provider.
   const { createApp } = await import('/app/back-end/dist/app.js')
@@ -84,5 +105,6 @@ else {
     commit: manifest.commit,
     readinessRecovery: true,
     restart: true,
+    modernHttpCompatibility: true,
   }))
 }
