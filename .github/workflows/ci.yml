@@ -83,3 +83,4 @@ jobs:
           npm run test:rollup-browser
           npm run test:nitro-tools-browser
           npm run test:nuxt-watcher-browser
+          npm run test:framework-browser

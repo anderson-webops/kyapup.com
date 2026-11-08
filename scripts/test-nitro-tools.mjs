@@ -22,10 +22,15 @@ async function temporary(context) {
   return directory
 }
 
-test('the exact unchanged Nitro parent resolves all three qualified native providers', () => {
+test('the source-preserved Nitro parent resolves all qualified native and current configuration providers', () => {
   const nitro = createRequire(import.meta.resolve('nitropack'))
   const metadata = JSON.parse(readFileSync(nitro.resolve('nitropack/package.json'), 'utf8'))
-  assert.equal(metadata.version, '2.13.6')
+  assert.equal(metadata.version, '2.13.6+webops.1')
+  const original = JSON.parse(readFileSync(path.join(path.dirname(nitro.resolve('nitropack/package.json')), 'UPSTREAM-PACKAGE.json'), 'utf8'))
+  assert.equal(original.version, '2.13.6')
+  assert.equal(original.dependencies.c12, '^3.3.4')
+  assert.equal(metadata.dependencies.c12, '^4.0.0-rc.4')
+  assert.equal(nitro.resolve('c12'), require.resolve('c12'))
   assert.equal(metadata.dependencies.unctx, '^2.5.0')
   assert.equal(metadata.dependencies['magic-string'], '^0.30.21')
   assert.equal(metadata.dependencies.unwasm, '^0.5.3')

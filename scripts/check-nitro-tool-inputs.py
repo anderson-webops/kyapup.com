@@ -66,7 +66,8 @@ def main():
     expected = {"magic-string": "1.4.5", "unctx": "3.0.1", "unwasm": "$unwasm"}
     require(record["nitroProviderContract"] == expected, "Review changed provider contract")
     manifest = json.loads((ROOT / "package.json").read_text())
-    require(manifest["overrides"]["nitropack"] == expected, "Nitro must use the qualified scoped providers")
+    require(manifest["overrides"]["nitropack"] == {".": "$nitropack", **expected}, "Nitro must use the qualified maintained parent and scoped providers")
+    require(manifest["devDependencies"]["nitropack"] == "file:vendor/nitropack-2.13.6-webops.1.tgz", "Nitro must select the exact maintained framework archive")
     for info in record["packages"].values():
         verify_package(info)
     print("Five original distributions match their installed bytes and exact consuming locks")

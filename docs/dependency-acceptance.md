@@ -1,5 +1,52 @@
 # Dependency acceptance
 
+## Framework bundler and configuration parents
+
+The active framework uses Rolldown 1.3.0 and c12 4.0.0-rc.4. The c12 version is
+the publisher's current `latest` prerelease and is already embedded in Nuxt kit;
+the independently installed Nitro configuration loader is qualified on the same
+major. Original Rolldown 1.2.16, c12 3.3.4 and registry framework parents remain
+in the independently installed, audited and signature-verified reference graph.
+
+`vendor/framework-parents/UPSTREAM.json` binds 774 original files, including
+every executable mode, type, runtime and license. The reproducible distributions
+are Vite 8.3.6+webops.3, Nuxt 4.6.4+webops.2 and Nitro 2.13.6+webops.1.
+Build metadata preserves normal framework SemVer comparisons while identifying
+the reviewed local distributions. Their provider contracts select the qualified
+versions; the original metadata is retained inside each archive.
+
+Nuxt consistently bundles its `unctx` runtime because its transform emits an
+absolute helper import alongside bare application imports. This fixes the
+mixed internal/external module identity rejected by Rolldown 1.3. Vite's load
+hook declaration also accepts the new optional native load-context fields while
+preserving the existing SSR option. These are exact, source-bound corrections;
+all other upstream payload bytes and CLI permissions remain unchanged.
+
+Vite also consumes Rolldown 1.3's complete per-import preload identifiers,
+including their 32-character hexadecimal nonce. Marker association, replacement
+and cleanup preserve the complete token span instead of leaving a nonce behind
+in generated JavaScript. Both the original marker form and current native form
+remain supported; emitted syntax, nested dynamic imports and their CSS are
+verified in a real browser with normal production minification retained.
+
+`npm run test:framework-parents` compares executable native parsing, transforms,
+minification and configuration loading against the original providers. It tests
+real dynamic chunks, configuration layers, TypeScript fallback rereads, schema
+validation, isolated environment loading, invalid-config retention/recovery,
+watcher closure and the actual Nitro parent. TypeScript 6 and 7 check bundler
+and configuration APIs with library checking enabled. Nuxt configuration is
+checked separately under its real generated project aliases and existing
+compiler settings, alongside the repository's complete project type checks.
+
+`npm run test:framework-browser` builds a real production Nuxt/Nitro application
+and verifies sixteen concurrent per-request contexts across asynchronous plugin
+boundaries, followed by client hydration, event handling and reload. The other
+browser families remain required. `check:framework-parents` reproduces archives
+and verifies every application/reference lock identity; `audit:framework-parents`
+retains full/production/reference vulnerability and signature gates. The two
+prebuilt reference-package preparation hooks are explicitly denied by their
+trusted file-source identities, with strict script review retained.
+
 ## Native parser and formatter consumers
 
 The application uses Oxc parser 0.157.0 and Oxfmt 0.77.0 through qualified
@@ -579,3 +626,15 @@ production audit commands retain original package identities in that separate
 graph. Application Babel providers use major 8; original-version fixtures retain
 their own reviewed dependencies. Release/provenance and host acceptance remain
 separate gates.
+
+## npm override update checks
+
+`taze.config.mjs` uses Taze's supported package-manifest extension to retain
+every nested npm override, including repeated package names, version-qualified
+selectors and self (`.`) declarations. Referenced (`$name`) declarations resolve
+through the actual direct dependency for checking and remain references when
+updates are written. The built-in parser otherwise collapses repeated names and
+tries to query `.` as a registry package. All ordinary dependency fields, registry
+resolution, filters and writing remain delegated to Taze. Metadata failures
+prevent writing, and `npm run test:dependency-check` covers read-only loading,
+selectors, references, aliases, round-trip writing and failure preservation.
