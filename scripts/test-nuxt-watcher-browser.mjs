@@ -74,33 +74,47 @@ async function stop(child) {
   }
 }
 
+async function exerciseCache(directory) {
+  for (let round = 0; round < 10; round++) {
+    const filename = path.join(directory, `entry-${round}`)
+    await writeFile(filename, 'synthetic browser cache')
+    await delay(20)
+    await rm(filename)
+    await delay(20)
+  }
+}
+
 for (const mode of ['chokidar', 'chokidar-granular']) {
   const parent = path.join(root, '.ai-work/runs')
   await mkdir(parent, { recursive: true })
   const directory = await mkdtemp(path.join(parent, 'nuxt-watcher-'))
+  const application = path.join(directory, 'application')
   const port = await availablePort()
   let child
   let browser
+  let page
+  let phase = 'setup'
   let output = ''
   try {
-    await mkdir(path.join(directory, 'pages'))
-    await mkdir(path.join(directory, 'plugins'))
-    await copyFile(path.join(root, 'scripts/fixtures/watcher-nuxt.config.mjs'), path.join(directory, 'nuxt.config.mjs'))
-    await writeFile(path.join(directory, 'package.json'), JSON.stringify({ type: 'module', private: true }))
-    await writeFile(path.join(directory, 'app.vue'), '<template><NuxtPage /></template>')
-    await writeFile(path.join(directory, 'plugins/acceptance.client.mjs'), 'import {defineNuxtPlugin} from "#app";export default defineNuxtPlugin(({$router})=>{globalThis.__watcherFixture=Object.freeze({hasRoute:pathname=>$router.getRoutes().some(route=>route.path===pathname),navigate:pathname=>$router.push(pathname)})})')
-    await writeFile(path.join(directory, 'pages/index.vue'), initialPage)
+    await mkdir(path.join(application, 'pages'), { recursive: true })
+    await mkdir(path.join(application, 'plugins'))
+    await mkdir(path.join(directory, 'cache/watcher-probe'), { recursive: true })
+    await copyFile(path.join(root, 'scripts/fixtures/watcher-nuxt.config.mjs'), path.join(application, 'nuxt.config.mjs'))
+    await writeFile(path.join(application, 'package.json'), JSON.stringify({ type: 'module', private: true }))
+    await writeFile(path.join(application, 'app.vue'), '<template><NuxtPage /></template>')
+    await writeFile(path.join(application, 'plugins/acceptance.client.mjs'), 'import {defineNuxtPlugin} from "#app";export default defineNuxtPlugin(({$router})=>{globalThis.__watcherFixture=Object.freeze({hasRoute:pathname=>$router.getRoutes().some(route=>route.path===pathname),navigate:pathname=>$router.push(pathname)})})')
+    await writeFile(path.join(application, 'pages/index.vue'), initialPage)
     child = spawn(process.execPath, [
       cli,
       'dev',
-      directory,
+      application,
       '--port',
       String(port),
       '--host',
       '127.0.0.1',
       '--no-open',
     ], {
-      cwd: directory,
+      cwd: application,
       detached: true,
       env: {
         ...process.env,
@@ -138,18 +152,24 @@ for (const mode of ['chokidar', 'chokidar-granular']) {
       userDataDir: path.join(directory, 'browser'),
       args: ['--no-sandbox', '--disable-dev-shm-usage'],
     })
-    const page = await browser.newPage()
+    page = await browser.newPage()
     const errors = []
     page.on('pageerror', error => errors.push(error.message))
+    phase = 'initial-render'
     await page.goto(origin, { waitUntil: 'networkidle2', timeout: 60000 })
     await page.waitForFunction(() => document.querySelector('button')?.textContent.includes('watcher 0'))
     await page.click('button')
     await page.waitForFunction(() => document.querySelector('button')?.textContent.includes('watcher 1'))
     assert.equal(await page.evaluate(() => globalThis.__watcherFixture.hasRoute('/added')), false)
-    await writeFile(path.join(directory, 'pages/index.vue'), updatedPage)
+    phase = 'state-preserving-hmr-with-cache-writes'
+    await Promise.all([
+      exerciseCache(path.join(directory, 'cache/watcher-probe')),
+      writeFile(path.join(application, 'pages/index.vue'), updatedPage),
+    ])
     await page.waitForFunction(() => document.querySelector('button')?.textContent.includes('updated 1'), { timeout: 20000 })
     assert.ok(output.includes('WATCHER_EVENT_change'))
-    await writeFile(path.join(directory, 'pages/added.vue'), '<template><h1>Added route</h1></template>')
+    phase = 'add-route'
+    await writeFile(path.join(application, 'pages/added.vue'), '<template><h1>Added route</h1></template>')
     await waitFor(() => output.includes('WATCHER_EVENT_add'), child, 'Nuxt must receive the native add event')
     await page.waitForFunction(async () => {
       const fixture = globalThis.__watcherFixture
@@ -159,7 +179,8 @@ for (const mode of ['chokidar', 'chokidar-granular']) {
       return location.pathname === '/added'
     }, { timeout: 20000 })
     await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Added route')
-    await rm(path.join(directory, 'pages/added.vue'))
+    phase = 'remove-route'
+    await rm(path.join(application, 'pages/added.vue'))
     await waitFor(() => output.includes('WATCHER_EVENT_unlink'), child, 'Nuxt must receive the native unlink event')
     await page.waitForFunction(async () => {
       const fixture = globalThis.__watcherFixture
@@ -173,12 +194,18 @@ for (const mode of ['chokidar', 'chokidar-granular']) {
     assert.equal(devtools.status, 200)
     assert.match(await devtools.text(), /<html/i)
     assert.deepEqual(errors, [])
-    assert.ok((await readFile(path.join(directory, '.nuxt/nuxt.d.ts'), 'utf8')).length > 0)
+    assert.ok((await readFile(path.join(application, '.nuxt/nuxt.d.ts'), 'utf8')).length > 0)
     console.log(`Actual Nuxt4/DevTools4 and kit4 lifecycle passed with ${mode}: real rendering/events, state-preserving HMR, route add/remove and developer UI`)
   }
   catch (error) {
     const sanitized = output.split('\n').filter(line => !/auth|token|password|secret/i.test(line)).slice(-60).join('\n')
-    throw new Error(`${error.message}\n${sanitized}`, { cause: error })
+    const state = await page?.evaluate(() => ({
+      pathname: location.pathname,
+      button: document.querySelector('button')?.textContent,
+      heading: document.querySelector('h1')?.textContent,
+      addedRoute: globalThis.__watcherFixture?.hasRoute('/added'),
+    })).catch(() => ({ unavailable: true }))
+    throw new Error(`${error.message}\n${JSON.stringify({ mode, phase, state })}\n${sanitized}`, { cause: error })
   }
   finally {
     await browser?.close()
