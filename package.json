@@ -1,7 +1,7 @@
 {
 	"name": "vitesse-nuxt-monorepo",
 	"type": "module",
-	"version": "2.1.21",
+	"version": "2.1.22",
 	"private": true,
 	"packageManager": "npm@12.2.2",
 	"engines": {
@@ -174,7 +174,8 @@
 		"unimport": "file:vendor/unimport-7.0.2-webops.2.tgz",
 		"unwasm": "file:vendor/unwasm-0.6.3-webops.1.tgz",
 		"vite-plugin-vue-devtools": "9.0.0-rc.2",
-		"vite-plugin-checker": "file:vendor/vite-plugin-checker-0.14.5-webops.1.tgz"
+		"vite-plugin-checker": "file:vendor/vite-plugin-checker-0.14.5-webops.1.tgz",
+		"yaml": "^2.9.1"
 	},
 	"allowScripts": {
 		"simple-git-hooks": false,

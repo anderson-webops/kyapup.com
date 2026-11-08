@@ -7,6 +7,7 @@ import path from 'node:path'
 import process from 'node:process'
 import test from 'node:test'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { parse as parseYaml } from 'yaml'
 
 const root = fileURLToPath(new URL('..', import.meta.url))
 const require = createRequire(import.meta.url)
@@ -32,17 +33,15 @@ function codeqlVersion(workflow) {
 }
 
 test('CodeQL actions share one immutable version and one dependency-update group', () => {
-  const yaml = npmPackage().require('yaml')
-  const workflow = yaml.parse(readFileSync(path.join(root, '.github/workflows/codeql.yml'), 'utf8'))
+  const workflow = parseYaml(readFileSync(path.join(root, '.github/workflows/codeql.yml'), 'utf8'))
   codeqlVersion(workflow)
-  const configuration = yaml.parse(readFileSync(path.join(root, '.github/dependabot.yml'), 'utf8'))
+  const configuration = parseYaml(readFileSync(path.join(root, '.github/dependabot.yml'), 'utf8'))
   const updates = configuration.updates.find(update => update['package-ecosystem'] === 'github-actions')
   assert.deepEqual(updates.groups['codeql-actions'].patterns, ['github/codeql-action/*'])
 })
 
 test('CodeQL version checks reject split versions and floating action references', () => {
-  const yaml = npmPackage().require('yaml')
-  const workflow = yaml.parse(readFileSync(path.join(root, '.github/workflows/codeql.yml'), 'utf8'))
+  const workflow = parseYaml(readFileSync(path.join(root, '.github/workflows/codeql.yml'), 'utf8'))
   const analyze = workflow.jobs.analyze.steps.find(step => step.uses?.startsWith('github/codeql-action/analyze@'))
   const current = codeqlVersion(workflow)
   const different = current === 'a'.repeat(40)
@@ -52,6 +51,15 @@ test('CodeQL version checks reject split versions and floating action references
   assert.throws(() => codeqlVersion(workflow), /same version/)
   analyze.uses = 'github/codeql-action/analyze@v4'
   assert.throws(() => codeqlVersion(workflow), /immutable commit pins/)
+})
+
+test('the workflow parser is declared and bound to the installed project graph', () => {
+  const manifest = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'))
+  const lock = JSON.parse(readFileSync(path.join(root, 'package-lock.json'), 'utf8'))
+  assert.ok(manifest.devDependencies.yaml)
+  assert.equal(lock.packages[''].devDependencies.yaml, manifest.devDependencies.yaml)
+  assert.equal(lock.packages['node_modules/yaml'].version, require('yaml/package.json').version)
+  assert.equal(parseYaml, require('yaml').parse)
 })
 
 test('the locked Nuxt provider satisfies its original unimport API floor', () => {
