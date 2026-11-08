@@ -156,15 +156,23 @@ regressions pass. All original module, type and license bytes are preserved;
 `check:unhead-package` reproduces the archive, and an independent original-version
 lock remains included in full and production audits.
 
-The original Vue plugin's 9.0.0-rc.2 distribution and legacy provider retain their
-declared 0.7 consumers through local copies. Regressions
-resolve the actual root, Nuxt, Unhead, Vue plugin and legacy provider paths,
-require matching modern declarations, and reject incompatible legacy resolution.
-A layout with an incompatible kit must fail the complete installed graph.
-The former metadata-only peer patch and local archive are retired. The original
-registry metadata, integrity and all 38 payload hashes remain checked against
-`vendor/vite-plugin-vue-devtools/UPSTREAM.json`. The complete installed graph
-must pass `npm ls --all` without forced or ignored peer ranges.
+Vue DevTools uses the maintained 9.0.0-rc.3+webops.1 distribution. Official
+rc.3 genuinely updates its runtime kit dependency to `^0.8.2` while leaving
+its host peer declaration at `^0.7.6`. The maintained distribution qualifies
+the host peer against the same current 0.8.2 host and kit selected by Nuxt.
+Unlike the earlier rc.2 experiment, the original rc.3 kit dependency already
+requires that modern API; the producer rejects the obsolete kit contract.
+All 39 original files are integrity-bound, and every module, declaration,
+client and license byte remains unchanged. Original metadata is retained
+inside the package and independently audited with its official registry
+signature/provenance. The deterministic archive has an explicit bounded
+parser, regular-file inputs and a fully tested exact source/lock inventory.
+
+Root, Nuxt, Unhead and Vue now resolve the same qualified host and kit without
+legacy 0.7 copies. Regressions require strict declarations, real host/RPC/UI
+and injection behavior, agent registration with MCP enabled and disabled,
+and rejection of mismatched/future providers. The complete installed graph
+must pass `npm ls --all` with strict peer requirements.
 
 The actual Nuxt-selected Vite DevTools 0.8 integration initializes the plugin, serves its
 exact UI and dock bytes, and transforms its actual injected HMR client over

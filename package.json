@@ -1,7 +1,7 @@
 {
 	"name": "vitesse-nuxt-monorepo",
 	"type": "module",
-	"version": "2.1.22",
+	"version": "2.1.23",
 	"private": true,
 	"packageManager": "npm@12.2.2",
 	"engines": {
@@ -31,14 +31,14 @@
 		"lint": "npm run lint:root && npm run -w front-end lint && npm run -w back-end lint",
 		"lint-fix": "eslint \"*.{js,ts,mjs,cjs}\" scripts netlify --fix && npm run -w front-end lint-fix && npm run -w back-end lint-fix",
 		"typecheck": "npm run -w front-end typecheck && npm run -w back-end typecheck && tsc -p netlify/tsconfig.json --noEmit",
-		"test": "npm run -w back-end test && npm run test:build-toolchain && npm run test:http-compat && node --test scripts/test-archiver-compat.mjs scripts/test-glob-compat.mjs scripts/test-listhen-compat.mjs scripts/test-braces-compat.mjs scripts/test-deepmerge-compat.mjs scripts/test-qs-compat.mjs scripts/test-vendored-qs-packaging.mjs scripts/test-vue-devtools-compat.mjs scripts/test-toolchain-compat.mjs scripts/test-native-bindings.mjs scripts/test-frontend-command.mjs scripts/test-devtools-provider.mjs && npm run test:devtools && npm run test:vue-jsx && npm run test:router-compiler && npm run test:remove && npm run test:magicast && npm run test:vue-compiler && npm run test:checker && npm run test:rollup-compat && npm run test:nitro-tools && npm run test:nft && npm run test:watchers && npm run test:unimport-source && python3 -B -m unittest discover -s scripts -p test_unhead_compat.py -v && python3 -B -m unittest discover -s scripts -p test_runtime_artifact.py -v && npm run test:toolchain-package",
+		"test": "npm run -w back-end test && npm run test:build-toolchain && npm run test:http-compat && node --test scripts/test-archiver-compat.mjs scripts/test-glob-compat.mjs scripts/test-listhen-compat.mjs scripts/test-braces-compat.mjs scripts/test-deepmerge-compat.mjs scripts/test-qs-compat.mjs scripts/test-vendored-qs-packaging.mjs scripts/test-vue-devtools-compat.mjs scripts/test-toolchain-compat.mjs scripts/test-native-bindings.mjs scripts/test-frontend-command.mjs scripts/test-devtools-provider.mjs && npm run test:devtools && npm run test:vue-jsx && npm run test:router-compiler && npm run test:remove && npm run test:magicast && npm run test:vue-compiler && npm run test:checker && npm run test:rollup-compat && npm run test:nitro-tools && npm run test:nft && npm run test:watchers && npm run test:unimport-source && python3 -B -m unittest discover -s scripts -p test_unhead_compat.py -v && python3 -B -m unittest discover -s scripts -p test_runtime_artifact.py -v && npm run test:toolchain-package && npm run test:vue-devtools",
 		"test:http-compat": "node --test --test-concurrency=2 scripts/test-http-compat.mjs scripts/test-http-types.mjs",
 		"package:http-compat": "node scripts/package-http-compat.mjs",
 		"check:http-compat": "node scripts/package-http-compat.mjs --check",
-    "test:build-toolchain": "node --test --test-concurrency=2 scripts/test-build-toolchain.mjs scripts/test-build-toolchain-cache.mjs scripts/test-npm-tool-majors.mjs",
+		"test:build-toolchain": "node --test --test-concurrency=2 scripts/test-build-toolchain.mjs scripts/test-build-toolchain-cache.mjs scripts/test-npm-tool-majors.mjs",
 		"package:npm-compat": "node scripts/package-npm-compat.mjs",
 		"check:npm-compat": "node scripts/package-npm-compat.mjs --check",
-		"test:devtools": "node scripts/test-vue-devtools-host.mjs",
+		"test:devtools": "node scripts/test-vue-devtools-host.mjs && DEVTOOLS_FIXTURE_MCP=true node scripts/test-vue-devtools-host.mjs",
 		"test:checker": "node --test scripts/test-checker-compat.mjs && python3 -B -m unittest discover -s scripts -p test_checker_compat.py -v",
 		"test:rollup-compat": "node --test scripts/test-rollup-compat.mjs && python3 -B -m unittest discover -s scripts -p test_rollup_compat.py -v",
 		"test:rollup-browser": "node scripts/test-rollup-browser.mjs",
@@ -96,14 +96,14 @@
 		"clean": "node scripts/clean.mjs",
 		"deps:check": "taze",
 		"a11y": "node scripts/a11y-smoke.mjs",
-		"audit:all": "npm run audit:toolchain && npm audit --audit-level=low && npm run audit:qs && npm run audit:unhead && npm run audit:vue-jsx && npm run audit:vue-macros && npm run audit:remove && npm run audit:magicast && npm run audit:vue-compiler && npm run audit:checker && npm run audit:rollup-compat && npm run audit:nitro-tools && npm run audit:nft && npm run audit:watchers && npm run audit:unimport-source",
+		"audit:all": "npm run audit:toolchain && npm audit --audit-level=low && npm run audit:qs && npm run audit:unhead && npm run audit:vue-jsx && npm run audit:vue-macros && npm run audit:remove && npm run audit:magicast && npm run audit:vue-compiler && npm run audit:checker && npm run audit:rollup-compat && npm run audit:nitro-tools && npm run audit:nft && npm run audit:watchers && npm run audit:unimport-source && npm run audit:vue-devtools",
 		"audit:unhead": "npm audit --prefix vendor/unhead-bundler/upstream --workspaces=false --audit-level=low && npm audit --prefix vendor/unhead-bundler/upstream --workspaces=false --omit=dev --audit-level=low",
 		"audit:toolchain": "node scripts/audit-build-toolchain.mjs",
 		"toolchain:prepare": "node scripts/build-toolchain.mjs --print-bin",
 		"check:build-toolchain": "node scripts/check-build-toolchain.mjs",
 		"check:toolchain-package": "node scripts/check-toolchain-package.mjs",
 		"audit:qs": "npm audit --prefix vendor/qs --workspaces=false --audit-level=low && npm audit --prefix vendor/qs --workspaces=false --omit=dev --audit-level=low",
-		"audit:prod": "npm run audit:toolchain -- --omit=dev && npm audit --omit=dev --audit-level=low && npm run audit:unhead && npm run audit:vue-jsx && npm run audit:vue-macros && npm run audit:remove && npm run audit:magicast && npm run audit:vue-compiler && npm run audit:checker && npm run audit:rollup-compat && npm run audit:nitro-tools && npm run audit:nft && npm run audit:watchers && npm run audit:unimport-source",
+		"audit:prod": "npm run audit:toolchain -- --omit=dev && npm audit --omit=dev --audit-level=low && npm run audit:unhead && npm run audit:vue-jsx && npm run audit:vue-macros && npm run audit:remove && npm run audit:magicast && npm run audit:vue-compiler && npm run audit:checker && npm run audit:rollup-compat && npm run audit:nitro-tools && npm run audit:nft && npm run audit:watchers && npm run audit:unimport-source && npm run audit:vue-devtools",
 		"audit:api": "npm audit --prefix back-end --audit-level=low && npm audit --prefix back-end --omit=dev --audit-level=low",
 		"check:api-install": "node scripts/check-api-install.mjs",
 		"check:native-bindings": "node scripts/check-native-bindings.mjs",
@@ -117,8 +117,10 @@
 		"check:unhead-package": "python3 -B scripts/package-unhead-compat.py --check",
 		"package:qs": "node scripts/package-vendored-qs.mjs",
 		"check:qs-package": "node scripts/package-vendored-qs.mjs --check",
-		"check:vue-devtools-package": "node --test scripts/test-vue-devtools-compat.mjs",
-		"check:dependency-graph": "npm ls --all"
+		"check:vue-devtools-package": "python3 -B scripts/package-vue-devtools.py --check && node --test scripts/test-vue-devtools-compat.mjs",
+		"check:dependency-graph": "npm ls --all",
+		"test:vue-devtools": "python3 -B -m unittest discover -s scripts -p test_vue_devtools.py -v && node --test scripts/test-vue-devtools-types.mjs",
+		"audit:vue-devtools": "npm audit --prefix vendor/vite-plugin-vue-devtools/upstream --workspaces=false --audit-level=low && npm audit --prefix vendor/vite-plugin-vue-devtools/upstream --workspaces=false --omit=dev --audit-level=low && npm audit signatures --prefix vendor/vite-plugin-vue-devtools/upstream --workspaces=false"
 	},
 	"dependencies": {
 		"serverless-http": "^4.0.0"
@@ -173,9 +175,12 @@
 		"unplugin-remove": "file:vendor/unplugin-remove-1.0.3-webops.1.tgz",
 		"unimport": "file:vendor/unimport-7.0.2-webops.2.tgz",
 		"unwasm": "file:vendor/unwasm-0.6.3-webops.1.tgz",
-		"vite-plugin-vue-devtools": "9.0.0-rc.2",
+		"vite-plugin-vue-devtools": "file:vendor/vite-plugin-vue-devtools-9.0.0-rc.3-webops.1.tgz",
 		"vite-plugin-checker": "file:vendor/vite-plugin-checker-0.14.5-webops.1.tgz",
-		"yaml": "^2.9.1"
+		"yaml": "^2.9.1",
+		"@vitejs/devtools": "0.8.2",
+		"vite": "^8.3.6",
+		"rollup": "^4.68.0"
 	},
 	"allowScripts": {
 		"simple-git-hooks": false,
@@ -247,6 +252,7 @@
 		"simple-git@^3": "3.36.0",
 		"deepmerge": "$deepmerge",
 		"katex": "0.19.1",
-		"tinypool": "2.2.0"
+		"tinypool": "2.2.0",
+		"vite-plugin-vue-devtools": "$vite-plugin-vue-devtools"
 	}
 }

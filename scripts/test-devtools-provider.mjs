@@ -45,22 +45,26 @@ test('the actual root and frontend select the same reviewed modern kit', () => {
   assert.ok(require('semver').satisfies(unheadKit.version, unheadMetadata.peerDependencies['@vitejs/devtools-kit']))
 })
 
-test('legacy consumers resolve independent kits within their original declared ranges', () => {
+test('current root, Nuxt and Vue plugin consumers share one qualified host and kit', () => {
+  const kit = require('@vitejs/devtools-kit/package.json')
+  const provider = require('@vitejs/devtools/package.json')
   const semver = require('semver')
   const consumers = [
-    {
-      metadata: require('vite-plugin-vue-devtools/package.json'),
-      require: createRequire(require.resolve('vite-plugin-vue-devtools')),
-    },
-    {
-      metadata: require('@vitejs/devtools/package.json'),
-      require: createRequire(require.resolve('@vitejs/devtools')),
-    },
+    createRequire(require.resolve('vite-plugin-vue-devtools')),
+    createRequire(require.resolve('@vitejs/devtools')),
+    createRequire(frontendRequire.resolve('@nuxt/devtools')),
   ]
+  assertDevtoolsProviderVersions(provider, kit)
   for (const consumer of consumers) {
-    const declared = consumer.metadata.dependencies?.['@vitejs/devtools-kit'] || consumer.metadata.peerDependencies?.['@vitejs/devtools-kit']
-    const kit = consumer.require('@vitejs/devtools-kit/package.json')
-    assert.ok(semver.satisfies(kit.version, declared), `${consumer.metadata.name} requires ${declared}, resolved ${kit.version}`)
-    assert.notEqual(consumer.require.resolve('@vitejs/devtools-kit/package.json'), require.resolve('@vitejs/devtools-kit/package.json'))
+    assert.equal(consumer.resolve('@vitejs/devtools/package.json'), require.resolve('@vitejs/devtools/package.json'))
+    assert.equal(consumer.resolve('@vitejs/devtools-kit/package.json'), require.resolve('@vitejs/devtools-kit/package.json'))
+  }
+  const plugin = require('vite-plugin-vue-devtools/package.json')
+  assert.ok(semver.satisfies(provider.version, plugin.peerDependencies['@vitejs/devtools']))
+  assert.ok(semver.satisfies(kit.version, plugin.dependencies['@vitejs/devtools-kit']))
+  const lock = require('../package-lock.json')
+  for (const [filename, metadata] of Object.entries(lock.packages)) {
+    if (filename.endsWith('/@vitejs/devtools') || filename.endsWith('/@vitejs/devtools-kit'))
+      assert.equal(metadata.version, provider.version, filename)
   }
 })

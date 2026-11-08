@@ -1,66 +1,66 @@
 {
-	"name": "back-end",
-  "version": "2.1.22",
-	"private": true,
-	"description": "Minimal Express API for the vitesse-nuxt monorepo template.",
-	"type": "module",
-	"packageManager": "npm@12.2.2",
-	"allowScripts": {
-		"esbuild@0.28.2": true,
-		"fsevents@2.3.3": true
-	},
-	"engines": {
-		"node": ">=26.13.0 <27",
-		"npm": ">=12.2.2 <13"
-	},
-	"main": "dist/server.js",
-	"scripts": {
-		"server": "tsx watch -r dotenv/config src/server.ts",
-		"server:once": "tsx -r dotenv/config src/server.ts",
-		"start": "node dist/server.js",
-		"build": "node scripts/run-typescript.mjs -p tsconfig.json",
-		"watch": "node scripts/run-typescript.mjs -w",
-		"dev": "tsx watch -r dotenv/config src/server.ts",
-		"typecheck": "node scripts/run-typescript.mjs -p tsconfig.json --noEmit && node scripts/run-typescript.mjs -p tsconfig.test.json --noEmit",
-		"test": "vitest run",
-		"lint": "eslint \"{src,test,scripts}/**/*.{js,mjs,ts}\"",
-		"lint-fix": "eslint \"{src,test,scripts}/**/*.{js,mjs,ts}\" --fix"
-	},
-	"keywords": [],
-	"author": "Jacob Anderson",
-	"license": "MIT",
-	"dependencies": {
-		"cookie": "file:vendor/cookie-2.0.2-webops.2.tgz",
-		"dotenv": "^18.0.9",
-		"encodeurl": "file:vendor/encodeurl-3.0.0-webops.2.tgz",
-		"express": "^5.3.0",
-		"express-rate-limit": "^8.7.3",
-		"helmet": "^8.3.0",
-		"qs": "file:vendor/qs-6.17.2-webops.4.tgz",
-		"raw-body": "file:vendor/raw-body-4.0.0-webops.2.tgz",
-		"type-is": "file:vendor/type-is-3.0.0-webops.2.tgz"
-	},
-	"overrides": {
-		"content-disposition": "3.0.0",
-		"content-type": "3.1.1",
-		"cookie": "$cookie",
-		"encodeurl": "$encodeurl",
-		"path-to-regexp": "9.0.0",
-		"raw-body": "$raw-body",
-		"type-is": "$type-is",
-		"minimatch": "11.0.5",
-		"nanoid@^3": "3.3.20",
-		"qs": "$qs"
-	},
-	"devDependencies": {
-		"@types/express": "^5.0.6",
-		"@types/node": "^26.6.6",
-		"@types/supertest": "^7.2.1",
-		"globals": "^17.14.0",
-		"supertest": "^7.3.1",
-		"tsx": "^4.23.15",
-		"typescript-eslint": "^8.72.1",
-		"typescript-native": "npm:typescript@7.0.2",
-		"vitest": "^5.1.0"
-	}
+  "name": "back-end",
+  "version": "2.1.23",
+  "private": true,
+  "description": "Minimal Express API for the vitesse-nuxt monorepo template.",
+  "type": "module",
+  "packageManager": "npm@12.2.2",
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "fsevents@2.3.3": true
+  },
+  "engines": {
+    "node": ">=26.13.0 <27",
+    "npm": ">=12.2.2 <13"
+  },
+  "main": "dist/server.js",
+  "scripts": {
+    "server": "tsx watch -r dotenv/config src/server.ts",
+    "server:once": "tsx -r dotenv/config src/server.ts",
+    "start": "node dist/server.js",
+    "build": "node scripts/run-typescript.mjs -p tsconfig.json",
+    "watch": "node scripts/run-typescript.mjs -w",
+    "dev": "tsx watch -r dotenv/config src/server.ts",
+    "typecheck": "node scripts/run-typescript.mjs -p tsconfig.json --noEmit && node scripts/run-typescript.mjs -p tsconfig.test.json --noEmit",
+    "test": "vitest run",
+    "lint": "eslint \"{src,test,scripts}/**/*.{js,mjs,ts}\"",
+    "lint-fix": "eslint \"{src,test,scripts}/**/*.{js,mjs,ts}\" --fix"
+  },
+  "keywords": [],
+  "author": "Jacob Anderson",
+  "license": "MIT",
+  "dependencies": {
+    "cookie": "file:vendor/cookie-2.0.2-webops.2.tgz",
+    "dotenv": "^18.0.9",
+    "encodeurl": "file:vendor/encodeurl-3.0.0-webops.2.tgz",
+    "express": "^5.3.0",
+    "express-rate-limit": "^8.7.3",
+    "helmet": "^8.3.0",
+    "qs": "file:vendor/qs-6.17.2-webops.4.tgz",
+    "raw-body": "file:vendor/raw-body-4.0.0-webops.2.tgz",
+    "type-is": "file:vendor/type-is-3.0.0-webops.2.tgz"
+  },
+  "overrides": {
+    "content-disposition": "3.0.0",
+    "content-type": "3.1.1",
+    "cookie": "$cookie",
+    "encodeurl": "$encodeurl",
+    "path-to-regexp": "9.0.0",
+    "raw-body": "$raw-body",
+    "type-is": "$type-is",
+    "minimatch": "11.0.5",
+    "nanoid@^3": "3.3.20",
+    "qs": "$qs"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.6.6",
+    "@types/supertest": "^7.2.1",
+    "globals": "^17.14.0",
+    "supertest": "^7.3.2",
+    "tsx": "^4.23.15",
+    "typescript-eslint": "^8.72.1",
+    "typescript-native": "npm:typescript@7.0.2",
+    "vitest": "^5.1.0"
+  }
 }

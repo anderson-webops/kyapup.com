@@ -32,6 +32,10 @@ let server
 let initialized = false
 let unheadInitialized = false
 let unheadContext
+const mcpEnabled = process.env.DEVTOOLS_FIXTURE_MCP === 'true'
+let agentRegistrations = 0
+let agentUnregistrations = 0
+let agentHelp
 try {
   await writeFile(path.join(scratch, 'index.html'), '<!doctype html><html><head><title>Vue integration fixture</title></head><body><div id="app"></div><script type="module" src="/main.js"></script></body></html>')
   await writeFile(path.join(scratch, 'main.js'), 'import {createApp, h, ref} from "vue"; createApp({setup(){const count=ref(0);return()=>h("button",{onClick:()=>count.value++},String(count.value))}}).mount("#app");')
@@ -40,7 +44,31 @@ try {
   assert.ok(dock?.devtools?.setup)
   const setup = dock.devtools.setup
   dock.devtools.setup = async (context) => {
-    await setup(context)
+    const register = context.agent.registerTool
+    if (mcpEnabled) {
+      assert.equal(typeof register, 'function')
+      context.agent.registerTool = (definition) => {
+        const handle = register.call(context.agent, definition)
+        if (definition.id !== 'vue-devtools:agent:help')
+          return handle
+        agentRegistrations += 1
+        assert.equal(definition.safety, 'read')
+        agentHelp = definition.handler()
+        return {
+          ...handle,
+          unregister() {
+            agentUnregistrations += 1
+            return handle.unregister()
+          },
+        }
+      }
+    }
+    try {
+      await setup(context)
+    }
+    finally {
+      context.agent.registerTool = register
+    }
     initialized = true
   }
   const unheadPlugins = Unhead()
@@ -65,7 +93,7 @@ try {
           options: {
             enabled: true,
             apply: 'serve',
-            mcp: false,
+            mcp: mcpEnabled,
             clientAuth: true,
             banner: () => {},
           },
@@ -136,7 +164,13 @@ try {
   const client = await fetch(new URL(clientUrl, origin))
   assert.equal(client.status, 200)
   assert.match(await client.text(), /installVueDevTools/)
-  console.log('Real Vite DevTools 0.8 initialized unchanged Vue and Unhead modules, RPC setup, exact client UIs, dock scripts and HMR injection')
+  assert.equal(agentRegistrations, mcpEnabled ? 1 : 0)
+  if (mcpEnabled)
+    assert.equal(typeof (await agentHelp).instructions, 'string')
+  await server.close()
+  server = undefined
+  assert.equal(agentUnregistrations, mcpEnabled ? 1 : 0)
+  console.log(`Real Vite DevTools 0.8 initialized unchanged Vue and Unhead modules, RPC setup, exact client UIs, dock scripts and HMR injection; MCP ${mcpEnabled ? 'enabled' : 'disabled'}`)
 }
 finally {
   await server?.close()
