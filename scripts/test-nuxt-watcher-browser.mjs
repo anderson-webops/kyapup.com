@@ -84,9 +84,11 @@ for (const mode of ['chokidar', 'chokidar-granular']) {
   let output = ''
   try {
     await mkdir(path.join(directory, 'pages'))
+    await mkdir(path.join(directory, 'plugins'))
     await copyFile(path.join(root, 'scripts/fixtures/watcher-nuxt.config.mjs'), path.join(directory, 'nuxt.config.mjs'))
     await writeFile(path.join(directory, 'package.json'), JSON.stringify({ type: 'module', private: true }))
     await writeFile(path.join(directory, 'app.vue'), '<template><NuxtPage /></template>')
+    await writeFile(path.join(directory, 'plugins/acceptance.client.mjs'), 'import {defineNuxtPlugin} from "#app";export default defineNuxtPlugin(({$router})=>{globalThis.__watcherFixture=Object.freeze({hasRoute:pathname=>$router.getRoutes().some(route=>route.path===pathname),navigate:pathname=>$router.push(pathname)})})')
     await writeFile(path.join(directory, 'pages/index.vue'), initialPage)
     child = spawn(process.execPath, [
       cli,
@@ -143,16 +145,29 @@ for (const mode of ['chokidar', 'chokidar-granular']) {
     await page.waitForFunction(() => document.querySelector('button')?.textContent.includes('watcher 0'))
     await page.click('button')
     await page.waitForFunction(() => document.querySelector('button')?.textContent.includes('watcher 1'))
+    assert.equal(await page.evaluate(() => globalThis.__watcherFixture.hasRoute('/added')), false)
     await writeFile(path.join(directory, 'pages/index.vue'), updatedPage)
     await page.waitForFunction(() => document.querySelector('button')?.textContent.includes('updated 1'), { timeout: 20000 })
     assert.ok(output.includes('WATCHER_EVENT_change'))
     await writeFile(path.join(directory, 'pages/added.vue'), '<template><h1>Added route</h1></template>')
     await waitFor(() => output.includes('WATCHER_EVENT_add'), child, 'Nuxt must receive the native add event')
-    await page.goto(`${origin}/added`, { waitUntil: 'networkidle2' })
+    await page.waitForFunction(async () => {
+      const fixture = globalThis.__watcherFixture
+      if (!fixture?.hasRoute('/added'))
+        return false
+      await fixture.navigate('/added')
+      return location.pathname === '/added'
+    }, { timeout: 20000 })
     await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Added route')
     await rm(path.join(directory, 'pages/added.vue'))
     await waitFor(() => output.includes('WATCHER_EVENT_unlink'), child, 'Nuxt must receive the native unlink event')
-    await page.goto(origin, { waitUntil: 'networkidle2' })
+    await page.waitForFunction(async () => {
+      const fixture = globalThis.__watcherFixture
+      if (!fixture || fixture.hasRoute('/added'))
+        return false
+      await fixture.navigate('/')
+      return location.pathname === '/'
+    }, { timeout: 20000 })
     await page.waitForFunction(() => document.querySelector('button')?.textContent.includes('updated'))
     const devtools = await fetch(`${origin}/__nuxt_devtools__/client/`)
     assert.equal(devtools.status, 200)
