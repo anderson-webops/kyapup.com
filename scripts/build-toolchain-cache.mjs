@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto'
 import { closeSync, constants, existsSync, fstatSync, lstatSync, mkdirSync, openSync, readdirSync, readFileSync, readlinkSync, readSync, realpathSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
-import { sha256, toolchainMetadata, toolchainSource, verifyBuildToolchain } from './build-toolchain-state.mjs'
+import { sha256, toolchainInputNames, toolchainMetadata, toolchainSource, verifyBuildToolchain } from './build-toolchain-state.mjs'
 
 export const maximumCachedProfiles = 3
 
@@ -129,14 +129,7 @@ export function nodeIdentity(nodeExecutable = process.execPath) {
 
 export function cacheIdentity(nodeExecutable = process.execPath) {
   const node = nodeIdentity(nodeExecutable)
-  const inputs = [
-    'package.json',
-    'package-lock.json',
-    '.npmrc',
-    'UPSTREAM.json',
-    'PAYLOAD.json',
-    toolchainMetadata.archive,
-  ].map(name => [
+  const inputs = toolchainInputNames.map(name => [
     name,
     sha256(readFileSync(path.join(toolchainSource, name))),
   ])

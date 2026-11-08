@@ -4,7 +4,7 @@ import { chmodSync, constants, copyFileSync, mkdirSync, readFileSync, realpathSy
 import path from 'node:path'
 import process from 'node:process'
 import { cacheIdentity, finishToolchainCache, selectToolchainCache, verifyReusableToolchain } from './build-toolchain-cache.mjs'
-import { sha256, toolchainMetadata, toolchainSource } from './build-toolchain-state.mjs'
+import { sha256, toolchainInputNames, toolchainMetadata, toolchainSource } from './build-toolchain-state.mjs'
 
 const repositoryRoot = path.resolve(import.meta.dirname, '..')
 const argumentsList = process.argv.slice(2)
@@ -88,15 +88,10 @@ let cacheAccepted = selection.reused
 try {
   if (!selection.reused) {
     mkdirSync(path.join(prefix, 'vendor'))
-    for (const name of [
-      'package.json',
-      'package-lock.json',
-      '.npmrc',
-      'UPSTREAM.json',
-      'PAYLOAD.json',
-      toolchainMetadata.archive,
-    ])
+    for (const name of toolchainInputNames) {
+      mkdirSync(path.dirname(path.join(prefix, name)), { recursive: true, mode: 0o700 })
       copyFileSync(path.join(toolchainSource, name), path.join(prefix, name), constants.COPYFILE_EXCL)
+    }
     await run(process.execPath, [
       seedCli,
       'ci',
@@ -161,6 +156,20 @@ try {
       prefix,
       '--workspaces=false',
       ...args,
+    ], prefix, auditEnvironment)
+  }
+  for (const argumentsList of [
+    [],
+    ['--omit=dev'],
+  ]) {
+    await run(path.join(bin, nodeName), [
+      npmCli,
+      'audit',
+      '--prefix',
+      path.join(prefix, 'compat'),
+      '--workspaces=false',
+      '--audit-level=low',
+      ...argumentsList,
     ], prefix, auditEnvironment)
   }
   const accepted = verifyReusableToolchain(prefix, identity.node)

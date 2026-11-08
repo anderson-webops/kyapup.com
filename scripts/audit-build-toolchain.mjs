@@ -10,18 +10,23 @@ assert.ok(argumentsList.every(argument => argument === '--omit=dev'), 'Unsupport
 const cli = selectedNpmCli()
 const prefix = path.resolve(path.dirname(cli), '../../..')
 verifyReusableToolchain(prefix, nodeIdentity())
-const result = spawnSync(process.execPath, [
-  cli,
-  'audit',
-  '--prefix',
+for (const directory of [
   prefix,
-  '--workspaces=false',
-  '--audit-level=low',
-  ...argumentsList,
-], {
-  stdio: 'inherit',
-  timeout: 300_000,
-})
-if (result.error)
-  throw result.error
-assert.equal(result.status, 0, 'The selected build toolchain must have a complete zero-finding audit')
+  path.join(prefix, 'compat'),
+]) {
+  const result = spawnSync(process.execPath, [
+    cli,
+    'audit',
+    '--prefix',
+    directory,
+    '--workspaces=false',
+    '--audit-level=low',
+    ...argumentsList,
+  ], {
+    stdio: 'inherit',
+    timeout: 300_000,
+  })
+  if (result.error)
+    throw result.error
+  assert.equal(result.status, 0, 'The selected build toolchain and unmodified upstream libraries must have complete zero-finding audits')
+}

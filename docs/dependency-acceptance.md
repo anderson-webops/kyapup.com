@@ -29,6 +29,28 @@ declarations. A separate locked graph selects Glob 14.0.4, Minimatch 11.0.5 and
 the supported registry-resolved dependencies. This is a maintained local
 distribution profile, not a claim that the original upstream bundle is clean.
 
+The independent graph also integrates Query6, Balanced-match5, Chalk6,
+Content-type3, Diff9, Env-paths4, Minipass7, Flush2, Pipeline3, Proggy5,
+SPDX-expression-parse5, Supports-color11 and Yallist5. Existing npm consumers
+retain callable Env-paths, Flush's function shorthand and Pipeline's stream-first
+constructor through three private adapters in `build-toolchain/compat/`.
+Original modern modules, declaration files, licenses and export conditions stay
+available. `npm run check:npm-compat` reproduces each official-input-bound archive
+and checks the independent lock integrity. Bootstrap copies and verifies every
+declared local tool archive before accepting its complete payload inventory.
+The original417 npm CLI files and original thin npm archive remain unchanged.
+Full and production audits also cover the separate original-version lock in
+`build-toolchain/compat/`, so private adapter versions cannot hide an upstream
+advisory. Its manifest and lock are part of the verified cached source inputs.
+
+Actual parent regressions exercise Node-gyp, Arborist query and progress,
+npm patch generation and CycloneDX, cache content/index/stream integrity,
+offline retained HTTP responses, callback/promise completion, pipeline errors,
+color and brace APIs. Strict TypeScript6/7 fixtures cover both modern imports
+and callable CommonJS adapters, rejecting invalid calls. Disposable profile
+copies verify that changed local archives and installed bridge bytes fail
+before reuse; the accepted shared profiles remain unchanged.
+
 `scripts/package-npm-toolchain.py` verifies the original registry SHA-512 and
 reproduces the archive and all original-file digests. An explicit compression
 level preserves identical archive bytes across Python versions with different

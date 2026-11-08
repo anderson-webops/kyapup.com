@@ -5,7 +5,7 @@ import path from 'node:path'
 import process from 'node:process'
 import test from 'node:test'
 import { cacheIdentity, digestRegularFile, finishToolchainCache, inspectToolchainPayload, maximumCachedProfiles, nodeIdentity, selectToolchainCache, verifyReusableToolchain } from './build-toolchain-cache.mjs'
-import { selectedNpmCli, toolchainSource } from './build-toolchain-state.mjs'
+import { selectedNpmCli, toolchainInputNames, toolchainSource } from './build-toolchain-state.mjs'
 
 const root = path.resolve(import.meta.dirname, '..')
 const scratch = path.join(root, '.ai-work/runs/toolchain-cache-fixtures')
@@ -30,13 +30,10 @@ test('unreviewed dependency bytes, extra code, missing code, command links and N
       cpSync(path.join(profile, name), path.join(directory, name), { recursive: true, verbatimSymlinks: true, mode: constants.COPYFILE_FICLONE })
     if (existsSync(path.join(profile, 'lib')))
       cpSync(path.join(profile, 'lib'), path.join(directory, 'lib'), { recursive: true, mode: constants.COPYFILE_FICLONE })
-    for (const name of [
-      'package.json',
-      'package-lock.json',
-      '.npmrc',
-      'UPSTREAM.json',
-    ])
+    for (const name of toolchainInputNames) {
+      mkdirSync(path.dirname(path.join(directory, name)), { recursive: true })
       copyFileSync(path.join(profile, name), path.join(directory, name))
+    }
     const expectedNode = nodeIdentity(path.join(profile, 'bin/node'))
     verifyReusableToolchain(directory, expectedNode)
     const shadowLibrary = path.join(directory, 'bin/libnode.shadow.dylib')
