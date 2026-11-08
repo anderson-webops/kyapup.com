@@ -65,8 +65,9 @@ jobs:
       - name: Verify protected promotion and recovery
         run: PATH="/opt/vitesse-test-tools:$PATH" npm run test:promotion
 
-      - name: Run accessibility smoke checks
+      - name: Run browser and accessibility checks
         run: |
           npm run a11y
           npm run test:jsx-browser
           npm run test:router-browser
+          npm run test:remove-host

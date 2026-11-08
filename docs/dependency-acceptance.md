@@ -1,5 +1,29 @@
 # Dependency acceptance
 
+Nuxt-security's removal plugin uses the maintained Unplugin-remove
+1.0.3-webops.1 distribution with Babel 8, Magic-string 1 and Unplugin 3.7.
+Its official input bundles Babel-types 7.25.2 into eight compiled payloads.
+The replacement source externalizes the modern compiler dependencies; normal
+full/production audits also cover the original package and that exact formerly
+bundled version through an independent lock. Original license, options and root
+declarations are retained. Native adapter declarations resolve only their own
+framework, preserving strict Vite use without requiring unrelated optional
+framework types. All six original ESM/CommonJS adapter paths remain available.
+The universal root declaration retains upstream Unplugin's aggregate interface;
+strict aggregate consumers require its optional framework type peers. Native
+adapter imports keep that requirement scoped to the selected framework.
+
+Debugger removal now uses syntax nodes, preserving string/regex/identifier text.
+Configured global console statements are removed with scope-aware traversal;
+local bindings and value-position calls retain their behavior. Statement edits
+preserve valid control-flow bodies and produce maps against the original source.
+`npm run check:remove-package` reproduces the archive and verifies its consuming
+locks. `npm run test:remove` exercises semantics, maps, filters, module formats,
+and strict consumer types. `npm run test:remove-host` checks actual Nuxt-security
+selection, Rollup/Rolldown/Esbuild and available Webpack builds, plus real Vite
+development/production browsers. Rspack's adapter descriptors load in both module
+formats; its optional compiler is outside this Vite site's build qualification.
+
 Vue Router 5's macro and scope-walker paths now both consume Ast-kit 3.0.1.
 The maintained `@vue-macros/common` 3.1.4-webops.1 distribution integrates
 Magic-string-ast 2 and Magic-string 1, declares its Babel 8 types explicitly,
@@ -34,7 +58,7 @@ SSR and client HMR transforms. `npm run test:jsx-browser` additionally renders
 through Vue SSR and a real browser, changes a TSX module to exercise hot reload,
 and tests events and bindings in both production transform modes. The Babel 8
 syntax plugins are also selected through Nuxt's supported optional peers.
-Other Babel 7 callers, including Vue's SFC parser, Magicast, Unplugin-remove
+Other Babel 7 callers, including Vue's SFC parser, Magicast
 and Vite-plugin-checker, retain distinct migration work. This integration
 does not establish that those different compiler APIs have been upgraded.
 
