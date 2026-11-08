@@ -18,7 +18,7 @@ SOURCE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(SOURCE)
 ROOT = SOURCE.ROOT
 BUILD = SOURCE.SOURCE / "build"
-TARGET = ROOT / "vendor/unimport-7.0.2-webops.1.tgz"
+TARGET = ROOT / "vendor/unimport-7.0.2-webops.2.tgz"
 CONFIG = ROOT / "scripts/unimport-build.config.mjs"
 
 
@@ -34,6 +34,19 @@ def maintained_source(files):
     source = replace_once(source, "import os from 'node:os'", "import os from 'node:os'\nimport process from 'node:process'\nimport { pathToFileURL } from 'node:url'")
     source = replace_once(source, "  const packageJsonPath = await resolvePackageJSON(name, { url })", "  const moduleUrl = url ?? pathToFileURL(join(process.cwd(), 'package.json')).href\n  const packageJsonPath = await resolvePackageJSON(name, { url: moduleUrl })")
     source = replace_once(source, "resolveModuleExportNames(name, { url })", "resolveModuleExportNames(name, { url: moduleUrl })")
+    output[filename] = source.encode()
+    filename = "src/detect-acorn.ts"
+    source = files[filename].decode()
+    source = replace_once(source, "import { importModule, isPackageExists } from 'local-pkg'", "import { pathToFileURL } from 'node:url'\nimport { importModule, resolveModule } from 'local-pkg'")
+    source = replace_once(source, "  if (!isPackageExists('acorn')) {", "  const resolved = resolveModule('acorn', { paths: [import.meta.url] })\n  if (!resolved) {")
+    source = replace_once(source, "importModule<{ parse: Parse }>('acorn')", "importModule<{ parse: Parse }>(pathToFileURL(resolved).href)")
+    output[filename] = source.encode()
+    filename = "src/presets/vueuse-core.ts"
+    source = files[filename].decode()
+    source = replace_once(source, "import process from 'node:process'", "import { join } from 'node:path'\nimport process from 'node:process'\nimport { pathToFileURL } from 'node:url'")
+    source = replace_once(source, "      const corePath = resolveModule('@vueuse/core') || process.cwd()", "      const paths = [pathToFileURL(join(process.cwd(), 'package.json')).href]\n      const corePath = resolveModule('@vueuse/core', { paths }) || process.cwd()")
+    source = replace_once(source, "resolveModule('@vueuse/core/indexes.json')", "resolveModule('@vueuse/core/indexes.json', { paths })")
+    source = replace_once(source, "resolveModule('@vueuse/metadata/index.json')", "resolveModule('@vueuse/metadata/index.json', { paths })")
     output[filename] = source.encode()
     return output
 
@@ -106,26 +119,42 @@ def build_once(original, check_upstream):
     metadata = json.loads(original["package.json"])
     for key in ["devDependencies", "scripts", "packageManager", "resolutions"]:
         metadata.pop(key, None)
-    metadata.update(version="7.0.2+webops.1", private=True, dependencies=manifest["dependencies"], engines={"node": ">=26.13.0 <27"})
+    metadata.update(version="7.0.2+webops.2", private=True, dependencies=manifest["dependencies"], engines={"node": ">=26.13.0 <27"})
     for filename in ["LICENSE", "README.md", *sorted(name for name in original if "/" not in name and name.endswith(".d.ts"))]:
         output["package/" + filename] = original[filename]
     output["package/package.json"] = (json.dumps(metadata, indent=2) + "\n").encode()
     output["package/UPSTREAM-PACKAGE.json"] = original["package.json"]
     record = json.loads((SOURCE.SOURCE / "UPSTREAM.json").read_text())
     provenance = {
-        "schemaVersion": 1, "source": record,
+        "schemaVersion": 2, "source": record,
         "build": {"node": "26.13.0", "tool": "tsdown@0.23.7", "lockSha256": hashlib.sha256((BUILD / "package-lock.json").read_bytes()).hexdigest(), "configSha256": hashlib.sha256(CONFIG.read_bytes()).hexdigest(), "producerSha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), "sourceVerifierSha256": hashlib.sha256((ROOT / "scripts/check-unimport-source.py").read_bytes()).hexdigest()},
-        "patch": {"path": "src/node/extract-package.ts", "sha256": hashlib.sha256(prepared["src/node/extract-package.ts"]).hexdigest(), "purpose": "Anchor default package export scanning in the actual working directory, preserving explicit URLs."},
+        "patches": {name: hashlib.sha256(prepared[name]).hexdigest() for name in sorted(original) if original[name] != prepared[name]},
         "outputSha256": {name.removeprefix("package/"): hashlib.sha256(data).hexdigest() for name, data in sorted(output.items())},
     }
     output["package/WEBOPS-SOURCE.json"] = (json.dumps(provenance, indent=2, sort_keys=True) + "\n").encode()
     return pack_files(output)
 
 
+def verify_installed(data, prefix):
+    lock = json.loads((prefix / "package-lock.json").read_text())["packages"]
+    consumers = [(name, info) for name, info in lock.items() if name == "node_modules/unimport" or name.endswith("/node_modules/unimport")]
+    SOURCE.require(bool(consumers), "The source-built provider must have a locked consumer")
+    integrity = "sha512-" + base64.b64encode(hashlib.sha512(data).digest()).decode()
+    with tarfile.open(fileobj=io.BytesIO(data), mode="r:gz") as archive:
+        files = {member.name.removeprefix("package/"): archive.extractfile(member).read() for member in archive}
+    for name, info in consumers:
+        SOURCE.require(info["version"] == "7.0.2+webops.2" and info["integrity"] == integrity, "Consuming source-built provider identity mismatch")
+        directory = prefix / name
+        SOURCE.require(not directory.is_symlink(), "Source-built consumer must remain local")
+        for filename, content in files.items():
+            SOURCE.require(SOURCE.regular_bytes(directory / filename) == content, "Installed source-built bytes mismatch")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--installed", action="store_true")
+    parser.add_argument("--installed-prefix", type=Path)
     args = parser.parse_args()
     original = SOURCE.verify_source()
     first = build_once(original, True)
@@ -137,18 +166,9 @@ def main():
         SOURCE.require(not TARGET.is_symlink(), "Source-built output must remain local")
         TARGET.write_bytes(first)
     if args.installed:
-        lock = json.loads((ROOT / "package-lock.json").read_text())["packages"]
-        consumers = [(name, info) for name, info in lock.items() if name == "node_modules/unimport" or name.endswith("/node_modules/unimport")]
-        SOURCE.require(bool(consumers), "The source-built provider must have a locked consumer")
-        integrity = "sha512-" + base64.b64encode(hashlib.sha512(first).digest()).decode()
-        with tarfile.open(fileobj=io.BytesIO(first), mode="r:gz") as archive:
-            files = {member.name.removeprefix("package/"): archive.extractfile(member).read() for member in archive}
-        for name, info in consumers:
-            SOURCE.require(info["version"] == "7.0.2+webops.1" and info["integrity"] == integrity, "Consuming source-built provider identity mismatch")
-            directory = ROOT / name
-            SOURCE.require(not directory.is_symlink(), "Source-built consumer must remain local")
-            for filename, data in files.items():
-                SOURCE.require(SOURCE.regular_bytes(directory / filename) == data, "Installed source-built bytes mismatch")
+        verify_installed(first, ROOT)
+    if args.installed_prefix:
+        verify_installed(first, args.installed_prefix.resolve())
     print("Signed-source unimport archive " + ("verified" if args.check else "reproduced") + " from two fresh source directories")
 
 

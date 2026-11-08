@@ -118,10 +118,44 @@ test('each locked consumer carries identical source provenance and archive ident
   const consumers = Object.entries(lock.packages).filter(([location]) => location === 'node_modules/unimport' || location.endsWith('/node_modules/unimport'))
   assert.ok(consumers.length)
   for (const [location, metadata] of consumers) {
-    assert.equal(metadata.version, '7.0.2+webops.1')
+    assert.equal(metadata.version, '7.0.2+webops.2')
     const provenance = JSON.parse(await readFile(path.join(root, location, 'WEBOPS-SOURCE.json'), 'utf8'))
+    assert.equal(provenance.schemaVersion, 2)
     assert.equal(provenance.source.commit, 'bbd07768ddb4919205bcb5a3cbc06c3a2791981a')
     assert.equal(provenance.source.signerFingerprint, '83DFB8EACB2CCD9ACE75B47CFB8599EBAB9E40B9')
     assert.equal(provenance.build.tool, 'tsdown@0.23.7')
+  }
+})
+
+test('VueUse preset metadata is resolved from the working project before its parent', async (context) => {
+  const directory = await temporary(context)
+  const child = path.join(directory, 'child')
+  await mkdir(child)
+  for (const [location, symbol] of [
+    [directory, 'parentOnlySelected'],
+    [child, 'childOnlySelected'],
+  ]) {
+    await fixturePackage(location, '@vueuse/core', symbol)
+    const packageDirectory = path.join(location, 'node_modules/@vueuse/core')
+    await writeFile(path.join(packageDirectory, 'package.json'), JSON.stringify({
+      name: '@vueuse/core',
+      version: '1.0.0',
+      type: 'module',
+      exports: { '.': './index.mjs', './indexes.json': './indexes.json' },
+    }))
+    await writeFile(path.join(packageDirectory, 'indexes.json'), JSON.stringify({
+      functions: [
+        { name: symbol, package: 'core' },
+      ],
+    }))
+  }
+  const previous = process.cwd()
+  process.chdir(child)
+  try {
+    const preset = unimport.builtinPresets['@vueuse/core']()
+    assert.deepEqual(preset.imports, ['childOnlySelected'])
+  }
+  finally {
+    process.chdir(previous)
   }
 })

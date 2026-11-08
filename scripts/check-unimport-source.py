@@ -1,4 +1,5 @@
 import argparse
+import gzip
 import hashlib
 import io
 import json
@@ -44,9 +45,12 @@ def git_object_payload(data, kind):
 
 def source_files(data):
     require(len(data) <= 8 * 1024 * 1024, "Source archive is too large")
+    with gzip.GzipFile(fileobj=io.BytesIO(data), mode="rb") as compressed:
+        payload = compressed.read(8 * 1024 * 1024 + 1)
+    require(len(payload) <= 8 * 1024 * 1024, "Expanded source archive is too large")
     files = {}
     total = 0
-    with tarfile.open(fileobj=io.BytesIO(data), mode="r:gz") as archive:
+    with tarfile.open(fileobj=io.BytesIO(payload), mode="r:") as archive:
         for member in archive:
             name = PurePosixPath(member.name)
             require(str(name) == member.name and not name.is_absolute() and ".." not in name.parts, "Unsafe source member path")

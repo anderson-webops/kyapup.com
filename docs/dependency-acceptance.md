@@ -222,7 +222,7 @@ checks reject both compiler packages; Linux ARM64 binding and artifact checks
 remain required.
 
 Nuxt 4.6.4 requires `unimport ^7.0.2`. Its locked and installed provider must
-satisfy that original API contract. The maintained `7.0.2+webops.1` provider is
+satisfy that original API contract. The maintained `7.0.2+webops.2` provider is
 independently rebuilt from the complete signed v7.0.2 source tree. Both signed
 Git objects, the public signer, all 224 source files, the independent audited
 compiler lock, source patch and resulting installed bytes are verified.

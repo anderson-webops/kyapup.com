@@ -1,7 +1,7 @@
 # Signed-source auto-import compiler
 
-The maintained `unimport-7.0.2-webops.1.tgz` is compiled from upstream's complete
-signed v7.0.2 source tree. Its package version `7.0.2+webops.1` preserves the
+The maintained `unimport-7.0.2-webops.2.tgz` is compiled from upstream's complete
+signed v7.0.2 source tree. Its package version `7.0.2+webops.2` preserves the
 upstream API version and identifies this independently built derivative.
 The original npm package's advertised attestation returns HTTP 404. That failed
 registry-provenance result remains recorded in `UPSTREAM.json`.
@@ -26,6 +26,10 @@ working project's package URL. Upstream's implicit resolution can otherwise
 select a parent's dependency before the project's own package. Explicit caller
 URLs retain their original meaning. Local-pkg 2 and Magic-string 1 are exercised
 by the complete upstream suite and compiled consumer fixtures.
+Acorn availability and loading use the compiler module's actual resolution
+context. VueUse metadata uses the working project's explicit package URL.
+Both retain their legitimate installed providers when parent directories are
+unreadable or contain a different version.
 
 `build-unimport-source.py` runs all 254 upstream tests, native type and lint
 checks, and produces byte-identical archives from two fresh source directories.
@@ -34,6 +38,13 @@ configuration, independent build lock and every output hash. `--check --installe
 also verifies each actual unscoped consumer's locked and installed bytes.
 Registry signature and full/production vulnerability audits remain required
 for both the application and all independent tooling graphs.
+
+The independent `runtime/` lock installs only declared production dependencies
+and the optional Acorn peer. The copied compiled artifact runs under Node's
+read restrictions with the source checkout and development tools denied. A
+required runtime-module deletion must fail; restoring that exact module must
+recover in a fresh process. The earlier `.1` archive remains a historical
+comparison artifact and is absent from the current consuming locks.
 
 Compiled core and addon declarations receive strict NodeNext consumer checks
 with `skipLibCheck: false`. The unplugin entrypoint retains its upstream

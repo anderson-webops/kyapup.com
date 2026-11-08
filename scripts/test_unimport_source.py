@@ -1,4 +1,5 @@
 import copy
+import gzip
 import importlib.util
 import io
 import json
@@ -86,13 +87,14 @@ class UnimportSourceTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 SOURCE.verify_signature(tag, "tag", SOURCE.SOURCE / "signer.gpg")
 
-    def test_source_patch_changes_only_the_declared_file(self):
+    def test_source_patch_changes_only_declared_files(self):
         original = SOURCE.source_files((SOURCE.SOURCE / "source.tgz").read_bytes())
         maintained = BUILD.maintained_source(original)
         changed = [name for name in original if original[name] != maintained[name]]
-        self.assertEqual(changed, ["src/node/extract-package.ts"])
-        self.assertIn(b"url ?? pathToFileURL", maintained[changed[0]])
-        self.assertEqual(maintained[changed[0]].count(b"{ url: moduleUrl }"), 2)
+        self.assertEqual(set(changed), {"src/node/extract-package.ts", "src/detect-acorn.ts", "src/presets/vueuse-core.ts"})
+        self.assertIn(b"url ?? pathToFileURL", maintained["src/node/extract-package.ts"])
+        self.assertEqual(maintained["src/node/extract-package.ts"].count(b"{ url: moduleUrl }"), 2)
+        self.assertIn(b"paths: [import.meta.url]", maintained["src/detect-acorn.ts"])
 
     def test_changed_source_patch_anchors_fail_closed(self):
         original = SOURCE.source_files((SOURCE.SOURCE / "source.tgz").read_bytes())
@@ -113,10 +115,10 @@ class UnimportSourceTests(unittest.TestCase):
 
     def test_source_build_preserves_the_original_license_and_package_identity(self):
         original = SOURCE.source_files((SOURCE.SOURCE / "source.tgz").read_bytes())
-        with tarfile.open(SOURCE.ROOT / "vendor/unimport-7.0.2-webops.1.tgz", mode="r:gz") as archive:
+        with tarfile.open(BUILD.TARGET, mode="r:gz") as archive:
             self.assertEqual(archive.extractfile("package/LICENSE").read(), original["LICENSE"])
             self.assertEqual(archive.extractfile("package/UPSTREAM-PACKAGE.json").read(), original["package.json"])
-            self.assertEqual(json.load(archive.extractfile("package/package.json"))["version"], "7.0.2+webops.1")
+            self.assertEqual(json.load(archive.extractfile("package/package.json"))["version"], "7.0.2+webops.2")
 
     def test_compressed_git_objects_reject_wrong_headers_and_trailing_data(self):
         data = (SOURCE.SOURCE / "commit.git").read_bytes()
@@ -128,6 +130,10 @@ class UnimportSourceTests(unittest.TestCase):
     def test_compressed_git_objects_are_bounded(self):
         with self.assertRaises(ValueError):
             SOURCE.git_object_payload(zlib.compress(b"commit 100000\0" + b"x" * 100000), "commit")
+
+    def test_source_expansion_is_bounded_before_tar_metadata_is_read(self):
+        with self.assertRaisesRegex(ValueError, "Expanded source archive"):
+            SOURCE.source_files(gzip.compress(b"\0" * (8 * 1024 * 1024 + 1), mtime=0))
 
 
 if __name__ == "__main__":
