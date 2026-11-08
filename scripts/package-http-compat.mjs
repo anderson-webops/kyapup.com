@@ -71,10 +71,14 @@ try {
     assert.equal(metadata.exports, './dist/index.js')
     assert.ok((await readFile(path.join(payload, 'LICENSE'), 'utf8')).includes('MIT'))
     const originalModule = await readFile(path.join(payload, 'dist/index.js'))
-    metadata.version = `${input.version}-webops.1`
+    metadata.version = `${input.version}-webops.2`
     metadata.private = true
     metadata.main = './compat.cjs'
-    metadata.exports = { import: './dist/index.js', require: './compat.cjs' }
+    metadata.types = './compat.d.cts'
+    metadata.exports = {
+      import: { types: './dist/index.d.ts', default: './dist/index.js' },
+      require: { types: './compat.d.cts', default: './compat.cjs' },
+    }
     metadata.dependencies = {
       ...metadata.dependencies,
       ...input.dependencies,
@@ -86,6 +90,7 @@ try {
     await writeFile(path.join(payload, 'UPSTREAM-PACKAGE.json'), original)
     await writeFile(path.join(payload, 'UPSTREAM.json'), `${JSON.stringify(input, null, 2)}\n`)
     await copyFile(path.join(source, input.name, 'compat.cjs'), path.join(payload, 'compat.cjs'))
+    await copyFile(path.join(source, input.name, 'compat.d.cts'), path.join(payload, 'compat.d.cts'))
     await normalizeModes(payload)
     assert.deepEqual(await readFile(path.join(payload, 'dist/index.js')), originalModule)
     const pack = spawnSync(process.execPath, [

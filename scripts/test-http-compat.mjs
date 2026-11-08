@@ -54,11 +54,11 @@ test('both package graphs select seven modern HTTP libraries and retire the unus
   const libraryVersions = {
     'content-disposition': '3.0.0',
     'content-type': '3.1.1',
-    'cookie': '2.0.2-webops.1',
-    'encodeurl': '3.0.0-webops.1',
+    'cookie': '2.0.2-webops.2',
+    'encodeurl': '3.0.0-webops.2',
     'path-to-regexp': '9.0.0',
-    'raw-body': '4.0.0-webops.1',
-    'type-is': '3.0.0-webops.1',
+    'raw-body': '4.0.0-webops.2',
+    'type-is': '3.0.0-webops.2',
   }
   for (const filename of ['package-lock.json', 'back-end/package-lock.json']) {
     const lock = JSON.parse(await readFile(path.join(root, filename), 'utf8'))
@@ -90,6 +90,7 @@ test('ESM imports retain the unchanged modern implementations and original licen
     assert.equal(original.status, 0)
     assert.deepEqual(await readFile(path.join(directory, 'dist/index.js')), original.stdout)
     const modern = await import(pathToFileURL(path.join(directory, 'dist/index.js')))
+    assert.equal(await import(input.name), modern)
     if (input.name === 'cookie')
       assert.equal(typeof modern.stringifySetCookie, 'function')
     else if (input.name === 'encodeurl')

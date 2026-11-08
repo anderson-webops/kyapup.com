@@ -1,10 +1,15 @@
 # HTTP library compatibility
 
-The four `.webops.1` packages execute the unchanged upstream major-version
+The four `.webops.2` packages execute the unchanged upstream major-version
 implementations recorded in `UPSTREAM.json`. Their CommonJS entrypoints adapt
 Express 5 and body-parser callers to those implementations. ESM imports retain
 the upstream interface. The original modules, maps, licenses and package metadata
 remain in each generated package.
+
+Conditional exports select separate strict declarations for the CommonJS and
+ESM interfaces. TypeScript 6 and 7 compile both forms, while negative fixtures
+reject invalid calls. Raw-body's CommonJS declarations also preserve its encoding
+shortcuts. Earlier `.webops.1` archives remain unchanged historical inputs.
 
 - Cookie 2 keeps Express's positional serialization and URI encoding, including
   signed/JSON values and security attributes. Explicit name/value arguments take

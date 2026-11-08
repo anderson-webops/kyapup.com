@@ -74,6 +74,7 @@ try {
   ]) {
     for (const relative of [
       'compat.cjs',
+      'compat.d.cts',
       'dist/index.js',
       'UPSTREAM.json',
       'UPSTREAM-PACKAGE.json',
