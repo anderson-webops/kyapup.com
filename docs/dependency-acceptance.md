@@ -352,3 +352,28 @@ remain evidence, while the producer rejects changed patch anchors, unreviewed
 toolchain versions, unsafe tar members and mismatched consuming locks. This
 source qualification remains separate from release, native artifact and
 protected production acceptance.
+
+## Vite checker and native Babel 8 code frames
+
+The maintained `vite-plugin-checker@0.14.5-webops.1` distribution uses
+`@babel/code-frame@8.0.6`, its current identifier validator and tokenizer.
+Babel 8's code-frame columns are zero-based and its former `SourceLocation`
+type is no longer exported. The checker retains its one-based diagnostic
+locations and optional-column declarations, converting only at its code-frame
+boundary. Exclusive multiline end columns follow the actual source range;
+the previous renderer's extra final caret is corrected. Other checker engines,
+public entrypoints, peer contracts, runtime overlay and license remain unchanged.
+
+The integrity-bound original archive and independently locked original graph
+remain under `vendor/vite-plugin-checker/upstream` for comparison and audits.
+`npm run check:checker-package` verifies deterministic packaging, consuming
+integrity and every installed byte. `npm run test:checker` checks source and
+location preservation, original single-line output, correct multiline ranges,
+native public types, real ESLint diagnostics, Stylelint adapter fixtures and
+actual TypeScript worker error/recovery. `npm run test:checker-browser` checks
+real overlay highlighting, reconnection, repeated repair and clean production
+builds, including a deliberately rejected type-error build. The full and
+production audit commands retain original package identities in that separate
+graph. Application Babel providers use major 8; original-version fixtures retain
+their own reviewed dependencies. Release/provenance and host acceptance remain
+separate gates.

@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "name": "vite-plugin-checker",
+  "version": "0.14.5",
+  "integrity": "sha512-c9lQ92eisUO+F7Fd93aelojmiOS+NQpPgQ1XR2LTQHox1/laZf4yAoQj+L3RA9Vgh10e2nFd9b8r2LLyYZsbpA==",
+  "archive": "upstream/vite-plugin-checker-0.14.5.tgz",
+  "patchedVersion": "0.14.5-webops.1",
+  "dependencies": {
+    "@babel/code-frame": "8.0.6"
+  },
+  "adaptation": "Preserve the checker's one-based diagnostic columns and optional-column SourceLocation type at the native Babel8 zero-based boundary; retain other checker implementations and the runtime overlay unchanged."
+}
