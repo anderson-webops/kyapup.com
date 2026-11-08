@@ -353,6 +353,51 @@ toolchain versions, unsafe tar members and mismatched consuming locks. This
 source qualification remains separate from release, native artifact and
 protected production acceptance.
 
+## Stable Nitro provider qualification
+
+Nitro2.13.6 keeps its original implementation, public exports, types, license and
+archive identity. Exact scoped overrides qualify Magic-string1.4.5, unctx3.0.1
+and the maintained current unwasm0.6.3 provider. Application text-editor consumers
+now share major1; original-version fixtures retain their separate dependency
+graphs. Registry stable Nuxt/Nitro remain the selected framework contracts.
+The separate Nitro3 line is a release candidate at this review. Nitro2's H3v1
+request-object boundary remains distinct from H3v2 consumers, with the real
+server fixture using Nitro's own provider rather than mixing event models.
+
+Unctx3 preserves the actual Nitro context API, including native asynchronous
+request isolation. The maintained unwasm0.6.3-webops.1 distribution repairs two
+reproduced stock failures: query-suffixed WASM paths resolve their underlying
+file before restoring the suffix; unresolved import modules retain explicit
+caller provisioning instead of losing their named bindings. The native engine
+continues rejecting absent/invalid imports and malformed binaries. Original
+unwasm0.5.3 and stock0.6.3 reproductions remain explicit negative controls.
+Public WASM declarations, entrypoints, dependencies, licenses and unrelated
+implementation bytes remain unchanged.
+
+`vendor/nitro-tools` retains integrity-bound distributions and independently
+locked original/current-stock provider graphs for complete audits. Nitro's
+archive is a byte reference for the actual fully audited installed parent,
+rather than a second executable Nitro graph. Archived original inlined code is
+retained as evidence, with no claim that dependency audits certify every old
+inlined implementation. `npm run check:nitro-tool-inputs` verifies exact archive,
+installed-byte and consuming-lock identities plus deterministic maintained WASM
+packaging. Root lock normalization removes only the proven stale nested unctx2
+provider before a normal frozen install and complete graph check.
+
+`npm run test:nitro-tools` checks real context concurrency, cleanup and error
+recovery, native/parser agreement, Rollup bindings and emitted asset bytes/maps,
+legacy Deno editing hooks, strict positive/negative types and package safety.
+The actual built Nitro server is copied and hash-verified, its fixture sources
+removed, and its Node file permissions restricted to runtime files and an exact
+test prelude. Explicit reads of checkout/development inputs are denied. It runs
+two rounds of64 concurrent HTTP requests, deliberate request failure/recovery,
+WASM execution and retained restart with unchanged runtime hashes and graceful
+shutdown. Its listener and requests use loopback; this is local source acceptance.
+`npm run test:nitro-tools-browser` executes six real browser binding cases.
+Emitted-WASM asset checks establish bytes, relative paths and maps, with target
+loader acceptance remaining distinct from those source checks. Published release,
+native artifact and protected deployment acceptance remain separate gates.
+
 ## Rollup text editing, traversal and reference classification
 
 The maintained utility/CommonJS/inject/replace cohort uses Magic-string1.4.5,
