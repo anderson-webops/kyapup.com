@@ -27,6 +27,7 @@ async function fixture(context) {
   const files = {
     'package.json': JSON.stringify({ private: true }),
     'main.cjs': 'const fs=require("node:fs");const path=require("node:path");const value=require("fixture-package");const shadow=(()=>{const require=()=>0;return require("unavailable-shadowed-package")})();console.log(JSON.stringify(value+Number(fs.readFileSync(path.join(__dirname,"data/value.txt"),"utf8"))+shadow));',
+    'guarded.cjs': 'const assert=require("node:assert/strict");const fs=require("node:fs");for(const filename of process.argv.slice(2))assert.throws(()=>fs.readFileSync(filename),{code:"ERR_ACCESS_DENIED"});require("./main.cjs");',
     'data/value.txt': '2',
     'data/ignored.txt': 'retained',
     'node_modules/fixture-package/package.json': JSON.stringify({
@@ -215,18 +216,15 @@ test('the actual CLI prints reasons and copies a trace that runs without source 
   assert.match(printed, /data\/value\.txt/)
   assert.match(invoke('why', 'main.cjs', 'data/value.txt'), /main\.cjs/)
   assert.match(invoke('size', 'main.cjs'), /\d+ bytes total/)
-  invoke('build', 'main.cjs')
+  invoke('build', 'guarded.cjs')
   const output = path.join(directory, 'dist')
-  const guardedEntry = `const assert=require('node:assert/strict');const fs=require('node:fs');for(const filename of ${JSON.stringify([
-    path.join(directory, 'main.cjs'),
-    path.join(root, 'package.json'),
-  ])})assert.throws(()=>fs.readFileSync(filename),{code:'ERR_ACCESS_DENIED'});require(${JSON.stringify(path.join(output, 'main.cjs'))});`
   for (let round = 0; round < 2; round++) {
     const value = execFileSync(process.execPath, [
       '--permission',
       `--allow-fs-read=${output}`,
-      '--eval',
-      guardedEntry,
+      path.join(output, 'guarded.cjs'),
+      path.join(directory, 'main.cjs'),
+      path.join(root, 'package.json'),
     ], { cwd: output, encoding: 'utf8', timeout: 10000 })
     assert.equal(JSON.parse(value), 42)
   }
