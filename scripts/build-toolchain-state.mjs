@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
-import { closeSync, constants, fstatSync, openSync, readFileSync, realpathSync } from 'node:fs'
+import { closeSync, constants, existsSync, fstatSync, openSync, readFileSync, realpathSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import path from 'node:path'
 import process from 'node:process'
@@ -37,8 +37,9 @@ export function selectedNpmCli() {
   if (process.env.npm_execpath)
     return realpathSync(process.env.npm_execpath)
   const directory = path.dirname(process.execPath)
-  if (process.platform === 'win32')
-    return realpathSync(path.join(directory, '../node_modules/npm/bin/npm-cli.js'))
+  const pairedCli = path.resolve(directory, '../node_modules/npm/bin/npm-cli.js')
+  if (process.platform === 'win32' || existsSync(pairedCli))
+    return realpathSync(pairedCli)
   return realpathSync(path.join(directory, 'npm'))
 }
 

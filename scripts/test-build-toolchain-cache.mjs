@@ -23,6 +23,21 @@ test('the complete payload matches a source-pinned digest rather than a mutable 
   assert.equal(verifyReusableToolchain(profile, nodeIdentity(path.join(profile, 'bin/node'))).node, process.versions.node)
 })
 
+test('direct Node qualification finds the original paired CLI without an npm lifecycle environment', () => {
+  const environment = { ...process.env }
+  delete environment.npm_execpath
+  delete environment.npm_node_execpath
+  const output = execFileSync(path.join(profile, 'bin/node'), [
+    path.join(root, 'scripts/check-build-toolchain.mjs'),
+  ], {
+    cwd: root,
+    env: environment,
+    encoding: 'utf8',
+    timeout: 30_000,
+  })
+  assert.deepEqual(JSON.parse(output), verifyReusableToolchain(profile, nodeIdentity()))
+})
+
 test('unreviewed dependency bytes, extra code, missing code, command links and Node substitutions fail closed', () => {
   const directory = fixture()
   try {
