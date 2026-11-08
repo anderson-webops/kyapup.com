@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "name": "@unhead/bundler",
+  "version": "3.4.3",
+  "integrity": "sha512-noUTzazRB4fMgO/nluoirrZJXngNbNb3sQzIslA805tKkwakRv2fib4Xe4EdiTuNB7V5XmpUFvfQkKRdBQ9qAA==",
+  "archive": "upstream/bundler-3.4.3.tgz",
+  "patchedVersion": "3.4.3-webops.1",
+  "originalKitRange": "^0.7.6",
+  "kitRange": "^0.8.2"
+}

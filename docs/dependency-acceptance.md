@@ -83,11 +83,22 @@ toolchain source inputs before runtime acceptance. Exact archive receipts bind
 the profile and lock digest, and the runtime verifier's allowlist is unchanged.
 
 Nuxt DevTools 4.1.0 uses the tested Vite DevTools 0.8.2 host and kit. The
-frontend declares that current pair directly. The original Vue plugin's
-9.0.0-rc.2 distribution and Unhead 3 retain their supported 0.7 API consumers.
-The root compatibility kit and explicit hoisted npm layout preserve those
-original peer contracts while the frontend uses 0.8.2. A layout with an
-incompatible kit at either consumer must fail the complete installed graph.
+frontend declares that current pair directly, and the root now requests the
+same 0.8.2 kit. The maintained Unhead 3.4.3-webops.1 distribution qualifies
+that modern kit for its unchanged RPC, frame and client modules. Its original
+3.4.3 peer metadata requested 0.7; merely changing the root kit left that
+optional peer unresolved, and ordinary lock refreshes retained the invalid
+placement. The private distribution updates the supported peer contract only
+after real host initialization, RPC setup, original UI and bridge injection
+regressions pass. All original module, type and license bytes are preserved;
+`check:unhead-package` reproduces the archive, and an independent original-version
+lock remains included in full and production audits.
+
+The original Vue plugin's 9.0.0-rc.2 distribution and legacy provider retain their
+declared 0.7 consumers through local copies. Regressions
+resolve the actual root, Nuxt, Unhead, Vue plugin and legacy provider paths,
+require matching modern declarations, and reject incompatible legacy resolution.
+A layout with an incompatible kit must fail the complete installed graph.
 The former metadata-only peer patch and local archive are retired. The original
 registry metadata, integrity and all 38 payload hashes remain checked against
 `vendor/vite-plugin-vue-devtools/UPSTREAM.json`. The complete installed graph
@@ -99,7 +110,7 @@ loopback. That integration remains part of `npm test`; full Nuxt types, site
 checks and artifact acceptance remain required. No provider version is forced
 outside its declared range, and neither dependency warnings nor checks are
 suppressed. The host test selects 0.8 explicitly through its public integration
-API rather than silently accepting the root's compatible 0.7 provider.
+API rather than falling back to a legacy peer provider.
 
 The private qs 6.17.2-webops.4 patch is based on current upstream 6.17.1.
 It retains that release's input-copy prototype protection and fixes native
