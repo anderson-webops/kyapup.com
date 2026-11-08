@@ -1,5 +1,33 @@
 # Dependency acceptance
 
+## Schema and identifier parents
+
+The application graph uses Ajv 8.20.0, Fast URI 4.2.3 and NanoID 6.0.2.
+Maintained ESLint 10.14.0+webops.2 selects the native Ajv 8 engine with the
+official draft-04 adapter and format plugin. It preserves ESLint's previous
+default of ignoring OpenAPI's `nullable` extension. Ajv's typed, per-instance
+`allowNullable` option keeps ordinary Ajv behavior unchanged; the ESLint factory
+translates its existing opt-in. Rule schemas, references, defaults and input
+data remain intact. Unresolved references fail closed.
+
+Ajv 8.20.0+webops.2 declares Fast URI 4, and PostCSS 8.5.32+webops.1 declares
+NanoID 6. PostCSS's synchronous CommonJS import uses the qualified Node 26
+runtime, reflected in its maintained engine requirement. Registry originals,
+licenses and all 942 original files and permissions remain bound by
+`vendor/schema-parents/UPSTREAM.json`. The independent original comparison
+retains Ajv 6 only inside unmodified registry ESLint, outside the application
+graph. Both reference and compilation graphs have independent locked installs,
+full/production audits and signature checks.
+
+The reproducible producer checks every original byte and permits only declared
+metadata and source changes. Three Ajv CommonJS modules and their source maps
+are regenerated from reviewed TypeScript using the independent pinned compiler;
+mapped error locations and embedded source content are tested. Native validator
+decisions, actual ESLint rule options and CLI recovery, PostCSS synchronous and
+asynchronous processing, CSS maps, URI references and strict TypeScript 6/7
+consumers are covered by `npm run test:schema-parents`. Browser and complete
+application validation remain separate required gates.
+
 ## Framework bundler and configuration parents
 
 The active framework uses Rolldown 1.3.0 and c12 4.0.0-rc.4. The c12 version is
