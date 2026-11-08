@@ -1,0 +1,8 @@
+{
+  "name": "webops-vue-jsx-upstream",
+  "version": "1.0.0",
+  "private": true,
+  "engines": { "node": ">=26.13.0 <27", "npm": "12.2.2" },
+  "dependencies": { "@vitejs/plugin-vue-jsx": "file:plugin-vue-jsx-5.1.6.tgz" },
+  "allowScripts": { "fsevents@2.3.3": true }
+}

@@ -1,5 +1,25 @@
 # Dependency acceptance
 
+The Vue JSX adapter uses Babel 8.1 and Vue Babel JSX/resolve-type 3 through
+`vendor/plugin-vue-jsx-5.1.6-webops.1.tgz`. Its upstream provider still requires
+Babel 7. The maintained distribution uses Babel 8's explicit synchronous
+configuration API and attaches production purity comments to the call AST,
+preserving valid identifier nodes. Original declarations, license and remaining
+modules stay unchanged. The Node, Vue and Vite ranges reflect the qualified
+runtime. `npm run check:vue-jsx-package` reproduces the archive from its official
+integrity-pinned input and verifies every consuming lock. Full and production
+audits also cover the independently locked original-version distribution.
+
+`npm run test:vue-jsx` exercises actual Nuxt resolution, type erasure, class
+fields, fragments, v-model, slots, sourcemaps, syntax failures, built-in TypeScript,
+SSR and client HMR transforms. `npm run test:jsx-browser` additionally renders
+through Vue SSR and a real browser, changes a TSX module to exercise hot reload,
+and tests events and bindings in both production transform modes. The Babel 8
+syntax plugins are also selected through Nuxt's supported optional peers.
+Other Babel 7 callers, including Vue's SFC parser, Magicast, Unplugin-remove,
+Vite-plugin-checker and Ast-kit, retain distinct migration work. This integration
+does not establish that those different compiler APIs have been upgraded.
+
 Express 5's legacy CommonJS calls use Cookie 2, Encodeurl 3, Raw-body 4 and
 Type-is 3 through the reviewed bridges in `vendor/http-compat/`. The upstream
 ESM modules, licenses and original metadata remain byte-identical to their
