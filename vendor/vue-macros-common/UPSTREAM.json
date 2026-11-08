@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "name": "@vue-macros/common",
+  "version": "3.1.4",
+  "integrity": "sha512-/5Fv+6DgIcM9ajY05ZmKBv+LMX1M9A0X+IUwDRVdt67ciw8OV9bvG2r34p3RiEadlsQybjhKPRKNXDC8Bp23cw==",
+  "archive": "upstream/vue-macros-common-3.1.4.tgz",
+  "patchedVersion": "3.1.4-webops.1",
+  "dependencies": {
+    "@babel/types": "^8.1.0",
+    "ast-kit": "^3.0.1",
+    "magic-string-ast": "^2.1.1"
+  }
+}

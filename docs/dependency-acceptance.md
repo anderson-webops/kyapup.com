@@ -1,5 +1,23 @@
 # Dependency acceptance
 
+Vue Router 5's macro and scope-walker paths now both consume Ast-kit 3.0.1.
+The maintained `@vue-macros/common` 3.1.4-webops.1 distribution integrates
+Magic-string-ast 2 and Magic-string 1, declares its Babel 8 types explicitly,
+and removes the obsolete import-assertions parser option. Standard `with`
+attributes remain supported; legacy `assert` syntax produces a parser error.
+Its original declarations and license stay unchanged. The official archive,
+reproducible producer and independently locked original-version audit retain
+the upstream identity and its older dependency graph for advisory checks.
+
+`npm run test:router-compiler` covers modern AST nodes, setup-scope rejection,
+shadowing, source offsets, macro removal, maps and strict public type contracts.
+`npm run test:router-browser` uses the actual file-router plugin to generate
+typed routes, render SSR, navigate dynamic routes and browser history, update
+route metadata without losing application state, and build and execute split
+production routes. A stale nested Ast-kit 3.0.0 lock entry was removed before
+normal lock normalization and frozen installation; no cross-major override
+changes an upstream caller's accepted range.
+
 The Vue JSX adapter uses Babel 8.1 and Vue Babel JSX/resolve-type 3 through
 `vendor/plugin-vue-jsx-5.1.6-webops.1.tgz`. Its upstream provider still requires
 Babel 7. The maintained distribution uses Babel 8's explicit synchronous
@@ -16,8 +34,8 @@ SSR and client HMR transforms. `npm run test:jsx-browser` additionally renders
 through Vue SSR and a real browser, changes a TSX module to exercise hot reload,
 and tests events and bindings in both production transform modes. The Babel 8
 syntax plugins are also selected through Nuxt's supported optional peers.
-Other Babel 7 callers, including Vue's SFC parser, Magicast, Unplugin-remove,
-Vite-plugin-checker and Ast-kit, retain distinct migration work. This integration
+Other Babel 7 callers, including Vue's SFC parser, Magicast, Unplugin-remove
+and Vite-plugin-checker, retain distinct migration work. This integration
 does not establish that those different compiler APIs have been upgraded.
 
 Express 5's legacy CommonJS calls use Cookie 2, Encodeurl 3, Raw-body 4 and

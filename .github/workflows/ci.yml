@@ -69,3 +69,4 @@ jobs:
         run: |
           npm run a11y
           npm run test:jsx-browser
+          npm run test:router-browser
