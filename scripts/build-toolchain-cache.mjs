@@ -8,6 +8,11 @@ import { sha256, toolchainInputNames, toolchainMetadata, toolchainSource, verify
 
 export const maximumCachedProfiles = 3
 
+export function pairedCommandScript(name) {
+  assert.ok(['npm', 'npx'].includes(name), 'Unexpected paired command name')
+  return `#!/bin/sh\nexport PYTHONDONTWRITEBYTECODE=1\nexec "\${0%/*}/node" "\${0%/*}/../node_modules/npm/bin/${name}-cli.js" "$@"\n`
+}
+
 function readCacheRecord(filename) {
   const descriptor = openSync(filename, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK)
   try {
@@ -173,8 +178,15 @@ export function verifyReusableToolchain(prefix, expectedNode) {
   }
   assert.deepEqual(nodeIdentity(node), expectedNode, 'Cached Node differs from the selected executable')
   for (const name of ['npm', 'npx']) {
-    assert.ok(lstatSync(path.join(bin, name)).isSymbolicLink(), `Cached ${name} must be the paired command link`)
-    assert.equal(readlinkSync(path.join(bin, name)), `../node_modules/npm/bin/${name}-cli.js`)
+    const filename = path.join(bin, name)
+    const command = pairedCommandScript(name)
+    const metadata = lstatSync(filename)
+    assert.ok(metadata.isFile() && !metadata.isSymbolicLink(), `Cached ${name} must be the exact paired command`)
+    assert.deepEqual(digestRegularFile(filename, 4096), {
+      sha256: sha256(command),
+      bytes: Buffer.byteLength(command),
+      executable: true,
+    }, `Cached ${name} differs from the reviewed command`)
   }
   const receipt = verifyBuildToolchain(path.join(prefix, 'node_modules/npm/bin/npm-cli.js'))
   const expected = JSON.parse(readFileSync(path.join(toolchainSource, 'PAYLOAD.json'), 'utf8'))

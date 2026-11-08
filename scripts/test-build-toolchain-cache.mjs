@@ -4,7 +4,7 @@ import { constants, copyFileSync, cpSync, existsSync, lstatSync, mkdirSync, mkdt
 import path from 'node:path'
 import process from 'node:process'
 import test from 'node:test'
-import { cacheIdentity, digestRegularFile, finishToolchainCache, inspectToolchainPayload, maximumCachedProfiles, nodeIdentity, selectToolchainCache, verifyReusableToolchain } from './build-toolchain-cache.mjs'
+import { cacheIdentity, digestRegularFile, finishToolchainCache, inspectToolchainPayload, maximumCachedProfiles, nodeIdentity, pairedCommandScript, selectToolchainCache, verifyReusableToolchain } from './build-toolchain-cache.mjs'
 import { selectedNpmCli, toolchainInputNames, toolchainSource } from './build-toolchain-state.mjs'
 
 const root = path.resolve(import.meta.dirname, '..')
@@ -67,9 +67,62 @@ test('unreviewed dependency bytes, extra code, missing code, command links and N
     symlinkSync('../node_modules/npm/bin/npm-cli.js', command)
     assert.throws(() => verifyReusableToolchain(directory, expectedNode))
     rmSync(command)
-    symlinkSync('../node_modules/npm/bin/npx-cli.js', command)
+    writeFileSync(command, pairedCommandScript('npm'), { mode: 0o755 })
+    assert.throws(() => verifyReusableToolchain(directory, expectedNode), /differs from the reviewed command/u)
+    writeFileSync(command, pairedCommandScript('npx'))
     writeFileSync(path.join(directory, 'bin/node'), 'unreviewed executable')
     assert.throws(() => verifyReusableToolchain(directory, expectedNode), /Cached Node differs/u)
+  }
+  finally {
+    rmSync(directory, { recursive: true })
+  }
+})
+
+test('paired npm and npx keep native Python imports out of the complete immutable SDK payload', { timeout: 120_000 }, () => {
+  const directory = fixture()
+  const expected = inspectToolchainPayload(profile)
+  const environment = {
+    ...process.env,
+    PATH: `${path.join(profile, 'bin')}${path.delimiter}${process.env.PATH || ''}`,
+    NPM_CONFIG_WORKSPACES: 'false',
+    npm_config_workspaces: 'false',
+  }
+  delete environment.PYTHONDONTWRITEBYTECODE
+  delete environment.npm_execpath
+  const python = `import sys; assert sys.dont_write_bytecode; sys.path.insert(0, ${JSON.stringify(path.join(profile, 'node_modules/node-gyp/gyp/pylib'))}); import gyp; import gyp.generator.ninja; import gyp.generator.make; import gyp.generator.xcode; print('native Python imports remained read-only')`
+  try {
+    writeFileSync(path.join(directory, 'package.json'), JSON.stringify({
+      name: 'readonly-native-import-fixture',
+      private: true,
+      scripts: { verify: 'node verify.mjs' },
+    }))
+    writeFileSync(path.join(directory, 'verify.mjs'), `import assert from 'node:assert/strict'; import {spawnSync} from 'node:child_process'; assert.equal(process.env.PYTHONDONTWRITEBYTECODE,'1'); const result=spawnSync('python3',['-c',${JSON.stringify(python)}],{encoding:'utf8'}); assert.equal(result.status,0,result.stderr); process.stdout.write(result.stdout);`)
+    for (const [name, arguments_] of [
+      [
+        'npm',
+        ['run', 'verify'],
+      ],
+      [
+        'npx',
+        [
+          '--offline',
+          '--no',
+          '--call',
+          'node verify.mjs',
+        ],
+      ],
+    ]) {
+      const output = execFileSync(path.join(profile, 'bin', name), arguments_, {
+        cwd: directory,
+        env: environment,
+        encoding: 'utf8',
+        timeout: 60000,
+        maxBuffer: 2 * 1024 * 1024,
+      })
+      assert.match(output, /native Python imports remained read-only/)
+      assert.deepEqual(inspectToolchainPayload(profile), expected)
+    }
+    assert.throws(() => pairedCommandScript('unexpected'), /Unexpected paired command name/u)
   }
   finally {
     rmSync(directory, { recursive: true })

@@ -1,5 +1,50 @@
 # Dependency acceptance
 
+## Native parser and formatter consumers
+
+The application uses Oxc parser 0.157.0 and Oxfmt 0.77.0 through qualified
+UnoCSS and ESLint parents. `vendor/native-providers/UPSTREAM.json` binds the
+complete original package inventories and registry archives. Reproduce and
+verify the maintained distributions with `npm run check:native-providers`.
+Their identities are ESLint-format 2.0.1-webops.1, UnoCSS attributify-JSX
+66.12.0-webops.1, UnoCSS Vite 66.12.0-webops.2 and Unconfig 7.5.0-webops.1.
+
+The formatter and JSX-transformer module, worker, declaration and license bytes
+remain unchanged. Their dependency ranges select the qualified native engines.
+Unconfig's single declaration correction gives `load` its actual optional
+boolean force parameter instead of referencing an undeclared `Args` type.
+Its runtime and other declarations remain unchanged.
+
+The Vite adapter gives preprocessing and build/serve extraction hooks their
+declared pre priority. This preserves valueless JSX attributes and their CSS
+before an early JSX-lowering hook runs, including Vue's built-in TypeScript
+mode. Default/post transformer behavior and the remaining adapter source remain
+unchanged. The producer verifies all original bytes before applying these exact
+source changes and rejects changed inputs, paths, links and unreviewed identities.
+
+`npm run test:native-providers` exercises native formatting, legacy option
+aliases, real ESLint workers, diagnostics, idempotence, Unicode/source maps,
+native JSX parsing, visible MDX fallback, configuration discovery/force/recovery,
+and strict positive/negative TypeScript 6 and 7 consumers without skipped library
+checking. `npm run test:jsx-browser` also tests actual CSS, SSR, events and HMR
+in both development modes, plus both production transformations.
+
+The independent original-version graph retains the registry parents and native
+providers for comparison. Its worker and matcher use patched Tinypool 2.2.0 and
+Minimatch 11.0.5. Full/production/reference audits and registry signatures remain
+required through `npm run audit:native-providers` and the aggregate audit gates.
+
+Native installation runs through exact-source-verified paired npm/npx launchers.
+They set `PYTHONDONTWRITEBYTECODE=1` so node-gyp's Python imports preserve the
+immutable SDK payload. The original npm CLI bytes and complete payload digest
+remain unchanged. Command bytes, Node/library identity, cold/warm reuse,
+concurrent creation, tampering and the three-profile cap remain checked.
+`npm run test:build-toolchain` includes real npm/npx child-Python imports with
+the inherited flag removed, verifying that both launchers supply the boundary
+and that the complete SDK payload remains unchanged afterward.
+
+## Other qualified consumers
+
 Nuxt-security's removal plugin uses the maintained Unplugin-remove
 1.0.3-webops.1 distribution with Babel 8, Magic-string 1 and Unplugin 3.7.
 Its official input bundles Babel-types 7.25.2 into eight compiled payloads.

@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
-import { chmodSync, constants, copyFileSync, mkdirSync, readFileSync, realpathSync, symlinkSync, writeFileSync } from 'node:fs'
+import { chmodSync, constants, copyFileSync, existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
-import { cacheIdentity, finishToolchainCache, selectToolchainCache, verifyReusableToolchain } from './build-toolchain-cache.mjs'
+import { cacheIdentity, finishToolchainCache, pairedCommandScript, selectToolchainCache, verifyReusableToolchain } from './build-toolchain-cache.mjs'
 import { sha256, toolchainInputNames, toolchainMetadata, toolchainSource } from './build-toolchain-state.mjs'
 
 const repositoryRoot = path.resolve(import.meta.dirname, '..')
@@ -69,12 +69,15 @@ function run(executable, args, cwd, env, quiet = true) {
   })
 }
 
+const pairedSeedCli = path.resolve(path.dirname(process.execPath), '../node_modules/npm/bin/npm-cli.js')
 const seedCli = process.env.npm_execpath
   ? realpathSync(process.env.npm_execpath)
-  : realpathSync(path.join(path.dirname(process.execPath), process.platform === 'win32'
-      ? 'node_modules/npm/bin/npm-cli.js'
-      : 'npm'))
-const seedEnvironment = { ...process.env }
+  : existsSync(pairedSeedCli)
+    ? realpathSync(pairedSeedCli)
+    : realpathSync(path.join(path.dirname(process.execPath), process.platform === 'win32'
+        ? 'node_modules/npm/bin/npm-cli.js'
+        : 'npm'))
+const seedEnvironment = { ...process.env, PYTHONDONTWRITEBYTECODE: '1' }
 delete seedEnvironment.NODE_OPTIONS
 delete seedEnvironment.NODE_PATH
 const base = process.env.NPM_CONFIG_CACHE || process.env.npm_config_cache
@@ -128,14 +131,15 @@ try {
         writeFileSync(path.join(bin, `${name}.cmd`), `@"%~dp0node.exe" "%~dp0..\\node_modules\\npm\\bin\\${filename}" %*\r\n`, { flag: 'wx' })
     }
     else {
-      symlinkSync('../node_modules/npm/bin/npm-cli.js', path.join(bin, 'npm'))
-      symlinkSync('../node_modules/npm/bin/npx-cli.js', path.join(bin, 'npx'))
+      for (const name of ['npm', 'npx'])
+        writeFileSync(path.join(bin, name), pairedCommandScript(name), { flag: 'wx', mode: 0o755 })
     }
   }
   const npmCli = path.join(prefix, 'node_modules/npm/bin/npm-cli.js')
   verifyReusableToolchain(prefix, identity.node)
   const environment = {
     ...process.env,
+    PYTHONDONTWRITEBYTECODE: '1',
     PATH: `${bin}${path.delimiter}${process.env.PATH || ''}`,
     npm_execpath: npmCli,
     npm_node_execpath: path.join(bin, nodeName),

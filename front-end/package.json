@@ -1,7 +1,7 @@
 {
   "name": "front-end",
   "type": "module",
-  "version": "2.1.23",
+  "version": "2.1.24",
   "private": true,
   "description": "Static Nuxt frontend for the Vitesse full-stack template.",
   "author": "Jacob Anderson",
