@@ -38,6 +38,11 @@ and configuration APIs with library checking enabled. Nuxt configuration is
 checked separately under its real generated project aliases and existing
 compiler settings, alongside the repository's complete project type checks.
 
+C12's declaration imports Giget unconditionally although its runtime marks that
+peer optional. The application explicitly locks Giget 3.3.1 for complete public
+types. A regression binds its declaration, installed version and resolution to
+this application instead of accepting an ancestor checkout's installation.
+
 `npm run test:framework-browser` builds a real production Nuxt/Nitro application
 and verifies sixteen concurrent per-request contexts across asynchronous plugin
 boundaries, followed by client hydration, event handling and reload. The other

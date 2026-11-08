@@ -8,6 +8,20 @@ import test from 'node:test'
 
 const root = path.resolve(import.meta.dirname, '..')
 const require = createRequire(import.meta.url)
+test('the unconditional configuration type peer is declared and resolves inside this locked application', async () => {
+  const manifest = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'))
+  const lock = JSON.parse(await readFile(path.join(root, 'package-lock.json'), 'utf8'))
+  assert.equal(manifest.devDependencies.giget, '3.3.1')
+  const local = path.join(root, 'node_modules/giget')
+  const metadata = JSON.parse(await readFile(path.join(local, 'package.json'), 'utf8'))
+  assert.equal(metadata.version, '3.3.1')
+  assert.equal(lock.packages['node_modules/giget'].version, metadata.version)
+  const resolution = path.relative(local, require.resolve('giget'))
+  assert.ok(resolution && !resolution.startsWith('..') && !path.isAbsolute(resolution), 'Ancestor installations cannot satisfy the application peer')
+  const configuration = createRequire(require.resolve('c12'))
+  assert.equal(configuration.resolve('giget'), require.resolve('giget'))
+})
+
 const positive = `
 import {defineConfig,type UserConfig} from 'vite';
 import {rolldown,type InputOptions} from 'rolldown';
