@@ -42,6 +42,11 @@ jobs:
       - name: Install locked dependencies
         run: npm ci --include=optional --strict-allow-scripts
 
+      - name: Install independent compiler tooling and original-version fixtures
+        run: |
+          npm ci --prefix vendor/vue-compiler/browser-tools --workspaces=false --include=optional --strict-allow-scripts
+          npm ci --prefix vendor/vue-compiler/upstream --workspaces=false --strict-allow-scripts
+
       - name: Audit development and production dependencies
         run: |
           npm run audit:all
@@ -72,3 +77,4 @@ jobs:
           npm run test:router-browser
           npm run test:remove-host
           npm run test:magicast-browser
+          npm run test:vue-compiler-browser

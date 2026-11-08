@@ -312,3 +312,43 @@ source maps and deterministic packaging. `npm run test:magicast-browser`
 executes `magicast/core` and helpers in real Chrome using both normal and
 minified browser bundles. Full project checks, the independent full/production
 audits, and exact artifact acceptance remain release requirements.
+
+## Vue compiler dependency integration
+
+The maintained `@vue/compiler-core` and `@vue/compiler-sfc`
+`3.5.45-webops.1` distributions preserve the Vue 3.5 runtime interface and
+official entrypoints, declarations and licenses. Their actual parser and
+walker graphs use Babel 8.1 and Estree-walker 3; SFC editing uses Magic-string 1.
+The SFC resolver consumes native argument, identifier, signature, mapped-type,
+enum, import-type and template-literal fields. Qualified namespaces are expanded
+only in the internal type scope, preserving the public native script AST.
+
+The parser, walker and text editor embedded in the original browser build
+are removed as complete, integrity-bound sections. The maintained standalone
+browser build is reproduced using the independent locked
+`vendor/vue-compiler/browser-tools` graph and the pinned bundler, with no external
+imports. Its entry and dependency paths are bounded to that graph; redistribution
+licenses are retained for every newly bundled package. Node's synchronous
+compiler entrypoints share one deterministic CJS build of the current public
+dependency entrypoints from the maintained core package. This supports Walker
+3's import-only contract and avoids Node's concurrent import/require loading
+race. The SFC distribution requires that exact maintained core version, keeping
+the parser and text-editor instances coherent within the synchronous compiler.
+Bundled dependency metadata pins the same versions as the independent graph.
+
+`npm run test:vue-compiler` compares actual emitted runtime options with the
+original compiler in development and production, and verifies native ASTs,
+explicit rejection boundaries, imported types, maps, production entrypoints,
+strict public declarations and packaging. `npm run test:vue-compiler-browser`
+compiles the same supported cases in real Chrome, checks standalone/Node parity,
+native ASTs, scoped styles and the browser filesystem boundary, then mounts
+browser-compiled reactive code and verifies its rendered state and events.
+Existing unsupported macro forms remain explicit errors.
+
+Install both independent graphs with their committed locks before checking or
+reproducing the archives. The full and production audit commands include those
+graphs with original registry identities. The original upstream byte archives
+remain evidence, while the producer rejects changed patch anchors, unreviewed
+toolchain versions, unsafe tar members and mismatched consuming locks. This
+source qualification remains separate from release, native artifact and
+protected production acceptance.

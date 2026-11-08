@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "patchedVersion": "3.5.45-webops.1",
+  "packages": {
+    "@vue/compiler-core": {
+      "version": "3.5.45",
+      "archive": "upstream/vue-compiler-core-3.5.45.tgz",
+      "integrity": "sha512-XGHJrM6ufZARAc/w+tyOswStw9tdKiqCKBScI4gGaNxD+aaGu/HQWgKJ+JItjRLPqenQ7iE7G8AJC7T5ew1p+g=="
+    },
+    "@vue/compiler-sfc": {
+      "version": "3.5.45",
+      "archive": "upstream/vue-compiler-sfc-3.5.45.tgz",
+      "integrity": "sha512-MKFjb2UX0M/l/jhfzqMLrI8VM4pfvFKG3pqFZkSZFHRLtNld/O4RtUPZFWSwhro/14qP88UQEkWzHxAZAQ0tsw=="
+    }
+  },
+  "dependencies": {
+    "@babel/parser": "8.1.0",
+    "estree-walker": "3.0.3",
+    "magic-string": "1.4.5"
+  },
+  "browserTools": { "@babel/parser": "8.1.0", "esbuild": "0.28.2", "estree-walker": "3.0.3", "magic-string": "1.4.5" },
+  "browserBundler": { "esbuild": "0.28.2", "target": "es2022" },
+  "originalEmbeddedScope": "The official SFC browser bundle embeds its parser, walker and text editor. Their exact bytes are retained in the integrity-bound input archive. Its declared ranges are recorded in UPSTREAM-PACKAGE.json; embedded exact dependency versions are not independently asserted. The maintained standalone browser bundle replaces those entire sections with the locked modern dependencies."
+}
