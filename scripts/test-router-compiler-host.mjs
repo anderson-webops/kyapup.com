@@ -37,7 +37,7 @@ const errors = []
 const changes = []
 const watchErrors = []
 
-function configuration() {
+function configuration({ watch = false } = {}) {
   return {
     configFile: false,
     root: scratch,
@@ -46,6 +46,7 @@ function configuration() {
     plugins: [
       routerPlugin({
         root: scratch,
+        watch,
         routesFolder: pages,
         dts: path.join(scratch, 'typed-routes.d.ts'),
       }),
@@ -119,7 +120,7 @@ try {
   await writeFile(personFile, detailPage('before'))
   await writeFile(path.join(scratch, 'main.js'), 'import {createApp,h,ref} from "vue";import {createRouter,createWebHistory,RouterView,RouterLink} from "vue-router";import {routes,handleHotUpdate} from "vue-router/auto-routes";const router=createRouter({history:createWebHistory(),routes});if(import.meta.hot)handleHotUpdate(router);const app={setup(){const count=ref(0);return()=>h("main",[h(RouterLink,{id:"person",to:"/person/7"},()=>"person"),h("button",{id:"count",onClick:()=>count.value++},String(count.value)),h(RouterView)])}};createApp(app).use(router).mount("#app");')
   await writeFile(path.join(scratch, 'server.js'), 'import {createSSRApp,h} from "vue";import {renderToString} from "vue/server-renderer";import {createRouter,createMemoryHistory,RouterView} from "vue-router";import {routes} from "vue-router/auto-routes";export async function render(url){const router=createRouter({history:createMemoryHistory(),routes});const app=createSSRApp({render:()=>h(RouterView)});app.use(router);await router.push(url);await router.isReady();return renderToString(app)}')
-  server = await createServer(configuration())
+  server = await createServer(configuration({ watch: true }))
   server.watcher.on('all', (event, filename) => {
     if (path.resolve(filename) === personFile && changes.length < 20)
       changes.push(event)
