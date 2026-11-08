@@ -47,6 +47,8 @@ jobs:
           npm ci --prefix vendor/vue-compiler/browser-tools --workspaces=false --include=optional --strict-allow-scripts
           npm ci --prefix vendor/vue-compiler/upstream --workspaces=false --strict-allow-scripts
           npm ci --prefix vendor/vite-plugin-checker/upstream --workspaces=false --include=optional --strict-allow-scripts
+          npm ci --prefix vendor/rollup-plugins/tools --workspaces=false --include=optional --strict-allow-scripts
+          npm ci --prefix vendor/rollup-plugins/upstream --workspaces=false --include=optional --strict-allow-scripts
 
       - name: Audit development and production dependencies
         run: |
@@ -80,3 +82,4 @@ jobs:
           npm run test:magicast-browser
           npm run test:vue-compiler-browser
           npm run test:checker-browser
+          npm run test:rollup-browser

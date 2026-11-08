@@ -353,6 +353,41 @@ toolchain versions, unsafe tar members and mismatched consuming locks. This
 source qualification remains separate from release, native artifact and
 protected production acceptance.
 
+## Rollup text editing, traversal and reference classification
+
+The maintained utility/CommonJS/inject/replace cohort uses Magic-string1.4.5,
+Walker3.0.3 and current reference classification3.0.3. Native ESM entrypoints use
+the current public dependencies. Synchronous CJS entrypoints share a deterministic
+tools build in the exact maintained utility version, avoiding import-only
+resolution failures and concurrent ESM loading races. Inject's older inlined
+reference helper is replaced by the current public provider, including correct
+class-field classification. CommonJS's stale embedded version string now matches
+the maintained package identity. Original public declaration bytes remain intact;
+an identical `.d.mts` copy provides the correct native ESM type boundary alongside
+the CJS declarations and unchanged runtime entrypoints.
+
+`vendor/rollup-plugins` retains original registry archives, an independently
+locked original graph and the separately locked tools graph. Two original
+archives contain one reviewed, byte-identical dot-path duplicate apiece. Original
+integrity and exact member digests bind their explicit normalization; conflicting,
+missing or unreviewed aliases fail. Maintained archives remain strictly canonical.
+Inject's README links the omitted repository-root MIT license, supplied verbatim
+from its exact recorded commit. All newly bundled licenses are retained;
+is-reference's publisher supplies its MIT declaration in the manifest and README,
+both preserved verbatim rather than replaced by an invented notice.
+
+`npm run check:rollup-package` checks deterministic archives, all consuming locks
+and installed bytes. `npm run test:rollup-compat` exercises actual Rollup builds
+with both ESM/CJS plugin factories and outputs, original-provider comparisons,
+cycles, live state, bounded dynamic require, mixed modules, builtins, injection,
+replacement, lexical scopes, class fields, maps, concurrent loading and strict
+positive/negative ESM/CJS types. Dynamic target patterns follow the public
+working-directory-relative contract. `npm run test:rollup-browser` executes both
+cohorts' generated browser bundles and verifies rendered state, events, injection,
+field keys and build flags. Full/production audits include both independent graphs.
+Remaining Nitro/unctx/unwasm and file-tracer consumers retain separate review
+and qualification work; this cohort is not whole-fleet completion.
+
 ## Vite checker and native Babel 8 code frames
 
 The maintained `vite-plugin-checker@0.14.5-webops.1` distribution uses
