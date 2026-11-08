@@ -56,20 +56,16 @@ function rename(node) {
   }
 }
 
-test('every actual Nuxt, wizard and Nitro consumer resolves the maintained native Babel8 editor', async () => {
+test('every locked application compiler consumer resolves the maintained native Babel8 editor', async () => {
   const expected = require.resolve('magicast')
-  const parents = [
-    '@nuxt/devtools',
-    '@nuxt/devtools-wizard',
-    'nitropack',
-    'nuxt',
-  ]
-  for (const name of parents) {
-    const parent = createRequire(import.meta.resolve(name))
-    const consumer = name === 'nuxt'
-      ? createRequire(parent.resolve('@nuxt/devtools/dist/module.mjs'))
-      : parent
-    assert.equal(consumer.resolve('magicast'), expected, name)
+  const lock = JSON.parse(await readFile(path.join(root, 'package-lock.json'), 'utf8'))
+  const parents = Object.entries(lock.packages).filter(([_location, info]) => info.dependencies?.magicast || info.peerDependencies?.magicast || info.devDependencies?.magicast)
+  for (const required of ['node_modules/@nuxt/devtools', 'node_modules/c12', 'node_modules/nitropack'])
+    assert.ok(parents.some(([location]) => location === required), required)
+  assert.ok(Object.keys(lock.packages).every(location => !location.endsWith('/@nuxt/devtools-wizard')))
+  for (const [location] of parents) {
+    const consumer = createRequire(path.join(root, location, 'package.json'))
+    assert.equal(consumer.resolve('magicast'), expected, location)
     const editor = createRequire(consumer.resolve('magicast'))
     for (const dependency of ['@babel/parser', '@babel/types', '@babel/generator']) {
       const metadata = JSON.parse(await readFile(editor.resolve(`${dependency}/package.json`), 'utf8'))

@@ -44,7 +44,7 @@ def archive_files(data):
     return files
 
 
-def pack_files(files):
+def pack_files(files, executable_paths=("package/out/cli.js",)):
     payload = io.BytesIO()
     directories = {str(parent) for name in files for parent in PurePosixPath(name).parents if str(parent) != "."}
     with tarfile.open(fileobj=payload, mode="w", format=tarfile.PAX_FORMAT) as archive:
@@ -56,7 +56,7 @@ def pack_files(files):
         for name, data in sorted(files.items()):
             member = tarfile.TarInfo(name)
             member.size = len(data)
-            member.mode = 0o755 if name == "package/out/cli.js" else 0o644
+            member.mode = 0o755 if name in executable_paths else 0o644
             archive.addfile(member, io.BytesIO(data))
     output = io.BytesIO()
     with gzip.GzipFile(filename="", mode="wb", fileobj=output, compresslevel=9, mtime=0) as compressed:

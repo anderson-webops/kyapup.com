@@ -52,6 +52,7 @@ jobs:
           npm ci --prefix vendor/nitro-tools/upstream --workspaces=false --include=optional --strict-allow-scripts
           npm ci --prefix vendor/nitro-tools/current --workspaces=false --include=optional --strict-allow-scripts
           npm ci --prefix vendor/nft/upstream --workspaces=false --include=optional --strict-allow-scripts
+          npm ci --prefix vendor/watchers/upstream --workspaces=false --include=optional --strict-allow-scripts
 
       - name: Audit development and production dependencies
         run: |
@@ -87,3 +88,4 @@ jobs:
           npm run test:checker-browser
           npm run test:rollup-browser
           npm run test:nitro-tools-browser
+          npm run test:nuxt-watcher-browser

@@ -433,7 +433,42 @@ field keys and build flags. Full/production audits include both independent grap
 Nitro/unctx/unwasm and file-tracer consumers have separate qualification below;
 compatible active-fleet adoption remains unfinished.
 
-## File tracing with native Walker 3
+## Native watcher and configuration-reload cohort
+
+The frontend already selected Nuxt DevTools 4.1.0. The remaining Nuxt and
+ESLint kit consumers now select that same native major, and all application
+Chokidar consumers select 6.0.0 rather than retaining nested major-5 copies.
+Original package implementation, declarations and licenses remain unchanged.
+`vendor/watchers` retains integrity-bound current and original comparison inputs,
+with an independently locked and audited Chokidar 5/Jiti graph.
+
+Real watcher tests cover native and polling events, exclusions, unwatch/close,
+atomic/stable writes, missing paths, repeated recovery, symlinks, safe watched
+metadata, Nuxt's throttle-recovery adapter and both Unstorage filesystem formats.
+The actual Nuxt/DevTools application runs in both regular and granular watcher
+modes with state-preserving browser HMR, route creation/removal, developer UI
+and the kit's existing subprocess contract. Watcher and loader public types are
+checked strictly; Nuxt types retain their required generated-project checks.
+These tests preserve development-only scope and production exclusions.
+
+The cohort exposed an independent Jiti 2.7.0 failure: a real C12 change event
+reloaded stale native-ESM configuration despite `moduleCache: false`. The
+maintained `jiti@2.7.0-webops.1` distribution honors that policy for ESM,
+CommonJS and JSON through its existing transformation/evaluation path, including
+`tryNative: true`. UTF-8 BOM handling, CommonJS exports/`this` binding and Node
+filename globals remain compatible. Default caching and explicit native-module choices remain
+unchanged. It uses no accumulating cache-busting module URLs. Original CLI,
+types, exports, licenses and other bundled implementation remain unchanged;
+embedded compiler review stays distinct from registry dependency audits.
+
+`npm run check:watcher-inputs` verifies original bytes, locks and the reproducible
+maintained loader. `npm run test:watchers` exercises configuration reloads,
+relative imports, top-level await, metadata, syntax-error recovery, concurrent
+evaluation, original negative controls and deterministic archive guards.
+`npm run test:nuxt-watcher-browser` verifies the real framework consumers. Full
+and production audits also cover the independent original comparison graph.
+
+## File-tracer provider acceptance
 
 The maintained `@vercel/nft@1.11.1-webops.1` distribution uses the original
 native `estree-walker@3.0.3` implementation. Its existing asynchronous analysis
