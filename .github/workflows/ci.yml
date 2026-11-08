@@ -39,20 +39,14 @@ jobs:
           printf '%s\n' "$bin" >> "$GITHUB_PATH"
           "$bin/node" scripts/check-build-toolchain.mjs
 
+      - name: Verify the independently rebuilt auto-import compiler
+        run: bash scripts/prepare-unimport-source.sh
+
       - name: Install locked dependencies
         run: npm ci --include=optional --strict-allow-scripts
 
       - name: Install independent compiler tooling and original-version fixtures
-        run: |
-          npm ci --prefix vendor/vue-compiler/browser-tools --workspaces=false --include=optional --strict-allow-scripts
-          npm ci --prefix vendor/vue-compiler/upstream --workspaces=false --strict-allow-scripts
-          npm ci --prefix vendor/vite-plugin-checker/upstream --workspaces=false --include=optional --strict-allow-scripts
-          npm ci --prefix vendor/rollup-plugins/tools --workspaces=false --include=optional --strict-allow-scripts
-          npm ci --prefix vendor/rollup-plugins/upstream --workspaces=false --include=optional --strict-allow-scripts
-          npm ci --prefix vendor/nitro-tools/upstream --workspaces=false --include=optional --strict-allow-scripts
-          npm ci --prefix vendor/nitro-tools/current --workspaces=false --include=optional --strict-allow-scripts
-          npm ci --prefix vendor/nft/upstream --workspaces=false --include=optional --strict-allow-scripts
-          npm ci --prefix vendor/watchers/upstream --workspaces=false --include=optional --strict-allow-scripts
+        run: bash scripts/prepare-compiler-fixtures.sh
 
       - name: Audit development and production dependencies
         run: |

@@ -28,11 +28,17 @@ make artifact acceptance pass.
 
 Use an unprivileged disposable Linux ARM64 builder with Node 26.13.0 and npm
 12.2.2 selected through the locked `webops-locked-npm-v1` profile. Python 3.11 or
-newer, libatomic and Bubblewrap with user namespaces must be available. Start from a
+newer, GnuPG's `gpgv`, libatomic and Bubblewrap with user namespaces must be available. Start from a
 clean, exact source commit. Record that commit. Run the repository's clean install,
 full/production audits, signatures, lint, types, tests, build, native declarations
 and deployment-output gates. Accessibility can run on the same source in a
 supported Chrome environment. Do not load real environment files or provider data.
+
+Verify the signed-source compiler with `bash scripts/prepare-unimport-source.sh`
+before the application install. After the clean root install, use
+`bash scripts/prepare-compiler-fixtures.sh` for the complete independent tooling
+and original-version comparison graphs required by validation. Both direct
+release paths and ordinary CI use these same source-side preparation gates.
 
 Resolve the owning checkout, locally exclude `/.ai-work/` in `.git/info/exclude`,
 verify the ignore rule, and record the temporary builder directory in

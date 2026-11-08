@@ -222,13 +222,21 @@ checks reject both compiler packages; Linux ARM64 binding and artifact checks
 remain required.
 
 Nuxt 4.6.4 requires `unimport ^7.0.2`. Its locked and installed provider must
-satisfy that original API contract. Version 7.0.2's advertised npm attestation
-endpoint currently returns404, holding release provenance qualification until
-the publisher repairs the endpoint or a compatible successor verifies.
-Full registry-signature and provenance checks remain mandatory. Consumers with
-different declared ranges keep their own compatible providers. Clean installs,
-Nuxt auto-import/type checking, application tests and generated-site checks
-remain required alongside provenance.
+satisfy that original API contract. The maintained `7.0.2+webops.1` provider is
+independently rebuilt from the complete signed v7.0.2 source tree. Both signed
+Git objects, the public signer, all 224 source files, the independent audited
+compiler lock, source patch and resulting installed bytes are verified.
+The original registry package's advertised attestation still returns HTTP 404;
+that failed provenance receipt remains distinct from this source rebuild.
+See `vendor/unimport/README.md` for the reproducible build and exact scope.
+
+All actual unscoped application consumers use that qualified major-7 provider,
+with native Nuxt/Nitro, source, browser and strict core/addon declaration tests.
+The separate `@dxup/unimport` package retains its own identity. Standalone strict
+Unplugin all-framework declaration qualification remains outstanding; its
+optional framework contracts are not certified by the core declaration test.
+Full registry signatures, source provenance, clean installs, full/production
+audits and application checks remain mandatory.
 
 The frontend's c12 dependency remains on the stable 3.3 API required by its Nitro 2 dependency.
 The newer 4.0.0-rc.4 distribution is a prerelease outside that parent range;

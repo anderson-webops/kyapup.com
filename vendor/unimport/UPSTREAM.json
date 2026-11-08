@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "repository": "https://github.com/unjs/unimport",
+  "tag": "v7.0.2",
+  "tagObject": "636f6dd4afa0c74469195f21d29c144ed1697efd",
+  "commit": "bbd07768ddb4919205bcb5a3cbc06c3a2791981a",
+  "tree": "d3dec0a75a2be87cfd16ec7cee3d1716b75e4ad2",
+  "signerFingerprint": "83DFB8EACB2CCD9ACE75B47CFB8599EBAB9E40B9",
+  "publicKeySource": "https://github.com/antfu.gpg",
+  "inputsSha256": {
+    "source.tgz": "a321aef13eafdac638a2540d72687dffb10a672696dc76b4fd0b2c0065d26da9",
+    "tag.git": "dabcc590119870eed6660f3692e31451a66faecd0930bac124054a78e9e3cd86",
+    "commit.git": "fc481a3263b9cc41e57537aff8903855bdef5d7fd8f2dac8d9a483c6422e4d5d",
+    "signer.gpg": "f235680005282d34c56fb370b04df58a177df9732c6cd9f26508567d66025f92"
+  },
+  "registryReference": {
+    "version": "7.0.2",
+    "integrity": "sha512-5yrZs6kHyx5h1ZgeLxK0EgS/JL7Uhwv9HgzQImW8JccGmbYWyXx7Jc4YhU5+sd1Yk31PlfLQhfbZ1oigXipo3A==",
+    "advertisedAttestation": "https://registry.npmjs.org/-/npm/v1/attestations/unimport@7.0.2",
+    "observedFailure": "HTTP 404; original registry provenance remains unverified"
+  }
+}
