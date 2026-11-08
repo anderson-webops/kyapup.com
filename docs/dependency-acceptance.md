@@ -270,3 +270,45 @@ The HTTPS fixture client trusts only its explicitly supplied certificate and
 retains hostname authentication. Missing or unrelated trust and an incorrect
 hostname reject; generated certificates, inline PEM, PEM files and PFX remain
 supported. The trust is request-local, with bounded transport failure and cleanup.
+
+## Configuration editor on Babel 8
+
+Nuxt DevTools, its wizard and Nitro use the maintained Magicast
+`0.5.5-webops.1` distribution. `vendor/magicast/UPSTREAM.json` binds the
+original registry archive and the reviewed dependency identities;
+`scripts/package-magicast-compat.py` reproduces the maintained archive and
+checks every consuming lock entry. The original declarations, license,
+entrypoints and custom Recast/ast-types implementation remain. Changes to
+the official integration anchors require a fresh review.
+
+The bridge extends the custom AST schema for native Babel 8 values and fields,
+including bigint, dynamic imports, generic arguments, signatures, mapped
+types, enums, qualified namespaces and template literal types. Current Babel
+printing handles changed syntax while Recast retains its source reuse and
+source-map behavior. The dynamic-import proxy retains `$callee` and mutable
+`$args` on an actual `ImportExpression`; no legacy parser mode is used.
+Proxy literal writes use current Babel builders, so fresh printing also works
+after composing dynamic-import arguments and nested configuration objects.
+Configuration helpers attach parsed expression nodes when updating a
+variable or `satisfies` initializer, rather than inserting a string into the AST.
+
+Removed decimal/record-tuple/import-assertion syntax and the obsolete minimal
+pipeline proposal are no longer enabled by default. Standard import attributes
+remain supported. A caller needing another current proposal can supply its
+own supported parser explicitly. Unsupported syntax produces a parsing error.
+
+The historical input archive embeds source-map-js 1.2.1, affected by
+GHSA-68fv-2mgg-jv7q. Its original bytes remain evidence, not a clean runtime.
+The maintained archive removes that embedded implementation and uses patched
+source-map-js 1.2.2. A bounded subprocess regression sends invalid and excessive
+indexed offsets through Magicast's actual map-composition path. The independent
+original-version audit graph preserves Magicast 0.5.5, Recast 0.24.0 and
+ast-types 0.16.3, with the supported external source-map-js 1.2.2 dependency;
+it does not conceal or certify the historical embedded implementation.
+
+`npm run test:magicast` covers configuration edits, native AST mutations,
+fresh-tree printing, strict positive/negative public type contracts, files,
+source maps and deterministic packaging. `npm run test:magicast-browser`
+executes `magicast/core` and helpers in real Chrome using both normal and
+minified browser bundles. Full project checks, the independent full/production
+audits, and exact artifact acceptance remain release requirements.

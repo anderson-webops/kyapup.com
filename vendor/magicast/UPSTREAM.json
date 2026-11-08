@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "name": "magicast",
+  "version": "0.5.5",
+  "integrity": "sha512-UicdXN8zQ3JHlxVq+28afMXPr1z7WNY6+7EJnzTdQWkTAlMLF5fNCCKxJHBQwGaNGR11581EiQmQzx73+MvszA==",
+  "archive": "upstream/magicast-0.5.5.tgz",
+  "patchedVersion": "0.5.5-webops.1",
+  "inlinedDependencies": { "recast": "0.24.0", "source-map-js": "1.2.1", "ast-types": "0.16.3" },
+  "removedEmbeddedAdvisory": {
+    "package": "source-map-js",
+    "version": "1.2.1",
+    "advisory": "GHSA-68fv-2mgg-jv7q",
+    "replacement": "1.2.2",
+    "scope": "The historical input archive retains vulnerable embedded bytes. The maintained runtime removes them and imports the patched dependency. The independent original-version graph audits the patched external source-map dependency while preserving the original Magicast, Recast and ast-types identities."
+  },
+  "dependencies": {
+    "@babel/generator": "^8.1.0",
+    "@babel/parser": "^8.1.0",
+    "@babel/types": "^8.1.0",
+    "source-map-js": "^1.2.2"
+  }
+}
