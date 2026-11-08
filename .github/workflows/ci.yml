@@ -51,6 +51,7 @@ jobs:
           npm ci --prefix vendor/rollup-plugins/upstream --workspaces=false --include=optional --strict-allow-scripts
           npm ci --prefix vendor/nitro-tools/upstream --workspaces=false --include=optional --strict-allow-scripts
           npm ci --prefix vendor/nitro-tools/current --workspaces=false --include=optional --strict-allow-scripts
+          npm ci --prefix vendor/nft/upstream --workspaces=false --include=optional --strict-allow-scripts
 
       - name: Audit development and production dependencies
         run: |

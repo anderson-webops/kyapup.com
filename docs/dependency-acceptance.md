@@ -430,8 +430,34 @@ positive/negative ESM/CJS types. Dynamic target patterns follow the public
 working-directory-relative contract. `npm run test:rollup-browser` executes both
 cohorts' generated browser bundles and verifies rendered state, events, injection,
 field keys and build flags. Full/production audits include both independent graphs.
-Remaining Nitro/unctx/unwasm and file-tracer consumers retain separate review
-and qualification work; this cohort is not whole-fleet completion.
+Nitro/unctx/unwasm and file-tracer consumers have separate qualification below;
+compatible active-fleet adoption remains unfinished.
+
+## File tracing with native Walker 3
+
+The maintained `@vercel/nft@1.11.1-webops.1` distribution uses the original
+native `estree-walker@3.0.3` implementation. Its existing asynchronous analysis
+boundary imports the ESM walker before traversal. Its synchronous wrapper
+preprocessor uses the qualified Rollup utility cohort's reproducibly built
+Walker 3 CommonJS provider, retaining synchronous behavior and shared licenses.
+Awaited visitors, scope handling and dependency/asset reasons remain intact.
+Every other implementation module,
+public declaration, CLI, export and license remains byte-identical. The original
+file-tracer and modern Walker archives are integrity-bound in `vendor/nft`, and
+the original parent graph is independently locked and audited. That comparison
+graph retains the unchanged parent and Walker 2 while selecting the separately
+qualified Glob 14/Minimatch 11 providers. The unmodified original graph's affected
+Glob 13/Minimatch 10 audit is retained as failed evidence, rather than declared
+clean or suppressed.
+
+`npm run check:nft-package` reproduces the archive and checks consuming locks,
+installed bytes and original inputs. `npm run test:nft` compares actual CJS/ESM,
+conditional/dynamic imports, asset globs, native paths, symlinks, shadowing,
+warnings, exclusions and reason chains with the original parent. It exercises
+concurrent delayed I/O, repeat/cache and failure recovery, strict positive and
+negative TypeScript 6/7 consumers, and actual CLI tracing/copying. The copied
+synthetic application runs repeatedly with read access limited to its output.
+Existing compiled Nitro and browser checks remain separate required gates.
 
 ## Vite checker and native Babel 8 code frames
 
