@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "name": "@vercel/nft",
+  "version": "1.11.1",
+  "patchedVersion": "1.11.1-webops.1",
+  "archive": "vercel-nft-1.11.1.tgz",
+  "integrity": "sha512-RXQA08MdBy9WdKKXf1JCAM6HlZUOUDPDBjwHSz0ZaPcQDVisPR5hPJs2iLHVdfjHq36YIlS9AkzDceegukpqGA==",
+  "gitHead": "29eaa88aaf5d9c8b72758b3f064c5a70cd6a725c",
+  "walker": {
+    "version": "3.0.3",
+    "archive": "estree-walker-3.0.3.tgz",
+    "integrity": "sha512-7RUKfXgSMMkzt6ZuXmqapOurLGPPfgj6l9uRZ7lRGolvk0y2yocc35LdcxKC5PQZdn2DMqioAQ2NoWcrTKmm6g=="
+  },
+  "syncTools": "@rollup/pluginutils@5.5.1-webops.1",
+  "adaptation": "Load the native ESM asynchronous walker inside the existing asynchronous analysis boundary. Synchronous wrapper preprocessing shares the independently locked and reproducibly built Walker3 CommonJS provider from the qualified Rollup utility cohort. Preserve all other implementation files, declarations, exports, dependency ranges and licenses."
+}

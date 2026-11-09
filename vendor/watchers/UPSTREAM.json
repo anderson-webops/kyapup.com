@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "jiti": { "name": "jiti", "version": "2.7.0", "patchedVersion": "2.7.0-webops.1", "archive": "jiti-2.7.0.tgz", "integrity": "sha512-AC/7JofJvZGrrneWNaEnJeOLUx+JlGt7tNa0wZiRPT4MY1wmfKjt2+6O2p2uz2+skll8OZZmJMNqeke7kKbNgQ==", "scope": "Honor moduleCache:false for native ESM, CommonJS and JSON without accumulating cache-busting ESM URLs. Preserve default caching, explicit native modules, relative import resolution, public declarations, exports and CLI bytes. Original embedded compiler content remains separately reviewable; a dependency audit does not certify bundled source." },
+  "packages": [
+    { "name": "chokidar", "version": "6.0.0", "archive": "chokidar-6.0.0.tgz", "integrity": "sha512-Ec2Z7wpcKBiMpR7DxteoqS/sq5G5d2A4fpxzPv6+fD7xNNdrTghn7L11YwV5EN1B3i72Erc3XVT5FkWIDx90+A==", "installed": "node_modules/chokidar", "lock": "package-lock.json" },
+    { "name": "readdirp", "version": "5.1.1", "archive": "readdirp-5.1.1.tgz", "integrity": "sha512-Kko+Y5XQ6fM+Ce3dq3m9YGxnacYZYl9cA1wZjaF3Vbry2L3i1qVg8+CAgNPsXRArPMUMCaOR7oa9Nqntc43JKA==", "installed": "node_modules/readdirp", "lock": "package-lock.json" },
+    { "name": "chokidar", "version": "5.0.0", "archive": "chokidar-5.0.0.tgz", "integrity": "sha512-TQMmc3w+5AxjpL8iIiwebF73dRDF4fBIieAqGn9RGCWaEVwQ6Fb2cGe31Yns0RRIzii5goJ1Y7xbMwo1TxMplw==", "installed": "vendor/watchers/upstream/node_modules/chokidar", "lock": "vendor/watchers/upstream/package-lock.json" }
+  ],
+  "scope": "Original registry modules, declarations and licenses remain unchanged. Actual application parents use Chokidar6 and Nuxt DevTools/kit4 through qualified scoped provider selection. The independent Chokidar5 graph retains the original comparison implementation and its own audits."
+}

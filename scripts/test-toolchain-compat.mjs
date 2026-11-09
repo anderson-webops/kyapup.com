@@ -7,6 +7,7 @@ import path from 'node:path'
 import process from 'node:process'
 import test from 'node:test'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { parse as parseYaml } from 'yaml'
 
 const root = fileURLToPath(new URL('..', import.meta.url))
 const require = createRequire(import.meta.url)
@@ -18,6 +19,48 @@ function npmPackage() {
     require: createRequire(path.resolve(path.dirname(entrypoint), '../package.json')),
   }
 }
+
+function codeqlVersion(workflow) {
+  const actions = Object.values(workflow.jobs).flatMap(job => job.steps).filter(step => step.uses?.startsWith('github/codeql-action/'))
+  assert.ok(actions.length >= 2)
+  const versions = actions.map((step) => {
+    const version = step.uses.split('@')[1]
+    assert.match(version, /^[a-f0-9]{40}$/, 'CodeQL actions require immutable commit pins')
+    return version
+  })
+  assert.equal(new Set(versions).size, 1, 'Every CodeQL action requires the same version')
+  return versions[0]
+}
+
+test('CodeQL actions share one immutable version and one dependency-update group', () => {
+  const workflow = parseYaml(readFileSync(path.join(root, '.github/workflows/codeql.yml'), 'utf8'))
+  codeqlVersion(workflow)
+  const configuration = parseYaml(readFileSync(path.join(root, '.github/dependabot.yml'), 'utf8'))
+  const updates = configuration.updates.find(update => update['package-ecosystem'] === 'github-actions')
+  assert.deepEqual(updates.groups['codeql-actions'].patterns, ['github/codeql-action/*'])
+})
+
+test('CodeQL version checks reject split versions and floating action references', () => {
+  const workflow = parseYaml(readFileSync(path.join(root, '.github/workflows/codeql.yml'), 'utf8'))
+  const analyze = workflow.jobs.analyze.steps.find(step => step.uses?.startsWith('github/codeql-action/analyze@'))
+  const current = codeqlVersion(workflow)
+  const different = current === 'a'.repeat(40)
+    ? 'b'.repeat(40)
+    : 'a'.repeat(40)
+  analyze.uses = `github/codeql-action/analyze@${different}`
+  assert.throws(() => codeqlVersion(workflow), /same version/)
+  analyze.uses = 'github/codeql-action/analyze@v4'
+  assert.throws(() => codeqlVersion(workflow), /immutable commit pins/)
+})
+
+test('the workflow parser is declared and bound to the installed project graph', () => {
+  const manifest = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'))
+  const lock = JSON.parse(readFileSync(path.join(root, 'package-lock.json'), 'utf8'))
+  assert.ok(manifest.devDependencies.yaml)
+  assert.equal(lock.packages[''].devDependencies.yaml, manifest.devDependencies.yaml)
+  assert.equal(lock.packages['node_modules/yaml'].version, require('yaml/package.json').version)
+  assert.equal(parseYaml, require('yaml').parse)
+})
 
 test('the locked Nuxt provider satisfies its original unimport API floor', () => {
   const lock = JSON.parse(readFileSync(path.join(root, 'package-lock.json'), 'utf8'))

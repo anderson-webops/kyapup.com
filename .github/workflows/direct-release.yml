@@ -68,7 +68,9 @@ jobs:
           NUXT_TELEMETRY_DISABLED: "1"
           PUPPETEER_SKIP_DOWNLOAD: "true"
         run: |
+          bash scripts/prepare-unimport-source.sh
           npm ci --include=optional --strict-allow-scripts
+          bash scripts/prepare-compiler-fixtures.sh
           npm run audit:all
           npm run audit:prod
           npm run audit:api

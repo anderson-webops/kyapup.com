@@ -4,9 +4,11 @@ import { spawnSync } from 'node:child_process'
 import { scryptSync } from 'node:crypto'
 import { access, mkdtemp, readFile, rm } from 'node:fs/promises'
 import { createServer } from 'node:http'
+import { createRequire } from 'node:module'
 import os from 'node:os'
 import path from 'node:path'
 import process from 'node:process'
+import { Readable } from 'node:stream'
 
 assert.equal(process.platform, 'linux')
 assert.equal(process.arch, 'arm64')
@@ -54,6 +56,24 @@ else {
     maxmem: 64 * 1024 * 1024,
   })
   const passwordHash = `scrypt$32768$8$1$${salt.toString('hex')}$${key.toString('hex')}`
+  const runtimeRequire = createRequire('/app/back-end/package.json')
+  const expressRequire = createRequire(runtimeRequire.resolve('express'))
+  const bodyParserRequire = createRequire(expressRequire.resolve('body-parser'))
+  const cookie = expressRequire('cookie')
+  const encodeUrl = expressRequire('encodeurl')
+  const getRawBody = bodyParserRequire('raw-body')
+  const typeIs = bodyParserRequire('type-is')
+  assert.equal(cookie.serialize('runtime', 'value /', { httpOnly: true, sameSite: 'strict' }), 'runtime=value%20%2F; HttpOnly; SameSite=Strict')
+  assert.equal(encodeUrl('/runtime path'), '/runtime%20path')
+  assert.equal(typeIs({
+    headers: { 'content-type': 'application/problem+json', 'content-length': '1' },
+  }, '+json'), 'application/problem+json')
+  assert.equal(await getRawBody(Readable.from([
+    Buffer.from([118, 0, 0, 0]),
+  ]), { encoding: 'utf-32le' }), 'v')
+  await assert.rejects(getRawBody(Readable.from([
+    Buffer.alloc(3),
+  ]), { limit: 2 }), { status: 413, type: 'entity.too.large' })
   const { createApp } = await import('/app/back-end/dist/app.js')
   let ready = false
   const server = createServer(createApp({
@@ -161,5 +181,6 @@ else {
     secondaryLockoutExpiryAndRestart: true,
     persistence: true,
     restart: true,
+    modernHttpCompatibility: true,
   }))
 }

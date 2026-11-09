@@ -1,0 +1,323 @@
+{
+  "eslint-plugin-format": {
+    "schemaVersion": 1,
+    "package": {
+      "name": "eslint-plugin-format",
+      "type": "module",
+      "version": "2.0.1",
+      "description": "Format various languages with formatters in ESLint",
+      "author": "Anthony Fu <anthonyfu117@hotmail.com>",
+      "license": "MIT",
+      "funding": "https://github.com/sponsors/antfu",
+      "homepage": "https://github.com/antfu/eslint-plugin-format#readme",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/antfu/eslint-plugin-format.git"
+      },
+      "bugs": "https://github.com/antfu/eslint-plugin-format/issues",
+      "keywords": [
+        "eslint",
+        "eslint-plugin",
+        "formatters",
+        "prettier",
+        "dprint",
+        "oxfmt"
+      ],
+      "sideEffects": false,
+      "exports": {
+        ".": "./dist/index.mjs",
+        "./define-config-support": {
+          "types": "./dts/define-config-support.d.ts"
+        },
+        "./rule-options": {
+          "types": "./dts/rule-options.d.ts"
+        }
+      },
+      "main": "./dist/index.mjs",
+      "module": "./dist/index.mjs",
+      "types": "./dist/index.d.mts",
+      "typesVersions": {
+        "*": {
+          "*": [
+            "./dist/*",
+            "./dist/index.d.ts"
+          ]
+        }
+      },
+      "files": [
+        "dist",
+        "dts",
+        "workers"
+      ],
+      "peerDependencies": {
+        "eslint": "^8.40.0 || ^9.0.0 || ^10.0.0"
+      },
+      "dependencies": {
+        "@dprint/formatter": "^0.5.1",
+        "@dprint/markdown": "^0.21.1",
+        "@dprint/toml": "^0.7.0",
+        "eslint-formatting-reporter": "^0.0.0",
+        "eslint-parser-plain": "^0.1.1",
+        "ohash": "^2.0.11",
+        "oxfmt": "^0.35.0",
+        "prettier": "^3.8.1",
+        "synckit": "^0.11.12"
+      },
+      "devDependencies": {
+        "@antfu/eslint-config": "^7.6.0",
+        "@antfu/ni": "^28.2.0",
+        "@antfu/utils": "^9.3.0",
+        "@types/eslint": "^9.6.1",
+        "@types/node": "^25.3.0",
+        "bumpp": "^10.4.1",
+        "eslint": "^10.0.2",
+        "eslint-vitest-rule-tester": "^3.1.0",
+        "lint-staged": "^16.2.7",
+        "pnpm": "^10.30.2",
+        "simple-git-hooks": "^2.13.1",
+        "skills-npm": "^1.0.0",
+        "tsdown": "^0.20.3",
+        "tsx": "^4.21.0",
+        "typescript": "^5.9.3",
+        "vite": "^7.3.1",
+        "vitest": "^4.0.18",
+        "eslint-plugin-format": "2.0.1"
+      },
+      "simple-git-hooks": {
+        "pre-commit": "npx lint-staged"
+      },
+      "lint-staged": {
+        "*": "eslint --fix"
+      },
+      "scripts": {
+        "build": "tsdown",
+        "dev": "tsdown --watch",
+        "lint": "nr build && eslint .",
+        "release": "bumpp",
+        "start": "tsx src/index.ts",
+        "test": "vitest",
+        "typecheck": "tsc --noEmit"
+      }
+    },
+    "archive": "upstream/eslint-plugin-format-2.0.1.tgz",
+    "registryIntegrity": "sha512-0BA65p5DAiuKtx5MmMJfPk9WaTjoHHbyVW7ZXRhaZoA1fdiMHhay9QRiDL2wr0hJWZxdF7CRThOK/70VUKVg2g==",
+    "registryArchiveSha256": "c98d5af4e2a49a846fca865cdedf6401be359ed062a088a4c5362c5afff93481",
+    "patchedVersion": "2.0.1-webops.1",
+    "qualifiedRange": "^0.77.0",
+    "files": {
+      "LICENSE": "af32efdd008a371c77b13eef5010c81d6c5c2f67c054b6bb74317e13ac38c171",
+      "README.md": "b2098317872a2504dc5f626177afed0a74d30325696d661fa05438538bd59937",
+      "dist/index.d.mts": "993ad6b4bd3debae7e7a85d4eeb21c5020288fd7b6dd49def5f87e254700f3d4",
+      "dist/index.mjs": "f277c80e4d24077038814bc06cd73443291aaf6f2c52345e5e3e17f49abd13d3",
+      "dts/define-config-support.d.ts": "4807d308c493e14b57e7237a79035e7cf380c5f1873231f68607b7d8fb98551d",
+      "dts/rule-options.d.ts": "219f829403332ad672ee9c780f5398e58a7b08bc321c5e94887a0e43ebcd7e9f",
+      "package.json": "a81265378a7b945c1c376cc4be846878b3d551f39e96c7d6398888b038e50d1c",
+      "workers/dprint.cjs": "af4698b366a3f6a28dbf2a979eeaa31298e3326d005db0cccdeacc71a18af19c",
+      "workers/oxfmt.cjs": "5f7625bdd902d01003e8322d2c308aba39eecbda5a03e0d4525f57330973c10f",
+      "workers/prettier.cjs": "1b75287ca1ed61d94333d7a6a97a9cf8a146c870f5d176bfde2f6b58e84596ed"
+    }
+  },
+  "@unocss/transformer-attributify-jsx": {
+    "schemaVersion": 1,
+    "package": {
+      "name": "@unocss/transformer-attributify-jsx",
+      "type": "module",
+      "version": "66.12.0",
+      "description": "Support valueless attributify in JSX/TSX.",
+      "author": "Anthony Fu <anthonyfu117@hotmail.com>",
+      "license": "MIT",
+      "funding": "https://github.com/sponsors/antfu",
+      "homepage": "https://unocss.dev",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/unocss/unocss.git",
+        "directory": "packages-presets/transformer-attributify-jsx"
+      },
+      "bugs": {
+        "url": "https://github.com/unocss/unocss/issues"
+      },
+      "keywords": [
+        "unocss",
+        "unocss-transformer"
+      ],
+      "sideEffects": false,
+      "exports": {
+        ".": "./dist/index.mjs",
+        "./package.json": "./package.json"
+      },
+      "types": "./dist/index.d.mts",
+      "files": [
+        "dist"
+      ],
+      "dependencies": {
+        "@unocss/core": "66.12.0",
+        "oxc-parser": "^0.153.0",
+        "oxc-walker": "^1.1.1"
+      },
+      "devDependencies": {
+        "magic-string": "^1.4.4"
+      },
+      "scripts": {
+        "build": "tsdown --config-loader unrun",
+        "dev": "tsdown --config-loader unrun --watch"
+      }
+    },
+    "archive": "upstream/unocss-transformer-attributify-jsx-66.12.0.tgz",
+    "registryIntegrity": "sha512-bJ+9jhQVCaegVB+rUKf112TMDm41dNK/bt5XUT5Seeg1Wfo0jReX8VYSRsDj4rLKf9zowJwojjz8MhXO+hDEBw==",
+    "registryArchiveSha256": "3d333df9684298d422aee9d06bb5d6a8f94e7ad949773597ca19ea655dbfd002",
+    "patchedVersion": "66.12.0-webops.1",
+    "qualifiedRange": "^0.157.0",
+    "files": {
+      "README.md": "e591f2a5e0f08d7ff4d2b027c4557042cab229f1cbde7c8794d79f70fe37bc9d",
+      "dist/index.d.mts": "7f266cc89a89fa15f639282e90b69ca51cdc7bf785d884f75248d19c7e9b6305",
+      "dist/index.mjs": "1967135c89fe04cf1ee19e2d95a904b8c1dd90af440472e7af0fd0d32494ff05",
+      "package.json": "5bceb8ed067de2d653d23ebb98a7e84d0b8e0fe050ce768cc3b18047087910c0"
+    }
+  },
+  "unconfig": {
+    "schemaVersion": 1,
+    "package": {
+      "name": "unconfig",
+      "type": "module",
+      "version": "7.5.0",
+      "description": "A universal solution for loading configurations.",
+      "author": "Anthony Fu <anthonyfu117@hotmail.com>",
+      "license": "MIT",
+      "funding": "https://github.com/sponsors/antfu",
+      "homepage": "https://github.com/antfu-collective/unconfig#readme",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/antfu-collective/unconfig.git",
+        "directory": "packages/unconfig"
+      },
+      "bugs": {
+        "url": "https://github.com/antfu-collective/unconfig/issues"
+      },
+      "keywords": [
+        "config"
+      ],
+      "sideEffects": false,
+      "exports": {
+        ".": "./dist/index.mjs",
+        "./presets": "./dist/presets.mjs",
+        "./package.json": "./package.json"
+      },
+      "types": "./dist/index.d.mts",
+      "files": [
+        "*.d.ts",
+        "dist"
+      ],
+      "dependencies": {
+        "@quansync/fs": "^1.0.0",
+        "defu": "^6.1.4",
+        "jiti": "^2.6.1",
+        "quansync": "^1.0.0",
+        "unconfig-core": "7.5.0"
+      },
+      "devDependencies": {
+        "@antfu/utils": "^9.3.0"
+      },
+      "tsdown": {
+        "entry": [
+          "src/index.ts",
+          "src/presets.ts"
+        ]
+      },
+      "scripts": {}
+    },
+    "archive": "upstream/unconfig-7.5.0.tgz",
+    "registryIntegrity": "sha512-oi8Qy2JV4D3UQ0PsopR28CzdQ3S/5A1zwsUwp/rosSbfhJ5z7b90bIyTwi/F7hCLD4SGcZVjDzd4XoUQcEanvA==",
+    "registryArchiveSha256": "d6525d8b0b3a93f276490b369b7abc0c62664def964c3a6a058cf9a95edc6dfc",
+    "patchedVersion": "7.5.0-webops.1",
+    "qualifiedRange": "7.5.0",
+    "files": {
+      "LICENSE": "b702fad0bff2bd12186b3ce2568284a27c617b0cd16264089b730e98ebd8afa0",
+      "dist/dist-DBY4ctBk.mjs": "4d5457917793cd27904b14883817aa294b379e48332d0525a25d6dd58a753993",
+      "dist/index.d.mts": "12d16afcf774d00ff3af671ce0c64e16bdf56b3e758cbd4c5cbd446a9f27c52f",
+      "dist/index.mjs": "cefcda6e7825fa8fdadb64b8ca3e25bc11b1ff17e2feccfe8d468d2d87bb9d23",
+      "dist/presets.d.mts": "348a9803d44e95c00e9b4d091bb327a2633aa1e48612993f99d1685a823ca118",
+      "dist/presets.mjs": "89170cd3cf28a7cbe564416256259f2250497f0e3ff2ce6299eaec7dd1f0df71",
+      "dist/types-BP4WUQ7G.d.mts": "506602d934ff0dc0e1ec38173d17871bb52f4984e919a27e1ac2084a658f6e07",
+      "package.json": "4557de98c6d85636ad654ac989dbc2dddb694dbbbcdc8f80017ac935ec019d55",
+      "presets.d.ts": "e2924f3a9ab0200980c405dc107863eb61cbfd34aa0e923cb02438ff2d3dfe5a"
+    }
+  },
+  "@unocss/vite": {
+    "schemaVersion": 1,
+    "package": {
+      "name": "@unocss/vite",
+      "type": "module",
+      "version": "66.12.0",
+      "description": "The Vite plugin for UnoCSS",
+      "author": "Anthony Fu <anthonyfu117@hotmail.com>",
+      "license": "MIT",
+      "funding": "https://github.com/sponsors/antfu",
+      "homepage": "https://unocss.dev",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/unocss/unocss.git",
+        "directory": "packages-integrations/vite"
+      },
+      "bugs": {
+        "url": "https://github.com/unocss/unocss/issues"
+      },
+      "keywords": [
+        "unocss",
+        "vite",
+        "vite-plugin"
+      ],
+      "sideEffects": false,
+      "exports": {
+        ".": "./dist/index.mjs",
+        "./client": "./dist/client.mjs",
+        "./package.json": "./package.json"
+      },
+      "types": "dist/index.d.mts",
+      "typesVersions": {
+        "*": {
+          "*": [
+            "./dist/*.d.mts",
+            "./*"
+          ]
+        }
+      },
+      "files": [
+        "dist"
+      ],
+      "peerDependencies": {
+        "vite": "^5.0.0-0 || ^6.0.0-0 || ^7.0.0-0 || ^8.0.0-0"
+      },
+      "dependencies": {
+        "@jridgewell/remapping": "^2.3.5",
+        "@unocss/config": "66.12.0",
+        "@unocss/core": "66.12.0",
+        "@unocss/inspector": "66.12.0",
+        "chokidar": "^5.0.0",
+        "magic-string": "^1.4.4",
+        "pathe": "^2.0.3",
+        "tinyglobby": "^0.2.17",
+        "unplugin-utils": "^0.3.2"
+      },
+      "devDependencies": {
+        "vite": "^8.3.5"
+      },
+      "scripts": {
+        "build": "tsdown --config-loader unrun",
+        "dev": "tsdown --config-loader unrun --watch"
+      }
+    },
+    "archive": "upstream/unocss-vite-66.12.0.tgz",
+    "registryIntegrity": "sha512-Wd3HYIxaGrXo9sm2dCLxvjSJlttQAVhsGdxNFeALQlu4QfVXid7m8hfW+X7ma+W3Vla+52RnddDhZkoB2jLvVw==",
+    "registryArchiveSha256": "bf4a4b84900e81722bbace6e9f8f98de875d60e654128adb6abe6f02b4b6f4ec",
+    "patchedVersion": "66.12.0-webops.2",
+    "qualifiedRange": "66.12.0",
+    "files": {
+      "README.md": "a3339cf8f3b79b4fa19b775dbf9eeb13e279e9d6d391c2969d1eeab555932dfe",
+      "dist/client.d.mts": "f4c5cf9bb78e85f15dc27180260637cf24b2a24bc39e0788783a3accc4dde614",
+      "dist/client.mjs": "3c422a984e43163a36f57567a8bb05f8b5606cc12b3e7157cf14da525ed60b56",
+      "dist/index.d.mts": "7f375c0545201882831a560463747a6f0daaed2b4d9a7aaaaf7858609ac6b94e",
+      "dist/index.mjs": "3c0ccd8ccea7d68794892bdc2e1764cdd0b039b8bfdb42f2ae363c8997c3ae59",
+      "package.json": "192a3ad9c83b13aad419972df9c0e01e22df3516a1d86369cc7efbeab971dbee"
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "webops-original-rollup-plugin-fixtures",
+  "private": true,
+  "type": "module",
+  "packageManager": "npm@12.2.2",
+  "engines": { "node": ">=26.13.0 <27", "npm": "12.2.2" },
+  "allowScripts": { "fsevents@2.3.3": true },
+  "dependencies": {
+    "@rollup/pluginutils": "file:rollup-pluginutils-5.5.1.tgz",
+    "@rollup/plugin-commonjs": "file:rollup-plugin-commonjs-29.0.3.tgz",
+    "@rollup/plugin-inject": "file:rollup-plugin-inject-5.0.5.tgz",
+    "@rollup/plugin-replace": "file:rollup-plugin-replace-6.0.3.tgz",
+    "rollup": "4.67.5"
+  }
+}

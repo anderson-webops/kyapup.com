@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "packages": {
+    "@rollup/pluginutils": {
+      "version": "5.5.1",
+      "patchedVersion": "5.5.1-webops.1",
+      "archive": "rollup-pluginutils-5.5.1.tgz",
+      "canonicalAliases": { "package/./dist/cjs/index.js": { "path": "package/dist/cjs/index.js", "sha256": "dccad2a2ce1a1dee62b707f659c0589d24620147d436d8e6619969b9c3ea65c4" } },
+      "integrity": "sha512-P9ZvnfouRu4MSC+ilERaw6FmZs8zqKhpHxEs4aGDGWQAMzQGXnhvCSvoNwokfNvdt7t3Y5Y4p6gStQgezeIqug==",
+      "dependencies": { "estree-walker": "3.0.3", "magic-string": "1.4.5", "is-reference": "3.0.3" }
+    },
+    "@rollup/plugin-commonjs": {
+      "version": "29.0.3",
+      "patchedVersion": "29.0.3-webops.1",
+      "archive": "rollup-plugin-commonjs-29.0.3.tgz",
+      "canonicalAliases": { "package/./dist/cjs/index.js": { "path": "package/dist/cjs/index.js", "sha256": "31590d3a49c3e6df7812823f742ee980532bd7cdef8b8b26bff2a68103128fd1" } },
+      "integrity": "sha512-ZaOxZceP7SOUW7Lqw5IRVweSQYWaeIPnXIGLiB690EBA3FGJTO40EEr2L5yZplJWsgTCogILRSpcAe7+U0Otdg==",
+      "dependencies": { "@rollup/pluginutils": "5.5.1-webops.1", "estree-walker": "3.0.3", "magic-string": "1.4.5", "is-reference": "3.0.3" }
+    },
+    "@rollup/plugin-inject": {
+      "version": "5.0.5",
+      "patchedVersion": "5.0.5-webops.1",
+      "archive": "rollup-plugin-inject-5.0.5.tgz",
+      "integrity": "sha512-2+DEJbNBoPROPkgTDNe8/1YXWcqxbN5DTjASVIOx8HS+pITXushyNiBV56RB08zuptzz8gT3YfkqriTBVycepg==",
+      "dependencies": { "@rollup/pluginutils": "5.5.1-webops.1", "estree-walker": "3.0.3", "magic-string": "1.4.5", "is-reference": "3.0.3" }
+    },
+    "@rollup/plugin-replace": {
+      "version": "6.0.3",
+      "patchedVersion": "6.0.3-webops.1",
+      "archive": "rollup-plugin-replace-6.0.3.tgz",
+      "integrity": "sha512-J4RZarRvQAm5IF0/LwUUg+obsm+xZhYnbMXmXROyoSE1ATJe3oXSb9L5MMppdxP2ylNSjv6zFBwKYjcKMucVfA==",
+      "dependencies": { "@rollup/pluginutils": "5.5.1-webops.1", "magic-string": "1.4.5" }
+    }
+  },
+  "tools": { "esbuild": "0.28.2", "estree-walker": "3.0.3", "magic-string": "1.4.5", "is-reference": "3.0.3" },
+  "target": "node22",
+  "licenseSupplement": { "path": "ROLLUP-LICENSE", "sha256": "7b8136f76c483d03597500bfa991aae9be68d4629e1121cbf9b93aa727efe305", "source": "https://github.com/rollup/plugins/blob/d55ce9c6d76a008b0d0bcec86b310e1e51636384/LICENSE", "scope": "The inject archive omits the root license linked by its README; retain that exact commit's verified license alongside all original files." },
+  "adaptation": "Native current dependencies for ESM; one deterministic licensed synchronous CJS tools build in the exact maintained utility cohort preserves import-only exports and avoids concurrent require/import races."
+}

@@ -83,6 +83,18 @@ class RuntimeArtifactTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "required runtime path missing"):
             artifact.validate(self.root, self.manifest())
 
+    def test_missing_http_bridge_even_if_the_inventory_omits_it(self):
+        for package in ("cookie", "encodeurl", "raw-body", "type-is"):
+            with self.subTest(package=package):
+                path = self.root / f"back-end/node_modules/{package}/compat.cjs"
+                original = path.read_bytes()
+                path.unlink()
+                try:
+                    with self.assertRaisesRegex(ValueError, "required runtime path missing"):
+                        artifact.validate(self.root, self.manifest())
+                finally:
+                    path.write_bytes(original)
+
     def test_symlinks_and_private_state(self):
         for name in [".env", "credentials.json", "back-end/dist/key.pem", "back-end/dist/enrollment.sqlite3", "back-end/dist/library.sqlite", "back-end/dist/library.sqlite-wal", "back-end/dist/gallery.db"]:
             with self.subTest(name=name):

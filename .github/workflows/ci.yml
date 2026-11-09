@@ -39,8 +39,14 @@ jobs:
           printf '%s\n' "$bin" >> "$GITHUB_PATH"
           "$bin/node" scripts/check-build-toolchain.mjs
 
+      - name: Verify the independently rebuilt auto-import compiler
+        run: bash scripts/prepare-unimport-source.sh
+
       - name: Install locked dependencies
         run: npm ci --include=optional --strict-allow-scripts
+
+      - name: Install independent compiler tooling and original-version fixtures
+        run: bash scripts/prepare-compiler-fixtures.sh
 
       - name: Audit development and production dependencies
         run: |
@@ -65,5 +71,16 @@ jobs:
       - name: Verify protected promotion and recovery
         run: PATH="/opt/vitesse-test-tools:$PATH" npm run test:promotion
 
-      - name: Run accessibility smoke checks
-        run: npm run a11y
+      - name: Run browser and accessibility checks
+        run: |
+          npm run a11y
+          npm run test:jsx-browser
+          npm run test:router-browser
+          npm run test:remove-host
+          npm run test:magicast-browser
+          npm run test:vue-compiler-browser
+          npm run test:checker-browser
+          npm run test:rollup-browser
+          npm run test:nitro-tools-browser
+          npm run test:nuxt-watcher-browser
+          npm run test:framework-browser

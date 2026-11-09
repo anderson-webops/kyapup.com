@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
-import { closeSync, constants, fstatSync, openSync, readFileSync, realpathSync } from 'node:fs'
+import { closeSync, constants, existsSync, fstatSync, openSync, readFileSync, realpathSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import path from 'node:path'
 import process from 'node:process'
@@ -10,6 +10,25 @@ export const toolchainSource = fileURLToPath(new URL('../build-toolchain/', impo
 export const toolchainMetadata = JSON.parse(readFileSync(path.join(toolchainSource, 'UPSTREAM.json'), 'utf8'))
 const toolchainManifest = JSON.parse(readFileSync(path.join(toolchainSource, 'package.json'), 'utf8'))
 
+export const toolchainArchives = Object.entries(toolchainManifest.dependencies).map(([name, specification]) => {
+  assert.ok(specification.startsWith('file:'), 'Direct build-tool inputs must be reviewed local archives')
+  const archive = specification.slice(5)
+  assert.match(archive, /^vendor\/[a-z0-9.-]+\.tgz$/)
+  return { name, archive }
+})
+assert.equal(new Set(toolchainArchives.map(input => input.archive)).size, toolchainArchives.length)
+export const toolchainInputNames = [
+  'package.json',
+  'package-lock.json',
+  '.npmrc',
+  'UPSTREAM.json',
+  'PAYLOAD.json',
+  'compat/package.json',
+  'compat/package-lock.json',
+  'compat/.npmrc',
+  ...toolchainArchives.map(input => input.archive),
+]
+
 export function sha256(bytes) {
   return createHash('sha256').update(bytes).digest('hex')
 }
@@ -18,8 +37,9 @@ export function selectedNpmCli() {
   if (process.env.npm_execpath)
     return realpathSync(process.env.npm_execpath)
   const directory = path.dirname(process.execPath)
-  if (process.platform === 'win32')
-    return realpathSync(path.join(directory, '../node_modules/npm/bin/npm-cli.js'))
+  const pairedCli = path.resolve(directory, '../node_modules/npm/bin/npm-cli.js')
+  if (process.platform === 'win32' || existsSync(pairedCli))
+    return realpathSync(pairedCli)
   return realpathSync(path.join(directory, 'npm'))
 }
 
@@ -87,13 +107,7 @@ export function verifyBuildToolchain(cli = selectedNpmCli()) {
   const npmRoot = path.resolve(path.dirname(realpathSync(cli)), '..')
   const prefix = path.resolve(npmRoot, '../..')
   const verifiedFiles = new Map()
-  for (const name of [
-    'package.json',
-    'package-lock.json',
-    '.npmrc',
-    'UPSTREAM.json',
-    toolchainMetadata.archive,
-  ]) {
+  for (const name of toolchainInputNames) {
     const installed = path.join(prefix, name)
     const bytes = regularFileBytes(installed, `Toolchain input must be a regular file: ${name}`)
     assert.ok(bytes.equals(readFileSync(path.join(toolchainSource, name))), `Toolchain input differs: ${name}`)
@@ -111,6 +125,10 @@ export function verifyBuildToolchain(cli = selectedNpmCli()) {
   }
   const require = createRequire(path.join(npmRoot, 'package.json'))
   const lock = JSON.parse(verifiedFiles.get(path.join(prefix, 'package-lock.json')).toString('utf8'))
+  for (const input of toolchainArchives) {
+    const bytes = verifiedFiles.get(path.join(prefix, input.archive))
+    assert.equal(`sha512-${createHash('sha512').update(bytes).digest('base64')}`, lock.packages[`node_modules/${input.name}`]?.integrity, `Toolchain archive differs from its independent lock: ${input.name}`)
+  }
   const versions = {}
   for (const name of ['npm', 'glob', 'minimatch', 'undici']) {
     const { bytes, location } = name === 'npm'

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "name": "unplugin-remove",
+  "version": "1.0.3",
+  "integrity": "sha512-BZMt9v8Y/Z27cY7YQv+DpcW928znjP1cqplBXOirbANiFQtM2YCdiyNAJhHCvjppT0lScNn1aDrQnXqnRp32pQ==",
+  "archive": "upstream/unplugin-remove-1.0.3.tgz",
+  "gitHead": "0bde68793c64d78db24be7e2db8e9a5a1ab14ab6",
+  "patchedVersion": "1.0.3-webops.1",
+  "embeddedLegacyTypes": "7.25.2",
+  "dependencies": {
+    "@babel/parser": "^8.1.0",
+    "@babel/traverse": "^8.1.0",
+    "@babel/types": "^8.1.0",
+    "@rollup/pluginutils": "^5.5.1",
+    "magic-string": "^1.4.5",
+    "unplugin": "^3.7.0"
+  }
+}

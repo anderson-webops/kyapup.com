@@ -6,7 +6,7 @@ import { createRequire } from 'node:module'
 import path from 'node:path'
 import process from 'node:process'
 import test from 'node:test'
-import { selectedNpmCli, stableVersionAtLeast, toolchainMetadata, toolchainSource, verifyBuildToolchain } from './build-toolchain-state.mjs'
+import { selectedNpmCli, stableVersionAtLeast, toolchainInputNames, toolchainMetadata, toolchainSource, verifyBuildToolchain } from './build-toolchain-state.mjs'
 
 const npmCli = selectedNpmCli()
 const npmRoot = path.resolve(path.dirname(npmCli), '..')
@@ -55,14 +55,10 @@ test('changed locks, substituted CLI bytes and symlinked CLI files cannot qualif
       copyFileSync(path.join(npmRoot, relative), destination)
     }
     mkdirSync(path.join(directory, 'vendor'))
-    for (const name of [
-      'package.json',
-      'package-lock.json',
-      '.npmrc',
-      'UPSTREAM.json',
-      toolchainMetadata.archive,
-    ])
+    for (const name of toolchainInputNames) {
+      mkdirSync(path.dirname(path.join(directory, name)), { recursive: true })
       copyFileSync(path.join(profile, name), path.join(directory, name))
+    }
     const copiedCli = path.join(copiedNpm, 'bin/npm-cli.js')
     const rejectInputWithBoundedHeap = () => {
       const output = execFileSync(process.execPath, [
@@ -174,14 +170,10 @@ test('descriptor-bound verification preserves checked bytes across file substitu
           mode: constants.COPYFILE_FICLONE,
         })
         mkdirSync(path.join(directory, 'vendor'))
-        for (const name of [
-          'package.json',
-          'package-lock.json',
-          '.npmrc',
-          'UPSTREAM.json',
-          toolchainMetadata.archive,
-        ])
+        for (const name of toolchainInputNames) {
+          mkdirSync(path.dirname(path.join(directory, name)), { recursive: true })
           copyFileSync(path.join(profile, name), path.join(directory, name))
+        }
         const output = execFileSync(process.execPath, [
           ...(mode === 'missing-capabilities'
             ? ['--experimental-test-module-mocks']

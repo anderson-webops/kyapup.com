@@ -20,7 +20,12 @@ try {
   for (const filename of ['package.json', 'package-lock.json'])
     await copyFile(resolve(projectRoot, 'back-end', filename), resolve(fixture, filename))
   await mkdir(resolve(fixture, 'vendor'))
-  await copyFile(resolve(projectRoot, 'back-end/vendor/qs-6.17.2-webops.4.tgz'), resolve(fixture, 'vendor/qs-6.17.2-webops.4.tgz'))
+  const metadata = JSON.parse(await readFile(resolve(projectRoot, 'back-end/package.json'), 'utf8'))
+  for (const specification of Object.values(metadata.dependencies).filter(value => value.startsWith('file:'))) {
+    const relative = specification.slice(5)
+    assert.match(relative, /^vendor\/[a-z0-9.-]+\.tgz$/)
+    await copyFile(resolve(projectRoot, 'back-end', relative), resolve(fixture, relative))
+  }
   const install = spawnSync('npm', [
     'ci',
     '--omit=dev',
@@ -40,6 +45,10 @@ try {
     'helmet',
     'qs',
     'sharp',
+    'cookie',
+    'encodeurl',
+    'raw-body',
+    'type-is',
   ])
     await access(resolve(backendModules, packageName, 'package.json'))
 
@@ -56,6 +65,23 @@ try {
       await readFile(resolve(projectRoot, 'vendor/qs', relative)),
       `Production qs ${relative} must match the reviewed library`,
     )
+  }
+
+  for (const packageName of [
+    'cookie',
+    'encodeurl',
+    'raw-body',
+    'type-is',
+  ]) {
+    for (const relative of [
+      'compat.cjs',
+      'compat.d.cts',
+      'dist/index.js',
+      'UPSTREAM.json',
+      'UPSTREAM-PACKAGE.json',
+      'LICENSE',
+    ])
+      await access(resolve(backendModules, packageName, relative))
   }
 
   for (const packageName of [
