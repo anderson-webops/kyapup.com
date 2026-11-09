@@ -1,6 +1,6 @@
 {
   "name": "listhen",
-  "version": "1.10.1-webops.1",
+  "version": "1.10.1-webops.2",
   "private": true,
   "description": "👂 Elegant HTTP Listener",
   "license": "MIT",

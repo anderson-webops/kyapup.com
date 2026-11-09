@@ -6,6 +6,7 @@ const generatedPaths = [
   '../front-end/node_modules',
   '../front-end/.nuxt',
   '../.netlify',
+  '../build-toolchain',
 ]
 
 for (const relativePath of generatedPaths)

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "name": "@vitejs/plugin-vue-jsx",
+  "version": "5.1.6",
+  "integrity": "sha512-YXvi4as2clxt6DFw5+a0tTA97ntiQXm/raR8ofNj3aNwwdlVGTiG2gp7EvfZW17P50acL/9bP0ccF4XnqNmlgA==",
+  "archive": "upstream/plugin-vue-jsx-5.1.6.tgz",
+  "patchedVersion": "5.1.6-webops.1",
+  "dependencies": {
+    "@babel/core": "^8.1.0",
+    "@babel/plugin-syntax-typescript": "^8.0.3",
+    "@babel/plugin-transform-typescript": "^8.0.6",
+    "@vue/babel-plugin-jsx": "^3.0.0"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "webops-vue-compiler-upstream",
+  "version": "1.0.0",
+  "private": true,
+  "engines": { "node": ">=26.13.0 <27", "npm": "12.2.2" },
+  "dependencies": {
+    "@vue/compiler-core": "file:vue-compiler-core-3.5.45.tgz",
+    "@vue/compiler-sfc": "file:vue-compiler-sfc-3.5.45.tgz"
+  }
+}

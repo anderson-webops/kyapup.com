@@ -1,6 +1,10 @@
 **/.DS_Store
 **/node_modules
 **/dist
+!/vendor/listhen/dist/
+!/vendor/deepmerge/dist/
+!/vendor/qs/dist/
+!/vendor/vite-plugin-vue-devtools/dist/
 **/.output
 **/.nuxt
 **/*.tsbuildinfo

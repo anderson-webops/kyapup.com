@@ -3,3 +3,8 @@
 *.ico binary
 *.png binary
 *.woff2 binary
+
+*.tgz binary
+*.git binary
+*.gpg binary
+*.cjs text eol=lf

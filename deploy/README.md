@@ -10,7 +10,7 @@ Never run an installer, promotion helper, or verifier from a build-owned checkou
 
 The installer preserves existing service units, creates root-controlled deployment/release parents, creates `/etc/kyapup` with mode `0700`, and installs immutable versioned helpers under `/usr/local/libexec/kyapup-release/<version>/`. Only `builds/` and `shared/` are writable by the build account. The unprivileged preparation step creates its own npm cache; root never changes paths inside `shared/`. Unexpected ownership, modes, and symlinked directories are rejected for operator review. The installer does not start or restart the service.
 
-Use Node 24.18.1 from the approved protected location, normally `/opt/node-24.18.1/bin`, and npm 12.0.2 for builds. Do not replace a host-wide runtime. `NODE_BIN_DIR` can select a reviewed alternative for the helpers; changing service `ExecStart` requires its own review.
+Use Node 26.13.0 from the approved protected location, normally `/opt/node-26.13.0/bin`, and npm 12.2.2 for builds. Do not replace a host-wide runtime. `NODE_BIN_DIR` can select a reviewed alternative for the helpers; changing service `ExecStart` requires its own review.
 
 ## First administrator setup
 
@@ -19,7 +19,7 @@ Generate a password hash in an unprivileged, reviewed source checkout. The passw
 ```bash
 read -r -s -p 'Admin password: ' kya_password
 printf '\n'
-printf '%s' "$kya_password" | /opt/node-24.18.1/bin/node back-end/scripts/hash-password.mjs
+printf '%s' "$kya_password" | /opt/node-26.13.0/bin/node back-end/scripts/hash-password.mjs
 unset kya_password
 ```
 
@@ -43,7 +43,7 @@ Include `deploy/nginx/kyapup.server.conf` in the existing certificate-covered TL
 As the unprivileged build account, use a clean checkout beneath `builds/`, an annotated version tag, and the exact fetched `anderson-webops/kyapup.com` `origin/main` revision:
 
 ```sh
-NODE_BIN_DIR=/opt/node-24.18.1/bin \
+NODE_BIN_DIR=/opt/node-26.13.0/bin \
   deploy/systemd/prepare-release.sh /srv/kyapup/builds/<release>
 ```
 
@@ -64,7 +64,7 @@ Download the reviewed archive into protected, root-created storage. Independentl
 Keep the archive, candidate, and every ancestor root-controlled and non-writable to other accounts. Preserve Nginx read access through the reviewed host permissions. Use freshly extracted files, never a build tree merely changed to root ownership. Take a consistent state backup before promotion. Then:
 
 ```sh
-PUBLIC_HOST=kyapup.com NODE_BIN_DIR=/opt/node-24.18.1/bin \
+PUBLIC_HOST=kyapup.com NODE_BIN_DIR=/opt/node-26.13.0/bin \
   /usr/local/libexec/kyapup-release/<version>/deploy/systemd/promote-release.sh \
   /srv/kyapup/releases/<new-release> \
   <protected-archive> <reviewed-sha256> <reviewed-commit>

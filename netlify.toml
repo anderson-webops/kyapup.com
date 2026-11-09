@@ -1,11 +1,11 @@
 [build]
 publish = "front-end/.output/public"
-command = "npm run build:netlify"
+command = "node scripts/build-toolchain.mjs --install -- npm run build:netlify"
 
 [build.environment]
-NODE_VERSION = "24.18.1"
-NPM_VERSION = "12.0.2"
-NPM_FLAGS = "--include=optional"
+NODE_VERSION = "26.13.0"
+NPM_VERSION = "12.2.2"
+NPM_FLAGS = "--prefix=build-toolchain --workspaces=false --ignore-scripts --include=optional"
 
 [functions]
 directory = "netlify/functions"

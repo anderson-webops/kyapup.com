@@ -1,0 +1,16 @@
+{
+  "name": "webops-original-vite-checker-fixture",
+  "private": true,
+  "type": "module",
+  "packageManager": "npm@12.2.2",
+  "engines": {
+    "node": ">=26.13.0 <27",
+    "npm": ">=12.2.2 <13"
+  },
+  "dependencies": {
+    "vite-plugin-checker": "file:vite-plugin-checker-0.14.5.tgz"
+  },
+  "allowScripts": {
+    "fsevents@2.3.3": true
+  }
+}

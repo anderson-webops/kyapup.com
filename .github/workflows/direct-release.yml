@@ -3,7 +3,7 @@ name: Validate direct production release
 on:
   push:
     tags:
-      - "v*"
+      - "v*.*.*"
 
 permissions:
   contents: read
@@ -22,11 +22,8 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 24.18.1
+          node-version: 26.13.0
           package-manager-cache: false
-
-      - name: Pin npm
-        run: npm install --global npm@12.0.2 --allow-scripts=npm
 
       - name: Prepare exact tagged direct runtime
         env:
@@ -50,16 +47,18 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 24.18.1
+          node-version: 26.13.0
           package-manager-cache: false
       - name: Prepare isolated artifact-test tools
         run: |
-          npm install --global npm@12.0.2 --allow-scripts=npm
+          bin="$(node scripts/build-toolchain.mjs --print-bin)"
+          printf '%s\n' "$bin" >> "$GITHUB_PATH"
+          "$bin/node" scripts/check-build-toolchain.mjs
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends bubblewrap apparmor
           if test -d /sys/kernel/security/apparmor; then
-            printf 'abi <abi/4.0>,\ninclude <tunables/global>\nprofile kyapup-artifact-tests /usr/bin/bwrap flags=(unconfined) {\n  userns,\n}\n' | sudo tee /etc/apparmor.d/kyapup-artifact-tests >/dev/null
-            sudo apparmor_parser -r /etc/apparmor.d/kyapup-artifact-tests
+            printf 'abi <abi/4.0>,\ninclude <tunables/global>\nprofile vitesse-artifact-tests /usr/bin/bwrap flags=(unconfined) {\n  userns,\n}\n' | sudo tee /etc/apparmor.d/vitesse-artifact-tests >/dev/null
+            sudo apparmor_parser -r /etc/apparmor.d/vitesse-artifact-tests
           fi
           printf '/.ai-work/\n' >> "$(git rev-parse --git-path info/exclude)"
       - name: Validate native source and the exact production artifact
@@ -69,7 +68,9 @@ jobs:
           NUXT_TELEMETRY_DISABLED: "1"
           PUPPETEER_SKIP_DOWNLOAD: "true"
         run: |
+          bash scripts/prepare-unimport-source.sh
           npm ci --include=optional --strict-allow-scripts
+          bash scripts/prepare-compiler-fixtures.sh
           npm run audit:all
           npm run audit:prod
           npm run audit:api
@@ -78,18 +79,42 @@ jobs:
           npm run test:promotion
           mkdir -p .ai-work/runs/tagged-artifact
           npm run package:runtime -- "$PWD/.ai-work/runs/tagged-artifact"
+      - name: Verify exact source-release handoff
+        shell: bash
+        run: |
+          set -euo pipefail
+          output=.ai-work/runs/tagged-artifact
+          test "$(find "$output" -maxdepth 1 -type f -name '*.tar.gz' | wc -l)" -eq 1
+          (cd "$output" && sha256sum --check SHA256SUMS)
+          python3 -B - "$output" "$GITHUB_SHA" <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+          import sys
 
-      - name: Retain the accepted production archive and receipt
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+          output = Path(sys.argv[1])
+          commit = sys.argv[2]
+          receipt = json.loads((output / "acceptance.json").read_text())
+          manifest = json.loads((output / "runtime-manifest.json").read_text())
+          contract = json.loads(Path("deploy/runtime-artifact.json").read_text())
+          archive = output / receipt["archive"]
+          assert receipt["commit"] == manifest["commit"] == commit
+          assert receipt["sha256"] == hashlib.sha256(archive.read_bytes()).hexdigest()
+          assert manifest["contract"] == contract
+          assert receipt["buildToolchain"]["profile"] == contract["runtime"]["npmBuildProfile"]
+          assert receipt["buildToolchain"]["lockSha256"] == contract["runtime"]["npmBuildLockSha256"]
+          assert receipt["buildToolchain"]["payloadTreeSha256"] == contract["runtime"]["npmBuildPayloadSha256"]
+          assert hashlib.sha256(Path("build-toolchain/package-lock.json").read_bytes()).hexdigest() == contract["runtime"]["npmBuildLockSha256"]
+          assert contract["deployment"]["schemaVersion"] == 1
+          assert contract["deployment"]["applicationId"] == "kyapup"
+          PY
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: kyapup-linux-arm64-${{ github.ref_name }}
+          name: verified-linux-arm64-direct-release
           path: |
             .ai-work/runs/tagged-artifact/*.tar.gz
             .ai-work/runs/tagged-artifact/SHA256SUMS
             .ai-work/runs/tagged-artifact/runtime-manifest.json
             .ai-work/runs/tagged-artifact/acceptance.json
-            .ai-work/runs/tagged-artifact/dependency-tree.txt
           if-no-files-found: error
-          # Only the explicit accepted outputs above, under locally ignored scratch.
-          include-hidden-files: true
-          retention-days: 90
+          retention-days: 30

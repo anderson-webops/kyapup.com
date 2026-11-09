@@ -1,7 +1,9 @@
 version: 2
 updates:
   - package-ecosystem: npm
-    directory: /
+    directories:
+      - /
+      - /build-toolchain
     schedule:
       interval: weekly
     open-pull-requests-limit: 10
@@ -11,7 +13,7 @@ updates:
       npm-production:
         dependency-type: production
     ignore:
-      # Keep ambient types aligned with the production Node 24 runtime.
+      # Keep ambient types aligned with the production Node 26 runtime.
       - dependency-name: "@types/node"
         update-types:
           - version-update:semver-major
@@ -35,6 +37,6 @@ updates:
       interval: weekly
     open-pull-requests-limit: 5
     groups:
-      codeql:
+      codeql-actions:
         patterns:
           - "github/codeql-action/*"

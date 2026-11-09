@@ -1,0 +1,13 @@
+{
+  "name": "@webops/unimport-production-fixture",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "npm@12.2.2",
+  "engines": { "node": ">=26.13.0 <27", "npm": ">=12.2.2 <13" },
+  "dependencies": {
+    "unimport": "file:../../unimport-7.0.2-webops.2.tgz",
+    "acorn": "8.18.0"
+  },
+  "allowScripts": {}
+}

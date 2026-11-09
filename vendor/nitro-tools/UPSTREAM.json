@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "packages": {
+    "nitropack": { "name": "nitropack", "version": "2.13.6", "archive": "nitropack-2.13.6.tgz", "integrity": "sha512-RY2hH/sy7LfzaadY7Hs+naGNyDoZTGTpuhQjIt1r+TYPk1rr/TW5w3s+nZZnHanm86wv4FwTrYnvqKgk+BmBOA==", "installed": "vendor/framework-parents/upstream/node_modules/nitropack", "lock": "vendor/framework-parents/upstream/package-lock.json" },
+    "unctx": { "name": "unctx", "version": "3.0.1", "archive": "unctx-3.0.1.tgz", "integrity": "sha512-5RAt2etv7g362RXyd33R82gm9u/kbtQlpoaOs9Bgm4E32GRMJ0xjbZyvdxUTmiuHk3V1IQb1aUNrp5IWY+JaWw==", "installed": "node_modules/unctx", "lock": "package-lock.json" },
+    "unwasm": { "name": "unwasm", "version": "0.6.3", "archive": "unwasm-0.6.3.tgz", "integrity": "sha512-RrzGPLDcIrxSng5tXeqZgdRuQqH4z8Bj/jQzvximAzU+s3ATHiFWBZz9+FVc8CKZxFQdtlSSDTk5NXTfR+Mh7w==", "installed": "vendor/nitro-tools/current/node_modules/unwasm", "lock": "vendor/nitro-tools/current/package-lock.json" },
+    "original-unctx": { "name": "unctx", "version": "2.5.0", "archive": "unctx-2.5.0.tgz", "integrity": "sha512-p+Rz9x0R7X+CYDkT+Xg8/GhpcShTlU8n+cf9OtOEf7zEQsNcCZO1dPKNRDqvUTaq+P32PMMkxWHwfrxkqfqAYg==", "installed": "vendor/nitro-tools/upstream/node_modules/unctx", "lock": "vendor/nitro-tools/upstream/package-lock.json" },
+    "original-unwasm": { "name": "unwasm", "version": "0.5.3", "archive": "unwasm-0.5.3.tgz", "integrity": "sha512-keBgTSfp3r6+s9ZcSma+0chwxQdmLbB5+dAD9vjtB21UTMYuKAxHXCU1K2CbCtnP09EaWeRvACnXk0EJtUx+hw==", "installed": "vendor/nitro-tools/upstream/node_modules/unwasm", "lock": "vendor/nitro-tools/upstream/package-lock.json" }
+  },
+  "nitroProviderContract": { "magic-string": "1.4.5", "unctx": "3.0.1", "unwasm": "$unwasm" },
+  "wasmBridge": { "version": "0.6.3-webops.1", "archive": "unwasm-0.6.3-webops.1.tgz", "adaptation": "Resolve the underlying file before restoring the WASM query suffix; retain unresolved imports for explicit caller provisioning while preserving native binding validation." },
+  "scope": "Nitro's original published implementation, exports, types, license and archive integrity are verified against its independently installed framework reference graph. The active maintained Nitro parent selects c12's qualified current major; its complete installed bytes and metadata are verified by check:framework-parents. Exact scoped providers remain required through actual runtime and bundler consumers. Both original and current-stock WASM graphs remain independently locked and audited; the maintained WASM archive preserves public APIs and licenses while repairing query/manual-import bindings."
+}

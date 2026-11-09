@@ -1,0 +1,23 @@
+{
+  "name": "deepmerge",
+  "version": "4.3.2-webops.1",
+  "description": "A library for deep (recursive) merging of Javascript objects",
+  "homepage": "https://github.com/TehShrike/deepmerge",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/TehShrike/deepmerge.git"
+  },
+  "main": "dist/cjs.js",
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "license": "MIT",
+  "private": true,
+  "types": "index.d.ts",
+  "files": [
+    "dist",
+    "index.d.ts",
+    "license.txt",
+    "UPSTREAM.md"
+  ]
+}
