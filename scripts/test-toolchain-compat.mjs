@@ -32,6 +32,23 @@ function codeqlVersion(workflow) {
   return versions[0]
 }
 
+test('release tags cover the site version and future majors while retaining native preparation', () => {
+  const workflow = parseYaml(readFileSync(path.join(root, '.github/workflows/direct-release.yml'), 'utf8'))
+  const manifest = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'))
+  const patterns = workflow.on.push.tags
+  assert.ok(Array.isArray(patterns) && patterns.length > 0)
+  for (const tag of [
+    `v${manifest.version}`,
+    'v1.2.3',
+    'v2.0.0',
+    'v10.11.12',
+  ])
+    assert.ok(patterns.some(pattern => path.matchesGlob(tag, pattern)), tag)
+  for (const tag of ['main', 'v1', 'v1.2'])
+    assert.equal(patterns.some(pattern => path.matchesGlob(tag, pattern)), false, tag)
+  assert.equal(workflow.jobs.artifact.needs, 'prepare')
+})
+
 test('CodeQL actions share one immutable version and one dependency-update group', () => {
   const workflow = parseYaml(readFileSync(path.join(root, '.github/workflows/codeql.yml'), 'utf8'))
   codeqlVersion(workflow)

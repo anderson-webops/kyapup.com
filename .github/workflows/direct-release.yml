@@ -3,7 +3,7 @@ name: Validate direct production release
 on:
   push:
     tags:
-      - "v2.*"
+      - "v*.*.*"
 
 permissions:
   contents: read
