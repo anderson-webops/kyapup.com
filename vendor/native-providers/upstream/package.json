@@ -8,8 +8,8 @@
     "npm": ">=12.2.2 <13"
   },
   "dependencies": {
-    "@unocss/transformer-attributify-jsx": "66.12.0",
-    "@unocss/vite": "66.12.0",
+    "@unocss/transformer-attributify-jsx": "66.13.0",
+    "@unocss/vite": "66.13.0",
     "eslint": "10.14.0",
     "eslint-plugin-format": "2.0.1",
     "oxc-parser": "0.153.0",

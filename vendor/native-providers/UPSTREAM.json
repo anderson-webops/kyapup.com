@@ -102,8 +102,8 @@
     "archive": "upstream/eslint-plugin-format-2.0.1.tgz",
     "registryIntegrity": "sha512-0BA65p5DAiuKtx5MmMJfPk9WaTjoHHbyVW7ZXRhaZoA1fdiMHhay9QRiDL2wr0hJWZxdF7CRThOK/70VUKVg2g==",
     "registryArchiveSha256": "c98d5af4e2a49a846fca865cdedf6401be359ed062a088a4c5362c5afff93481",
-    "patchedVersion": "2.0.1-webops.1",
-    "qualifiedRange": "^0.77.0",
+    "patchedVersion": "2.0.1-webops.2",
+    "qualifiedRange": "^0.78.0",
     "files": {
       "LICENSE": "af32efdd008a371c77b13eef5010c81d6c5c2f67c054b6bb74317e13ac38c171",
       "README.md": "b2098317872a2504dc5f626177afed0a74d30325696d661fa05438538bd59937",
@@ -122,7 +122,7 @@
     "package": {
       "name": "@unocss/transformer-attributify-jsx",
       "type": "module",
-      "version": "66.12.0",
+      "version": "66.13.0",
       "description": "Support valueless attributify in JSX/TSX.",
       "author": "Anthony Fu <anthonyfu117@hotmail.com>",
       "license": "MIT",
@@ -150,28 +150,26 @@
         "dist"
       ],
       "dependencies": {
-        "@unocss/core": "66.12.0",
+        "@unocss/core": "66.13.0",
+        "magic-string": "^1.4.4",
         "oxc-parser": "^0.153.0",
         "oxc-walker": "^1.1.1"
-      },
-      "devDependencies": {
-        "magic-string": "^1.4.4"
       },
       "scripts": {
         "build": "tsdown --config-loader unrun",
         "dev": "tsdown --config-loader unrun --watch"
       }
     },
-    "archive": "upstream/unocss-transformer-attributify-jsx-66.12.0.tgz",
-    "registryIntegrity": "sha512-bJ+9jhQVCaegVB+rUKf112TMDm41dNK/bt5XUT5Seeg1Wfo0jReX8VYSRsDj4rLKf9zowJwojjz8MhXO+hDEBw==",
-    "registryArchiveSha256": "3d333df9684298d422aee9d06bb5d6a8f94e7ad949773597ca19ea655dbfd002",
-    "patchedVersion": "66.12.0-webops.1",
-    "qualifiedRange": "^0.157.0",
+    "archive": "upstream/unocss-transformer-attributify-jsx-66.13.0.tgz",
+    "registryIntegrity": "sha512-oaaSsyH01qE/emuMHIqXCgLotWWKCsQhs0fjpr4QH1cBC5shqKOsvML1Qyf2nvryLC4PIhD1xpwDl5lWKmtHVA==",
+    "registryArchiveSha256": "8d48c19700ae228bc377f669370a318ccf4acd9febd130ca95998ef1f031a3ae",
+    "patchedVersion": "66.13.0-webops.1",
+    "qualifiedRange": "^0.158.0",
     "files": {
       "README.md": "e591f2a5e0f08d7ff4d2b027c4557042cab229f1cbde7c8794d79f70fe37bc9d",
       "dist/index.d.mts": "7f266cc89a89fa15f639282e90b69ca51cdc7bf785d884f75248d19c7e9b6305",
       "dist/index.mjs": "1967135c89fe04cf1ee19e2d95a904b8c1dd90af440472e7af0fd0d32494ff05",
-      "package.json": "5bceb8ed067de2d653d23ebb98a7e84d0b8e0fe050ce768cc3b18047087910c0"
+      "package.json": "d6207a8ada66dced225938436ac4b56d7f7dd58a816e376428ecb5f623b6ae61"
     }
   },
   "unconfig": {
@@ -247,7 +245,7 @@
     "package": {
       "name": "@unocss/vite",
       "type": "module",
-      "version": "66.12.0",
+      "version": "66.13.0",
       "description": "The Vite plugin for UnoCSS",
       "author": "Anthony Fu <anthonyfu117@hotmail.com>",
       "license": "MIT",
@@ -289,9 +287,9 @@
       },
       "dependencies": {
         "@jridgewell/remapping": "^2.3.5",
-        "@unocss/config": "66.12.0",
-        "@unocss/core": "66.12.0",
-        "@unocss/inspector": "66.12.0",
+        "@unocss/config": "66.13.0",
+        "@unocss/core": "66.13.0",
+        "@unocss/inspector": "66.13.0",
         "chokidar": "^5.0.0",
         "magic-string": "^1.4.4",
         "pathe": "^2.0.3",
@@ -299,25 +297,25 @@
         "unplugin-utils": "^0.3.2"
       },
       "devDependencies": {
-        "vite": "^8.3.5"
+        "@types/connect": "^3.4.38"
       },
       "scripts": {
         "build": "tsdown --config-loader unrun",
         "dev": "tsdown --config-loader unrun --watch"
       }
     },
-    "archive": "upstream/unocss-vite-66.12.0.tgz",
-    "registryIntegrity": "sha512-Wd3HYIxaGrXo9sm2dCLxvjSJlttQAVhsGdxNFeALQlu4QfVXid7m8hfW+X7ma+W3Vla+52RnddDhZkoB2jLvVw==",
-    "registryArchiveSha256": "bf4a4b84900e81722bbace6e9f8f98de875d60e654128adb6abe6f02b4b6f4ec",
-    "patchedVersion": "66.12.0-webops.2",
-    "qualifiedRange": "66.12.0",
+    "archive": "upstream/unocss-vite-66.13.0.tgz",
+    "registryIntegrity": "sha512-sYlPyHJTS9y/5goaBmN/AxdQwmLuN4VBK3hbaB/dcbjHaJr/EXNCSmRgkyt8WwaC6DS4PegCzgQ+7bucoPgD7w==",
+    "registryArchiveSha256": "d2dbb820f12af7ef700c091199e3c72bcac545e95726d77402aa345c62cfed74",
+    "patchedVersion": "66.13.0-webops.1",
+    "qualifiedRange": "66.13.0",
     "files": {
       "README.md": "a3339cf8f3b79b4fa19b775dbf9eeb13e279e9d6d391c2969d1eeab555932dfe",
       "dist/client.d.mts": "f4c5cf9bb78e85f15dc27180260637cf24b2a24bc39e0788783a3accc4dde614",
       "dist/client.mjs": "3c422a984e43163a36f57567a8bb05f8b5606cc12b3e7157cf14da525ed60b56",
-      "dist/index.d.mts": "7f375c0545201882831a560463747a6f0daaed2b4d9a7aaaaf7858609ac6b94e",
-      "dist/index.mjs": "3c0ccd8ccea7d68794892bdc2e1764cdd0b039b8bfdb42f2ae363c8997c3ae59",
-      "package.json": "192a3ad9c83b13aad419972df9c0e01e22df3516a1d86369cc7efbeab971dbee"
+      "dist/index.d.mts": "71ee67fc4d1d1d23989cf0628fc4e43c5321c765af148a3f4c6db027eb466b22",
+      "dist/index.mjs": "6596d47639b00c96dbfba878d5db2945ed9e55f6d61f12718f3feca1a568777d",
+      "package.json": "cf3f611c303b13c8829fc14500f5d7bcaefe167eec212f70a2287c8914001faa"
     }
   }
 }
