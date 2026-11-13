@@ -74,6 +74,22 @@ class NativeProviderPackages(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     PRODUCER.build_archive(payload, changed)
 
+    def test_native_family_upgrade_rejects_previous_ranges_and_maintained_identities(self):
+        previous = {
+            "eslint-plugin-format": ("^0.77.0", "2.0.1-webops.1"),
+            "@unocss/transformer-attributify-jsx": ("^0.157.0", "66.12.0-webops.1"),
+        }
+        for name, payload, record in self.originals():
+            if name not in previous:
+                continue
+            old_range, old_version = previous[name]
+            for field, value in [("qualifiedRange", old_range), ("patchedVersion", old_version)]:
+                with self.subTest(name=name, field=field):
+                    changed = copy.deepcopy(record)
+                    changed[field] = value
+                    with self.assertRaises(ValueError):
+                        PRODUCER.build_archive(payload, changed)
+
     def test_independent_required_types_workers_and_license(self):
         for name, payload, record in self.originals():
             files = PRODUCER.archive_files(payload)

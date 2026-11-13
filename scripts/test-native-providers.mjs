@@ -82,8 +82,8 @@ function reviewedSource(name, filename, source) {
 test('all parent consumers resolve the actual current native versions without legacy application copies', () => {
   const lock = JSON.parse(readFileSync(path.join(root, 'package-lock.json'), 'utf8')).packages
   for (const [name, provider, version] of [
-    ['eslint-plugin-format', 'oxfmt', '0.77.0'],
-    ['@unocss/transformer-attributify-jsx', 'oxc-parser', '0.157.0'],
+    ['eslint-plugin-format', 'oxfmt', '0.78.0'],
+    ['@unocss/transformer-attributify-jsx', 'oxc-parser', '0.158.0'],
   ]) {
     const parent = createRequire(require.resolve(name))
     assert.equal(parent.resolve(provider), require.resolve(provider))
@@ -99,6 +99,10 @@ test('all parent consumers resolve the actual current native versions without le
   for (const name of ['@unocss/config', 'taze']) {
     const consumer = createRequire(require.resolve(name))
     assert.equal(consumer.resolve('unconfig'), require.resolve('unconfig'))
+  }
+  for (const [filename, metadata] of Object.entries(lock)) {
+    if (/(?:^|\/)node_modules\/(?:@unocss\/[^/]+|unocss)$/.test(filename))
+      assert.match(metadata.version, /^66\.13\.0(?:-webops\.1)?$/, filename)
   }
 })
 
@@ -127,6 +131,19 @@ test('maintained parents preserve all original payload bytes except the two exac
     expected.private = true
     expected.dependencies[dependencyNames[name]] = record.qualifiedRange
     assert.deepEqual(JSON.parse(readFileSync(path.join(directory, 'package.json'), 'utf8')), expected)
+  }
+})
+
+test('UnoCSS virtual CSS identities preserve queries and remain idempotent', async () => {
+  const { fromViteVirtualId, toViteClientPath, toViteVirtualId } = await load('@unocss/vite')
+  for (const identity of ['/@unocss/entry.css?inline', 'unocss:chunk-empty-entry', '/spaces in path/entry.css?url&v=🙂']) {
+    const virtual = `\0${identity}`
+    assert.equal(toViteVirtualId(identity), virtual)
+    assert.equal(toViteVirtualId(virtual), virtual)
+    assert.equal(fromViteVirtualId(virtual), identity)
+    assert.equal(fromViteVirtualId(identity), identity)
+    assert.equal(toViteClientPath(virtual), `/@id/__x00__${identity}`)
+    assert.equal(toViteClientPath(identity), identity)
   }
 })
 

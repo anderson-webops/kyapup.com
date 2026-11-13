@@ -82,12 +82,17 @@ trusted file-source identities, with strict script review retained.
 
 ## Native parser and formatter consumers
 
-The application uses Oxc parser 0.157.0 and Oxfmt 0.77.0 through qualified
+The application uses Oxc parser 0.158.0 and Oxfmt 0.78.0 through qualified
 UnoCSS and ESLint parents. `vendor/native-providers/UPSTREAM.json` binds the
 complete original package inventories and registry archives. Reproduce and
 verify the maintained distributions with `npm run check:native-providers`.
-Their identities are ESLint-format 2.0.1-webops.1, UnoCSS attributify-JSX
-66.12.0-webops.1, UnoCSS Vite 66.12.0-webops.2 and Unconfig 7.5.0-webops.1.
+Their identities are ESLint-format 2.0.1-webops.2, UnoCSS attributify-JSX
+66.13.0-webops.1, UnoCSS Vite 66.13.0-webops.1 and Unconfig 7.5.0-webops.1.
+All application UnoCSS consumers use the 66.13.0 family, including Nuxt,
+presets, ESLint integration and the updated Vite pipeline/configuration loader.
+The formatter and JSX-transformer use new maintained archive identities for
+this native-family upgrade. Original registry inputs and earlier maintained
+archives remain unchanged; previous qualified ranges and identities fail closed.
 
 The formatter and JSX-transformer module, worker, declaration and license bytes
 remain unchanged. Their dependency ranges select the qualified native engines.

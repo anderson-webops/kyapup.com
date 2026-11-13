@@ -17,17 +17,18 @@ MAX_EXPANDED = 16 * 1024 * 1024
 PACKAGES = {
     "eslint-plugin-format": {
         "version": "2.0.1",
+        "revision": 2,
         "dependency": "oxfmt",
         "originalRange": "^0.35.0",
-        "qualifiedRange": "^0.77.0",
+        "qualifiedRange": "^0.78.0",
         "fileCount": 10,
         "required": {"LICENSE", "dist/index.mjs", "dist/index.d.mts", "dts/rule-options.d.ts", "workers/oxfmt.cjs", "workers/prettier.cjs", "workers/dprint.cjs"},
     },
     "@unocss/transformer-attributify-jsx": {
-        "version": "66.12.0",
+        "version": "66.13.0",
         "dependency": "oxc-parser",
         "originalRange": "^0.153.0",
-        "qualifiedRange": "^0.157.0",
+        "qualifiedRange": "^0.158.0",
         "fileCount": 4,
         "required": {"README.md", "dist/index.mjs", "dist/index.d.mts"},
     },
@@ -45,11 +46,10 @@ PACKAGES = {
         },
     },
     "@unocss/vite": {
-        "version": "66.12.0",
-        "revision": 2,
+        "version": "66.13.0",
         "dependency": "@unocss/core",
-        "originalRange": "66.12.0",
-        "qualifiedRange": "66.12.0",
+        "originalRange": "66.13.0",
+        "qualifiedRange": "66.13.0",
         "fileCount": 6,
         "required": {"README.md", "dist/client.mjs", "dist/client.d.mts", "dist/index.mjs", "dist/index.d.mts"},
         "replacement": {
