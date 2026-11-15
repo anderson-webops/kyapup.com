@@ -172,7 +172,7 @@ def build_archive(data, record):
 
 
 def write_regular(filename, payload):
-    descriptor = os.open(filename, os.O_WRONLY | os.O_CREAT | os.O_NOFOLLOW | os.O_NONBLOCK, 0o644)
+    descriptor = os.open(filename, os.O_WRONLY | os.O_CREAT | os.O_NOFOLLOW | os.O_NONBLOCK, 0o600)
     with os.fdopen(descriptor, "wb") as stream:
         metadata = os.fstat(stream.fileno())
         require(stat.S_ISREG(metadata.st_mode) and metadata.st_nlink == 1, "Output must be an unshared regular file")

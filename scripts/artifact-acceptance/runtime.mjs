@@ -12,8 +12,9 @@ import { Readable } from 'node:stream'
 
 assert.equal(process.platform, 'linux')
 assert.equal(process.arch, 'arm64')
-assert.equal(process.version, 'v26.13.0')
+assert.equal(process.version, 'v26.13.1')
 assert.equal(process.cwd(), '/app')
+assert.ok(['complete', 'missing-module', 'retained-v1.2.4'].includes(process.argv[2]))
 for (const absent of [
   '/home/builder',
   '/mnt/input',
@@ -56,6 +57,15 @@ else {
     maxmem: 64 * 1024 * 1024,
   })
   const passwordHash = `scrypt$32768$8$1$${salt.toString('hex')}$${key.toString('hex')}`
+  const retained = process.argv[2] === 'retained-v1.2.4'
+  if (retained) {
+    assert.equal(manifest.commit, 'b3bc70a5865ed913b490750602e56206114a6da1')
+    assert.equal(metadata.release, 'v1.2.4')
+    assert.equal(manifest.contract.runtime.node, '26.13.0')
+  }
+  else {
+    assert.equal(manifest.contract.runtime.node, '26.13.1')
+  }
   const runtimeRequire = createRequire('/app/back-end/package.json')
   const expressRequire = createRequire(runtimeRequire.resolve('express'))
   const bodyParserRequire = createRequire(expressRequire.resolve('body-parser'))
@@ -75,6 +85,20 @@ else {
     Buffer.alloc(3),
   ]), { limit: 2 }), { status: 413, type: 'entity.too.large' })
   const { createApp } = await import('/app/back-end/dist/app.js')
+  if (!retained) {
+    const guard = spawnSync(process.execPath, ['--input-type=module', '-e', `
+    Object.defineProperty(process, 'version', { value: 'v26.13.0' })
+    const { createApp } = await import('/app/back-end/dist/app.js')
+    createApp()
+    `], {
+      env: { NODE_ENV: 'production', DOTENV_CONFIG_PATH: '/absent' },
+      encoding: 'utf8',
+      timeout: 5000,
+    })
+    assert.equal(guard.signal, null)
+    assert.notEqual(guard.status, 0)
+    assert.match(guard.stderr, /requires Node.js 26.13.1/)
+  }
   let ready = false
   const server = createServer(createApp({
     store,
@@ -182,5 +206,7 @@ else {
     persistence: true,
     restart: true,
     modernHttpCompatibility: true,
+    unsupportedRuntimeRejected: !retained,
+    retainedRuntimeOnSecuredNode: retained,
   }))
 }

@@ -188,6 +188,21 @@ test('all original adapter paths load and instantiate through ESM and CommonJS',
   assert.equal(require('unplugin-remove').default, remove)
 })
 
+test('typed adapter fixtures declare every directly imported build tool', async () => {
+  const manifest = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'))
+  const lock = JSON.parse(await readFile(path.join(root, 'package-lock.json'), 'utf8'))
+  for (const dependency of [
+    'vite',
+    'rollup',
+    'rolldown',
+    'esbuild',
+    'webpack',
+  ]) {
+    assert.ok(manifest.devDependencies[dependency], dependency)
+    assert.equal(lock.packages[''].devDependencies[dependency], manifest.devDependencies[dependency], dependency)
+  }
+})
+
 test('strict native adapter types work in ESM/CommonJS and reject invalid options', async () => {
   const directory = path.join(root, '.ai-work/runs')
   await mkdir(directory, { recursive: true })

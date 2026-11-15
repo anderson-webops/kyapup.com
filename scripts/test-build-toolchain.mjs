@@ -117,10 +117,12 @@ test('stable version bounds retain the existing semver minimums without loading 
     '11.0.0',
     '11.0.1',
     '11.0.5',
+    '11.0.8',
     '14.0.1',
     '14.0.2',
     '14.0.3',
     '14.0.4',
+    '14.0.6',
     '15.0.0',
     '8.12.2+build.001',
     'v8.12.2',
@@ -313,7 +315,12 @@ test('a clean source-only bootstrap installs the application through its isolate
       filter: filename => !filename.split(path.sep).includes('node_modules'),
     })
     mkdirSync(path.join(directory, 'scripts'))
-    for (const name of ['build-toolchain.mjs', 'build-toolchain-state.mjs', 'build-toolchain-cache.mjs'])
+    for (const name of [
+      'build-toolchain.mjs',
+      'build-toolchain-state.mjs',
+      'build-toolchain-cache.mjs',
+      'build-toolchain-seed.mjs',
+    ])
       cpSync(path.join(root, 'scripts', name), path.join(directory, 'scripts', name))
     const manifest = {
       name: 'webops-bootstrap-fixture',
@@ -331,6 +338,8 @@ test('a clean source-only bootstrap installs the application through its isolate
       },
     }))
     writeFileSync(path.join(directory, 'observe-install.cjs'), 'require("node:fs").writeFileSync("observed.json", JSON.stringify({cli:process.env.npm_execpath, cwd:process.cwd(), ignored:process.env.npm_config_ignore_scripts}))\n')
+    const nativePnpm = path.join(directory, 'pnpm')
+    writeFileSync(nativePnpm, Buffer.from([0x7F, 0x45, 0x4C, 0x46]))
     context.diagnostic('Preparing, auditing and installing the independent cold profile')
     const output = execFileSync(process.execPath, [
       path.join(directory, 'scripts/build-toolchain.mjs'),
@@ -346,6 +355,7 @@ test('a clean source-only bootstrap installs the application through its isolate
       maxBuffer: 4 * 1024 * 1024,
       env: {
         ...process.env,
+        npm_execpath: nativePnpm,
         NPM_CONFIG_CACHE: path.join(directory, 'cache'),
       },
     })
@@ -372,6 +382,7 @@ test('a clean source-only bootstrap installs the application through its isolate
       maxBuffer: 4 * 1024 * 1024,
       env: {
         ...process.env,
+        npm_execpath: nativePnpm,
         NPM_CONFIG_CACHE: path.join(directory, 'cache'),
       },
     }).trim()

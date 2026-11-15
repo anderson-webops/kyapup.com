@@ -1,9 +1,13 @@
 {
   "vite": {
     "schemaVersion": 1,
+    "archive": "upstream/vite-8.3.8.tgz",
+    "patchedVersion": "8.3.8+webops.1",
+    "registryIntegrity": "sha512-LzOn3h9rG/0vhLdXrV4yJ4QFA9eEoqCl+Yx+kGJd7aB9w6nfNgVHKSYwLPZUHrz4ZGa+t+kXjV9itvcHDLQouA==",
+    "registryArchiveSha256": "96b14ea41f889b70b1ccf74dd5861e365816fce8632c5073ce8d70c90509738b",
     "package": {
       "name": "vite",
-      "version": "8.3.6",
+      "version": "8.3.8",
       "description": "Native-ESM powered web dev build tool",
       "keywords": [
         "build-tool",
@@ -62,11 +66,11 @@
         "lightningcss": "^1.33.0",
         "picomatch": "^4.0.7",
         "postcss": "^8.5.32",
-        "rolldown": "~1.2.16",
+        "rolldown": "~1.2.18",
         "tinyglobby": "^0.2.17"
       },
       "devDependencies": {
-        "@babel/parser": "^7.29.12",
+        "@babel/parser": "^7.29.13",
         "@jridgewell/remapping": "^2.3.5",
         "@jridgewell/trace-mapping": "^0.3.31",
         "@polka/compression": "^1.0.0-next.25",
@@ -75,11 +79,11 @@
         "@rollup/pluginutils": "^5.5.1",
         "@types/escape-html": "^1.0.4",
         "@types/pnpapi": "^0.0.5",
-        "@vitejs/devtools": "^0.8.0",
+        "@vitejs/devtools": "^0.8.2",
         "@vitest/utils": "^4.1.12",
         "@voidzero-dev/vite-task-client": "^0.2.0",
         "artichokie": "^0.4.5",
-        "baseline-browser-mapping": "^2.11.34",
+        "baseline-browser-mapping": "^2.11.35",
         "cac": "^7.1.0",
         "chokidar": "^3.6.0",
         "connect": "^3.7.0",
@@ -101,7 +105,7 @@
         "nanoid": "^5.1.16",
         "obug": "^1.0.2",
         "open": "^10.2.0",
-        "parse5": "^8.0.1",
+        "parse5": "^8.1.1",
         "pathe": "^2.0.3",
         "periscopic": "^4.0.3",
         "picocolors": "^1.1.1",
@@ -113,15 +117,15 @@
         "rolldown-plugin-dts": "^0.29.0",
         "rollup": "^4.59.0",
         "rollup-plugin-license": "^3.7.1",
-        "sass": "^1.107.1",
-        "sass-embedded": "^1.107.1",
+        "sass": "^1.108.1",
+        "sass-embedded": "^1.108.1",
         "sirv": "^3.0.2",
         "std-env": "^4.3.0",
         "strip-literal": "^4.0.0",
         "terser": "^5.51.2",
         "tinyexec": "^1.3.1",
         "ufo": "^1.6.4",
-        "ws": "^8.22.1"
+        "ws": "^8.22.2"
       },
       "peerDependencies": {
         "@types/node": "^20.19.0 || >=22.12.0",
@@ -195,73 +199,25 @@
         "generate-target": "tsx scripts/generateTarget.ts"
       }
     },
-    "archive": "upstream/vite-8.3.6.tgz",
-    "patchedVersion": "8.3.6+webops.3",
-    "registryIntegrity": "sha512-UI7dK29NnS54Fk+mmo7o+jI6U8Fp7hDl+X5Q1k45WH+d4dSlbLVUETGQ+hfkNgvLQGyoElPj837nZyv4MBc0VA==",
-    "registryArchiveSha256": "37d3d625af80de80e6fb51b97bebd79c15a767aace9818675cd475f480a840ee",
     "files": {
-      "dist/node/chunks/build.js": {
-        "sha256": "befef72ccb96bce36bc255b58cdb7836820d93076c5891bb13f6582d24176fcf",
-        "mode": 420
-      },
-      "dist/node/cli.js": {
-        "sha256": "cd35c0ddbdde2a2af211b618505927440d74b0fc77c2eef8203103801a741664",
-        "mode": 420
-      },
-      "dist/node/chunks/dist.js": {
-        "sha256": "250e25fc5c5224a2d9a7681979aea0c16211ea2967bb1db3266717916d06dcb7",
-        "mode": 420
-      },
-      "misc/false.js": {
-        "sha256": "3f405f8c82812b5fd5a6ca325a1b9039479bf9de3ee1ef51d76ea80fba7d486c",
-        "mode": 420
-      },
-      "dist/node/index.js": {
-        "sha256": "3f6680590bb474e6f3ce3cb86c0b7ff18acccf393a36c48c82e67fdca470ed19",
-        "mode": 420
-      },
-      "dist/node/internal.js": {
-        "sha256": "a98d380fc274e475ed78b82d0f001f40531d8d1ec1e191f86c475ee629245dfc",
-        "mode": 420
-      },
-      "dist/node/chunks/lib.js": {
-        "sha256": "25ecf16326d7d3d82ef95719b7559e470a902b25cce31c7e092f2d69374bcae2",
-        "mode": 420
-      },
-      "dist/node/module-runner.js": {
-        "sha256": "34e39b71a4cbacc4ea0ea84729eb61cd23a5ef5265d4d5631948a6d95a7278b7",
-        "mode": 420
-      },
-      "dist/node/chunks/node.js": {
-        "sha256": "f090936143c2aad8b6aea6e6306b9617efc5282aa885e5694179b70b81d6d339",
-        "mode": 420
-      },
-      "bin/openChrome.js": {
-        "sha256": "d72bfcc4e6fc7b3dd81338704895402b2b54fe725662eb82f09669aa93f36b92",
-        "mode": 420
-      },
-      "dist/node/chunks/postcss-import.js": {
-        "sha256": "1a41fc2e426f583ee283283c2fe81983e4797144929284dc65059bc8849ec6b9",
-        "mode": 420
-      },
-      "misc/true.js": {
-        "sha256": "1ca1ff5b531880de960715f4622cb4bfe61620ad0ab56764a00f3afe2bf2981a",
-        "mode": 420
-      },
-      "bin/vite.js": {
-        "sha256": "de5833362e640673962f16e255bf8738d4380a68601b9af26217eee4e1bac36d",
-        "mode": 493
-      },
-      "package.json": {
-        "sha256": "c190c4c3dadb457bedc5d756a2269cd648b134a293da9f4d873c01fc66f4186c",
-        "mode": 420
-      },
       "LICENSE.md": {
         "sha256": "a22152baa1aef74402443008e767e7c689a524c0909d19b0431d97f5ab066a13",
         "mode": 420
       },
       "README.md": {
         "sha256": "01cebf4365cd21396688c4dcb0dc8d360ccbafb3a36735d3849c5d8efd3cd060",
+        "mode": 420
+      },
+      "bin/openChrome.js": {
+        "sha256": "d72bfcc4e6fc7b3dd81338704895402b2b54fe725662eb82f09669aa93f36b92",
+        "mode": 420
+      },
+      "bin/vite.js": {
+        "sha256": "de5833362e640673962f16e255bf8738d4380a68601b9af26217eee4e1bac36d",
+        "mode": 493
+      },
+      "client.d.ts": {
+        "sha256": "74b98be6ab7723114273526706070ff9885fdf990d5c4e722801addca4d264e1",
         "mode": 420
       },
       "dist/client/bundledDevClient.mjs": {
@@ -276,24 +232,72 @@
         "sha256": "6f3000cbd8e2cd94cade08e5d9b9fe7eb80cefa38b8abce672ad002cd891f424",
         "mode": 420
       },
-      "client.d.ts": {
-        "sha256": "74b98be6ab7723114273526706070ff9885fdf990d5c4e722801addca4d264e1",
+      "dist/node/chunks/build.js": {
+        "sha256": "befef72ccb96bce36bc255b58cdb7836820d93076c5891bb13f6582d24176fcf",
         "mode": 420
       },
-      "types/internal/cssPreprocessorOptions.d.ts": {
-        "sha256": "d8a62a1763683460cfc7c6d66214859909d3f91f34b6e9009aa9443b241f08c0",
+      "dist/node/chunks/dist.js": {
+        "sha256": "d0847f102e63bdfb9ed223c2ab6441b66dc3d693269934cd0b66ee724a3d221b",
+        "mode": 420
+      },
+      "dist/node/chunks/lib.js": {
+        "sha256": "25ecf16326d7d3d82ef95719b7559e470a902b25cce31c7e092f2d69374bcae2",
+        "mode": 420
+      },
+      "dist/node/chunks/moduleRunnerTransport.d.ts": {
+        "sha256": "fc1698129d7d32fdf1226c3645efa60c7b34ee74cc974e266f7c12b14b22bc06",
+        "mode": 420
+      },
+      "dist/node/chunks/node.js": {
+        "sha256": "b8233c9f8034662d76fd8d05774a0c7437dcd2591b08cb820fffdceecae5e88c",
+        "mode": 420
+      },
+      "dist/node/chunks/postcss-import.js": {
+        "sha256": "1a41fc2e426f583ee283283c2fe81983e4797144929284dc65059bc8849ec6b9",
+        "mode": 420
+      },
+      "dist/node/cli.js": {
+        "sha256": "cd35c0ddbdde2a2af211b618505927440d74b0fc77c2eef8203103801a741664",
+        "mode": 420
+      },
+      "dist/node/index.d.ts": {
+        "sha256": "880f6842437f143a392d7cf31ce54d2d228860db745846a3d79df5438a26b9ef",
+        "mode": 420
+      },
+      "dist/node/index.js": {
+        "sha256": "3f6680590bb474e6f3ce3cb86c0b7ff18acccf393a36c48c82e67fdca470ed19",
+        "mode": 420
+      },
+      "dist/node/internal.d.ts": {
+        "sha256": "fe8e1632d4da52d384026fcb1f3fcf4c04f8fdfe6be4328712a09d470ed6c59d",
+        "mode": 420
+      },
+      "dist/node/internal.js": {
+        "sha256": "a98d380fc274e475ed78b82d0f001f40531d8d1ec1e191f86c475ee629245dfc",
+        "mode": 420
+      },
+      "dist/node/module-runner.d.ts": {
+        "sha256": "f706dfe89575228d72dc90007259b7d0bedbc150b3131b5ce48aa012d93c31df",
+        "mode": 420
+      },
+      "dist/node/module-runner.js": {
+        "sha256": "34e39b71a4cbacc4ea0ea84729eb61cd23a5ef5265d4d5631948a6d95a7278b7",
+        "mode": 420
+      },
+      "misc/false.js": {
+        "sha256": "3f405f8c82812b5fd5a6ca325a1b9039479bf9de3ee1ef51d76ea80fba7d486c",
+        "mode": 420
+      },
+      "misc/true.js": {
+        "sha256": "1ca1ff5b531880de960715f4622cb4bfe61620ad0ab56764a00f3afe2bf2981a",
+        "mode": 420
+      },
+      "package.json": {
+        "sha256": "149cf436b89044371ae3cb35ac0e687ee75c6e8412962c7ce671f3d1a4a09d82",
         "mode": 420
       },
       "types/customEvent.d.ts": {
         "sha256": "5ef1bf71c773ca3df07f0c8c126af004a8e7310a7373ba4f049e7d3fb1b21921",
-        "mode": 420
-      },
-      "types/internal/devtoolsOptions.d.ts": {
-        "sha256": "eb270772f3bc8c64796cafcc0435d9724e2744a2f7cf933002faed1455983a9b",
-        "mode": 420
-      },
-      "types/internal/esbuildOptions.d.ts": {
-        "sha256": "e0864480ea083087d705f9405bd6bf59b795e8474c3447f0d6413b2bce535a09",
         "mode": 420
       },
       "types/hmrPayload.d.ts": {
@@ -316,28 +320,20 @@
         "sha256": "72429cda84a47f092a3bf777bbc4ece9dda492fe0f02324aa7f197f3800089c6",
         "mode": 420
       },
-      "dist/node/index.d.ts": {
-        "sha256": "880f6842437f143a392d7cf31ce54d2d228860db745846a3d79df5438a26b9ef",
+      "types/internal/cssPreprocessorOptions.d.ts": {
+        "sha256": "d8a62a1763683460cfc7c6d66214859909d3f91f34b6e9009aa9443b241f08c0",
         "mode": 420
       },
-      "dist/node/internal.d.ts": {
-        "sha256": "fe8e1632d4da52d384026fcb1f3fcf4c04f8fdfe6be4328712a09d470ed6c59d",
+      "types/internal/devtoolsOptions.d.ts": {
+        "sha256": "eb270772f3bc8c64796cafcc0435d9724e2744a2f7cf933002faed1455983a9b",
+        "mode": 420
+      },
+      "types/internal/esbuildOptions.d.ts": {
+        "sha256": "e0864480ea083087d705f9405bd6bf59b795e8474c3447f0d6413b2bce535a09",
         "mode": 420
       },
       "types/internal/lightningcssOptions.d.ts": {
         "sha256": "4ec16d7a4e366c06a4573d299e15fe6207fc080f41beac5da06f4af33ea9761e",
-        "mode": 420
-      },
-      "types/metadata.d.ts": {
-        "sha256": "e67cbea16f1994af89efd700542dbf3828a46a52b29e4d67e801bd7869dc103c",
-        "mode": 420
-      },
-      "dist/node/module-runner.d.ts": {
-        "sha256": "f706dfe89575228d72dc90007259b7d0bedbc150b3131b5ce48aa012d93c31df",
-        "mode": 420
-      },
-      "dist/node/chunks/moduleRunnerTransport.d.ts": {
-        "sha256": "fc1698129d7d32fdf1226c3645efa60c7b34ee74cc974e266f7c12b14b22bc06",
         "mode": 420
       },
       "types/internal/rollupTypeCompat.d.ts": {
@@ -346,6 +342,10 @@
       },
       "types/internal/terserOptions.d.ts": {
         "sha256": "f582b0fcbf1eea9b318ab92fb89ea9ab2ebb84f9b60af89328a91155e1afce72",
+        "mode": 420
+      },
+      "types/metadata.d.ts": {
+        "sha256": "e67cbea16f1994af89efd700542dbf3828a46a52b29e4d67e801bd7869dc103c",
         "mode": 420
       }
     }
@@ -3734,6 +3734,179 @@
       },
       "dist/presets/zeabur/runtime/zeabur.d.ts": {
         "sha256": "9ddbd17fc1114e83df7ae6f7a3a0e80947eb58f8ffc5579288f19a6a8115108e",
+        "mode": 420
+      }
+    }
+  },
+  "@nuxt/vite-builder": {
+    "schemaVersion": 1,
+    "archive": "upstream/nuxt-vite-builder-4.6.4.tgz",
+    "patchedVersion": "4.6.4+webops.1",
+    "registryIntegrity": "sha512-D4sKiqos2l/96DjeuaaahPEUMdrsr7LIkorJOUCgefYFzJFssaa051tcUg6KFAU0EaCeosDRRXBXTLutiSlp7g==",
+    "registryArchiveSha256": "1e3c425177e8db28812318efbcccaf4532e7001e8de12a454b82e05fa7a072f7",
+    "package": {
+      "name": "@nuxt/vite-builder",
+      "version": "4.6.4",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/nuxt/nuxt.git",
+        "directory": "packages/vite"
+      },
+      "description": "Vite bundler for Nuxt",
+      "homepage": "https://nuxt.com",
+      "license": "MIT",
+      "type": "module",
+      "types": "./dist/index.d.mts",
+      "exports": {
+        ".": "./dist/index.mjs",
+        "./package.json": "./package.json"
+      },
+      "imports": {
+        "#ssr-sourcemap": "./dist/ssr-sourcemap.mjs",
+        "#vite-node": "./dist/vite-node.mjs",
+        "#vite-node-entry": "./dist/vite-node-entry.mjs",
+        "#vite-node-runner": "./dist/vite-node-runner.mjs",
+        "#vite-node-warmup": "./dist/vite-node-warmup.mjs"
+      },
+      "files": [
+        "dist"
+      ],
+      "dependencies": {
+        "@nuxt/kit": "4.6.4",
+        "@vitejs/plugin-vue": "^6.0.10",
+        "@vitejs/plugin-vue-jsx": "^5.1.6",
+        "autoprefixer": "^10.6.2",
+        "clickable-path": "^0.1.1",
+        "consola": "^3.4.2",
+        "cssnano": "^9.9.0",
+        "defu": "^6.1.7",
+        "escape-string-regexp": "^5.0.0",
+        "exsolve": "^1.2.0",
+        "generic-names": "^4.0.0",
+        "get-port-please": "^3.2.0",
+        "js-tokens": "^10.0.0",
+        "knitwork": "^1.3.0",
+        "mocked-exports": "^0.1.1",
+        "my-bad": "^0.2.11",
+        "pathe": "^2.0.3",
+        "pkg-types": "^2.4.0",
+        "postcss": "^8.5.32",
+        "rolldown-string": "^0.3.1",
+        "seroval": "^1.7.6",
+        "std-env": "^4.3.0",
+        "ufo": "^1.6.4",
+        "unenv": "^2.0.0-rc.24",
+        "vite": "^8.3.5",
+        "vite-node": "^6.0.0",
+        "vite-plugin-checker": "^0.14.5",
+        "vue-bundle-renderer": "^2.4.0"
+      },
+      "devDependencies": {
+        "@babel/plugin-proposal-decorators": "8.0.2",
+        "@babel/plugin-syntax-jsx": "8.0.1",
+        "@nuxt/schema": "4.6.4",
+        "h3": "1.15.11",
+        "h3-next": "npm:h3@2.0.2",
+        "nitropack": "2.13.6",
+        "rolldown": "~1.2.15",
+        "rollup": "4.67.4",
+        "rollup-plugin-visualizer": "7.1.1",
+        "tsdown": "0.23.2",
+        "vue": "^3.5.44"
+      },
+      "peerDependencies": {
+        "@babel/plugin-proposal-decorators": "^7.25.0 || ^8.0.0",
+        "@babel/plugin-syntax-jsx": "^7.25.0 || ^8.0.0",
+        "nuxt": "4.6.4",
+        "rolldown": "^1.0.0",
+        "rollup-plugin-visualizer": "^6.0.0 || ^7.0.1",
+        "vue": "^3.3.4"
+      },
+      "peerDependenciesMeta": {
+        "@babel/plugin-proposal-decorators": {
+          "optional": true
+        },
+        "@babel/plugin-syntax-jsx": {
+          "optional": true
+        },
+        "rolldown": {
+          "optional": true
+        },
+        "rollup-plugin-visualizer": {
+          "optional": true
+        }
+      },
+      "engines": {
+        "node": "^22.22.3 || ^24.15.0 || >=26.0.0"
+      },
+      "scripts": {
+        "build": "tsdown",
+        "test:attw": "node ../../scripts/test-attw.ts"
+      }
+    },
+    "files": {
+      "LICENSE": {
+        "sha256": "947a111b1c5797180b92547c6498358fd812b0f133090844dae324eb3fb2efc7",
+        "mode": 420
+      },
+      "package.json": {
+        "sha256": "260a870640297a1142e7ad0b398d54d6150e086348616f4f32b31788f6f9bf99",
+        "mode": 420
+      },
+      "README.md": {
+        "sha256": "a6f16b191d3d1cbb6c567152484e032cb69f6934d62bed187a15696ef5bcc034",
+        "mode": 420
+      },
+      "dist/index.mjs": {
+        "sha256": "f4dd80aa14936e191809b189481f73fa2ea88ff03eb6cd3c056bdf1a4bef90d8",
+        "mode": 420
+      },
+      "dist/ssr-sourcemap.mjs": {
+        "sha256": "de1157110c3c336500c35f936ef97c770f292e7e1660efc115b88d40eac26d5e",
+        "mode": 420
+      },
+      "dist/vite-node-entry.mjs": {
+        "sha256": "21762d2d916420e8d440f9710980959e681c02ff177f72ef33ccd4d41f0019e5",
+        "mode": 420
+      },
+      "dist/vite-node-runner.mjs": {
+        "sha256": "9b19e17eeb14dfa5ef00ed18a4d9988ff6caf0693994c9e0797efe95c8ef565f",
+        "mode": 420
+      },
+      "dist/vite-node-warmup.mjs": {
+        "sha256": "c5cdcc85e3f4beecc9802ae4081bd8dcdfae933eab5dc7fff34b95fb27e14a21",
+        "mode": 420
+      },
+      "dist/vite-node.mjs": {
+        "sha256": "cc779c15470870dd115c0df62719281ee85eee73fe1eb094000378cc62321c53",
+        "mode": 420
+      },
+      "dist/index.d.mts": {
+        "sha256": "db31881aa4593b66e2329c4bc9f2340d891440997cb65478d8fd89806021032f",
+        "mode": 420
+      },
+      "dist/ssr-sourcemap.d.mts": {
+        "sha256": "5720bfab3e74628126e3398e68ef4438fbf661886ad169753a0a454cb4e002a4",
+        "mode": 420
+      },
+      "dist/vite-node-entry.d.mts": {
+        "sha256": "d60c746e8121209f6a98ea43eb5e81452f620c7330f2a1cca69f4affc06a2d6b",
+        "mode": 420
+      },
+      "dist/vite-node-runner-BLL3YBPY.d.mts": {
+        "sha256": "0056a6df6d0d76adaa22b33fabc0de2851ef0640ed7bade96d34f76125b0dd75",
+        "mode": 420
+      },
+      "dist/vite-node-runner.d.mts": {
+        "sha256": "adeb8adc9b5d3bdaea0f8931b2d94bc0127c81256a2b532c132cc0ac0e9fe5b7",
+        "mode": 420
+      },
+      "dist/vite-node-warmup.d.mts": {
+        "sha256": "b2c89f8e998ff9d73cc30aeda1242eb4af21d255e96dacbd23436b8eb234a214",
+        "mode": 420
+      },
+      "dist/vite-node.d.mts": {
+        "sha256": "6095811d131b20fc98b99df4382533de2b4663568f6f0051900ed73585f39940",
         "mode": 420
       }
     }

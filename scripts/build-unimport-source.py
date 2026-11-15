@@ -18,7 +18,7 @@ SOURCE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(SOURCE)
 ROOT = SOURCE.ROOT
 BUILD = SOURCE.SOURCE / "build"
-TARGET = ROOT / "vendor/unimport-7.0.2-webops.2.tgz"
+TARGET = ROOT / "vendor/unimport-7.0.2-webops.3.tgz"
 CONFIG = ROOT / "scripts/unimport-build.config.mjs"
 
 
@@ -82,7 +82,7 @@ def run(command, directory, environment):
 def build_once(original, check_upstream):
     node = shutil.which("node")
     SOURCE.require(node is not None, "The qualified Node build profile is required")
-    SOURCE.require(subprocess.check_output([node, "--version"], text=True).strip() == "v26.13.0", "Review changed source-build Node version")
+    SOURCE.require(subprocess.check_output([node, "--version"], text=True).strip() == "v26.13.1", "Review changed source-build Node version")
     manifest = json.loads(SOURCE.regular_bytes(BUILD / "package.json"))
     lock = json.loads(SOURCE.regular_bytes(BUILD / "package-lock.json"))
     SOURCE.require(lock["packages"][""]["dependencies"] == manifest["dependencies"] and lock["packages"][""]["devDependencies"] == manifest["devDependencies"], "Source-build lock does not match its manifest")
@@ -119,7 +119,7 @@ def build_once(original, check_upstream):
     metadata = json.loads(original["package.json"])
     for key in ["devDependencies", "scripts", "packageManager", "resolutions"]:
         metadata.pop(key, None)
-    metadata.update(version="7.0.2+webops.2", private=True, dependencies=manifest["dependencies"], engines={"node": ">=26.13.0 <27"})
+    metadata.update(version="7.0.2+webops.3", private=True, dependencies=manifest["dependencies"], engines={"node": ">=26.13.1 <27"})
     for filename in ["LICENSE", "README.md", *sorted(name for name in original if "/" not in name and name.endswith(".d.ts"))]:
         output["package/" + filename] = original[filename]
     output["package/package.json"] = (json.dumps(metadata, indent=2) + "\n").encode()
@@ -127,7 +127,7 @@ def build_once(original, check_upstream):
     record = json.loads((SOURCE.SOURCE / "UPSTREAM.json").read_text())
     provenance = {
         "schemaVersion": 2, "source": record,
-        "build": {"node": "26.13.0", "tool": "tsdown@0.23.7", "lockSha256": hashlib.sha256((BUILD / "package-lock.json").read_bytes()).hexdigest(), "configSha256": hashlib.sha256(CONFIG.read_bytes()).hexdigest(), "producerSha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), "sourceVerifierSha256": hashlib.sha256((ROOT / "scripts/check-unimport-source.py").read_bytes()).hexdigest()},
+        "build": {"node": "26.13.1", "tool": "tsdown@0.23.7", "lockSha256": hashlib.sha256((BUILD / "package-lock.json").read_bytes()).hexdigest(), "configSha256": hashlib.sha256(CONFIG.read_bytes()).hexdigest(), "producerSha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), "sourceVerifierSha256": hashlib.sha256((ROOT / "scripts/check-unimport-source.py").read_bytes()).hexdigest()},
         "patches": {name: hashlib.sha256(prepared[name]).hexdigest() for name in sorted(original) if original[name] != prepared[name]},
         "outputSha256": {name.removeprefix("package/"): hashlib.sha256(data).hexdigest() for name, data in sorted(output.items())},
     }
@@ -143,7 +143,7 @@ def verify_installed(data, prefix):
     with tarfile.open(fileobj=io.BytesIO(data), mode="r:gz") as archive:
         files = {member.name.removeprefix("package/"): archive.extractfile(member).read() for member in archive}
     for name, info in consumers:
-        SOURCE.require(info["version"] == "7.0.2+webops.2" and info["integrity"] == integrity, "Consuming source-built provider identity mismatch")
+        SOURCE.require(info["version"] == "7.0.2+webops.3" and info["integrity"] == integrity, "Consuming source-built provider identity mismatch")
         directory = prefix / name
         SOURCE.require(not directory.is_symlink(), "Source-built consumer must remain local")
         for filename, content in files.items():

@@ -19,7 +19,7 @@ for name in ['deploy', 'scripts']:
     shutil.copytree(source / name, control / name)
 shutil.copyfile(source / 'package.json', control / 'package.json')
 installer = control / 'deploy/systemd/install-service.sh'
-env = {'PATH': '/usr/sbin:/usr/bin:/sbin:/bin', 'NODE_BIN_DIR': '/opt/node-26.13.0/bin'}
+env = {'PATH': '/usr/sbin:/usr/bin:/sbin:/bin', 'NODE_BIN_DIR': '/opt/node-26.13.1/bin'}
 
 def run():
     return subprocess.run(['bash', str(installer)], env=env, text=True, capture_output=True, timeout=20)

@@ -83,6 +83,18 @@ class RuntimeArtifactTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "required runtime path missing"):
             artifact.validate(self.root, self.manifest())
 
+    def test_missing_runtime_guard_even_if_the_inventory_omits_it(self):
+        (self.root / "back-end/dist/runtime-version.js").unlink()
+        with self.assertRaisesRegex(ValueError, "required runtime path missing"):
+            artifact.validate(self.root, self.manifest())
+
+    def test_older_runtime_floor_requires_its_own_trusted_contract(self):
+        manifest = self.manifest()
+        manifest["contract"] = copy.deepcopy(manifest["contract"])
+        manifest["contract"]["runtime"]["node"] = "26.13.0"
+        with self.assertRaisesRegex(ValueError, "independently trusted runtime contract"):
+            artifact.validate(self.root, manifest)
+
     def test_missing_http_bridge_even_if_the_inventory_omits_it(self):
         for package in ("cookie", "encodeurl", "raw-body", "type-is"):
             with self.subTest(package=package):

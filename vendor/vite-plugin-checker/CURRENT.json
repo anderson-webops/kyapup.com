@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "name": "vite-plugin-checker",
+  "version": "1.0.0",
+  "archive": "upstream/vite-plugin-checker-1.0.0.tgz",
+  "registryIntegrity": "sha512-3Ef78GTs13BUSTCqUCnl5kh8/Ev00G3cTt4z2mQacCODCdx6oq4B/TgXiCvGJ1D7/Hhbd84QKz691+8gbn1uog==",
+  "registryArchiveSha256": "29ae99e86c2e3e971cb58497c73f5b87d6f25064169cd8edd4f8b6cc90cee4ab",
+  "license": "MIT",
+  "dependencies": {
+    "@babel/code-frame": "^8.0.0",
+    "chokidar": "^6.0.0"
+  },
+  "expectedExports": {
+    ".": "./dist/main.js"
+  },
+  "expectedEngines": {
+    "node": "^22.22.0 || >=24.11.0"
+  },
+  "legacyReference": "UPSTREAM.json",
+  "targetRuntime": "26.13.1",
+  "integration": "Original checker1 with its native Babel8 position and optional-column support; preserve historical0.14.5 archive and regressions, and qualify the Nuxt Vite-builder parent against checker1."
+}

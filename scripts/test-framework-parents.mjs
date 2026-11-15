@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { Buffer } from 'node:buffer'
 import { readFileSync } from 'node:fs'
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, rename, rm, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import path from 'node:path'
 import process from 'node:process'
@@ -45,15 +45,22 @@ async function until(predicate, message) {
   }
 }
 
+async function publishConfiguration(filename, contents) {
+  const pending = `${filename}.pending`
+  await writeFile(pending, contents)
+  await rename(pending, filename)
+}
+
 test('all actual framework consumers bind the qualified providers and complete original parent identities', () => {
   const lock = JSON.parse(readFileSync(path.join(root, 'package-lock.json'), 'utf8')).packages
   const original = JSON.parse(readFileSync(path.join(root, 'vendor/framework-parents/upstream/package-lock.json'), 'utf8')).packages
   for (const [name, version] of Object.entries({
-    vite: '8.3.6+webops.3',
-    nuxt: '4.6.4+webops.2',
-    nitropack: '2.13.6+webops.1',
-    rolldown: '1.3.2',
-    c12: '4.0.0-rc.4',
+    'vite': '8.3.8+webops.1',
+    'nuxt': '4.6.4+webops.2',
+    '@nuxt/vite-builder': '4.6.4+webops.1',
+    'nitropack': '2.13.6+webops.1',
+    'rolldown': '1.3.2',
+    'c12': '4.0.0-rc.4',
   })) {
     const matches = Object.entries(lock).filter(([filename]) => filename.endsWith(`node_modules/${name}`))
     assert.ok(matches.length, name)
@@ -61,11 +68,12 @@ test('all actual framework consumers bind the qualified providers and complete o
       assert.equal(metadata.version, version, filename)
   }
   for (const [name, version] of Object.entries({
-    vite: '8.3.6',
-    nuxt: '4.6.4',
-    nitropack: '2.13.6',
-    rolldown: '1.2.16',
-    c12: '3.3.4',
+    'vite': '8.3.8',
+    'nuxt': '4.6.4',
+    '@nuxt/vite-builder': '4.6.4',
+    'nitropack': '2.13.6',
+    'rolldown': '1.2.19',
+    'c12': '3.3.4',
   }))
     assert.equal(original[`node_modules/${name}`].version, version)
   for (const name of ['vite', 'nuxt', '@nuxt/vite-builder']) {
@@ -224,21 +232,26 @@ test('the current native configuration watcher survives invalid updates and clos
   const watched = await configuration.watchConfig({
     ...options(directory),
     debounce: 20,
-    onWatch: event => events.push(event),
+    onWatch: event => events.push({
+      ...event,
+      contents: readFileSync(event.path, 'utf8'),
+    }),
     onUpdate: value => updates.push(value),
   })
   context.after(() => watched.unwatch())
   assert.ok(watched.watchingFiles.includes(filename))
-  await writeFile(filename, 'export default {')
-  await until(() => warnings.length > 0, 'Invalid config must be observed and retained as a failure')
+  await publishConfiguration(filename, 'export default {')
+  await until(() => warnings.some(message => message.startsWith('Failed to load config ')), 'Invalid config must be observed and retained as a failure')
+  assert.ok(events.some(event => event.path === filename && event.contents === 'export default {'))
+  assert.equal(updates.length, 0)
   assert.equal(watched.config.value, 1)
-  await writeFile(filename, 'export default {value:2}')
+  await publishConfiguration(filename, 'export default {value:2}')
   await until(() => watched.config.value === 2, 'Valid config recovery must arrive')
   assert.equal(updates.at(-1).newConfig.config.value, 2)
   assert.ok(events.some(event => event.type === 'updated'))
   await watched.unwatch()
   const count = events.length
-  await writeFile(filename, 'export default {value:3}')
+  await publishConfiguration(filename, 'export default {value:3}')
   await delay(100)
   assert.equal(events.length, count)
 })
@@ -258,6 +271,6 @@ test('the actual Nitro parent reads and watches current-major configuration', as
   })
   context.after(() => current._c12.unwatch())
   assert.equal(current.runtimeConfig.fixture, 42)
-  await writeFile(path.join(directory, 'nitro.config.mjs'), 'export default {runtimeConfig:{fixture:84}}')
+  await publishConfiguration(path.join(directory, 'nitro.config.mjs'), 'export default {runtimeConfig:{fixture:84}}')
   await until(() => current._c12.config.runtimeConfig.fixture === 84, 'Actual Nitro current-major configuration watcher must reload')
 })

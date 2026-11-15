@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { access, readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
+import { toolchainMetadata } from './build-toolchain-state.mjs'
 
 const projectRoot = resolve(import.meta.dirname, '..')
 const paths = {
@@ -41,7 +42,7 @@ assert(!frontendIndex.includes('/api/pageview'), 'Generated HTML must not refere
 assert(!apiApp.includes('startedAt') && !apiApp.includes('pageview'), 'Compiled API must not expose process timing or page-view state')
 assert(!apiApp.includes('sourceMappingURL') && !apiServer.includes('sourceMappingURL'), 'Production API output must not expose source maps')
 assert(/^User=kyapup$/m.test(directService), 'Direct API service must use its unprivileged account')
-assert(/^ExecStart=\/opt\/node-26\.13\.0\/bin\/node /m.test(directService), 'Direct API must select the approved runtime without replacing the host-wide binary')
+assert(directService.split('\n').includes(`ExecStart=/opt/node-${toolchainMetadata.node}/bin/node back-end/dist/server.js`), 'Direct API must select the approved runtime without replacing the host-wide binary')
 assert(/^Environment=HOST=127\.0\.0\.1$/m.test(directService), 'Direct API service must bind only to loopback')
 assert(/^NoNewPrivileges=true$/m.test(directService), 'Direct API service must deny privilege escalation')
 assert(/^ProtectSystem=strict$/m.test(directService), 'Direct API service must have a read-only system view')

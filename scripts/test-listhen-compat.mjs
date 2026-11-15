@@ -70,7 +70,7 @@ test('local listhen fork preserves HTTP and certificate modes without node-forge
   const rootPackage = JSON.parse(await readFile(join(projectRoot, 'package.json'), 'utf8'))
   const forkPackage = JSON.parse(await readFile(join(projectRoot, 'vendor/listhen/package.json'), 'utf8'))
   const lockfile = JSON.parse(await readFile(join(projectRoot, 'package-lock.json'), 'utf8'))
-  assert.equal(rootPackage.devDependencies.listhen, 'file:vendor/listhen')
+  assert.equal(rootPackage.devDependencies.listhen, 'file:vendor/listhen-1.10.1-webops.3.tgz')
   assert.equal(rootPackage.overrides.listhen, '$listhen')
   assert.equal(forkPackage.dependencies['node-forge'], undefined)
   assert.equal(forkPackage.dependencies.selfsigned, '5.5.0')
@@ -78,7 +78,7 @@ test('local listhen fork preserves HTTP and certificate modes without node-forge
     !/(?:^|\/)node_modules\/node-forge$/u.test(path) && !entry.dependencies?.['node-forge']))
 
   const cli = spawnSync(process.execPath, [
-    join(projectRoot, 'vendor/listhen/bin/listhen.mjs'),
+    join(projectRoot, 'node_modules/listhen/bin/listhen.mjs'),
     '--help',
   ], { encoding: 'utf8' })
   assert.equal(cli.status, 0, cli.stderr)

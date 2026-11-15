@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "packages": {
+    "braces": {
+      "name": "braces",
+      "sourceVersion": "3.0.4-webops.2",
+      "version": "3.0.4-webops.3",
+      "sourceRevision": "410d2bd9c33c087bf495f20cc0b7d6966428d89d",
+      "sourceRepository": "https://github.com/anderson-webops/vitesse-nuxt-template",
+      "files": {
+        "LICENSE": "35bdd8a44339719441900fb50fbefc5e2dca1ca662cbaed7a687de842c8b70f2",
+        "README.md": "900bf73f500de893ce5d5fa142de02a2aec01d77e5194def33966942f70f8c95",
+        "index.js": "332ea07c7b006361aad12aa994ca75dc1db8e8382b884909e2f38f10b85c88a4",
+        "lib/assert-depth.js": "a7d5e9c5a5ed760203dd2bc2d2f634a782bb056711ea3bc9c190afb0c9523353",
+        "lib/compile.js": "9bdd24c30acc8157367d75bdfec66a0d7335febce254222ee4fbd9f65b07857c",
+        "lib/constants.js": "7e0f851c9b1553698aa6ecfe1acc642a114802aed6f57c60399d37deb38c4029",
+        "lib/expand.js": "d22b67ab8877ecd7b7eab0039c3825658fb34bf740ab4be9a56dae0e18a15d8a",
+        "lib/parse.js": "176adf4561362eafd79c570a4e478101702dbf23a47a5a18ceda10c0f9ce66b5",
+        "lib/stringify.js": "a2d392f319b4c2eb6984926663738d1120d542ff964dc1ba6012475f6680eb41",
+        "lib/utils.js": "b5a7596aa67730412b3c029ef09e84e6b67b8e445cffd35d1d295549c89066c7",
+        "package.json": "b3e88ff18f95200aa4bafab10b3f99c2d18adb0bdf7fa523712af06111d3899e"
+      }
+    },
+    "deepmerge": {
+      "name": "deepmerge",
+      "sourceVersion": "4.3.2-webops.1",
+      "version": "4.3.2-webops.2",
+      "sourceRevision": "410d2bd9c33c087bf495f20cc0b7d6966428d89d",
+      "sourceRepository": "https://github.com/anderson-webops/vitesse-nuxt-template",
+      "files": {
+        "UPSTREAM.md": "2f4a4950a0a8dc38b2559775c7cbeda6a0a7c146642ffffeb5c8ac510cae695a",
+        "dist/cjs.js": "d61caf755734835cd6c263ff923566c12ba68f1d389621bfad4334cf8566249f",
+        "dist/umd.js": "dac94a4965dded4e54d6c551af4f05465404e3a5087be5425a450ad6d2c6c274",
+        "index.d.ts": "146ba4b99c5feb82663e17a671bf9f53bb39c704cd76345d6c5a801c26372f44",
+        "license.txt": "6cfc4687cb2f2d86f4a77e6b526290d3878e5e512f3fec2f4cb36a9cb36f798b",
+        "package.json": "84972ec4684461b8d132abe8f151be75d0c507bbadbd91e801606fb2761e39fd"
+      }
+    },
+    "listhen": {
+      "name": "listhen",
+      "sourceVersion": "1.10.1-webops.2",
+      "version": "1.10.1-webops.3",
+      "sourceRevision": "410d2bd9c33c087bf495f20cc0b7d6966428d89d",
+      "sourceRepository": "https://github.com/anderson-webops/vitesse-nuxt-template",
+      "files": {
+        "LICENSE": "b3a54d652da04f9bae9e26042665ea35fe789fadd92634496cc34f1b2d9d6dbb",
+        "README.md": "6cd1ba0cdf6765c89d896a725e97db7b05e4d15b3547f64407edc62f182f97fd",
+        "bin/listhen.mjs": "a9cb86fe1c5ea885e72f5790f15e4050ef4e7f5fcaaede3ce2fa3ad7884bbab9",
+        "cli.d.ts": "d087d70568046e23eb999be96d36e63c1dc11b62f45e48626b339c6c47c89489",
+        "dist/chunks/xdg-open.cjs": "28b04de85a79aa60e2f881afbbb53d3174483b24391066cd454898280d72e8e8",
+        "dist/chunks/xdg-open.mjs": "b4e0b889465f3d6753b4a975bf81e5c5cb1bdc0718169177a91efecd1abe3506",
+        "dist/cli.cjs": "b4f4f45b89a83000390d141cf4996001e7e1fde1fd1b8be1dd5c1ebf0e38c572",
+        "dist/cli.d.cts": "5d1f952c519f384d43b6bbb795e4099929360c7bef6f1d22d43993a5c12ae614",
+        "dist/cli.d.mts": "39801b784ff027a87a66e75e9883a2f49e40d91a8f455680e073c4a799dd2ab0",
+        "dist/cli.d.ts": "09d0990054279acf7d6a4382ba1dcb9eccf9284fd78fa1d30f6ed32dbb610d9a",
+        "dist/cli.mjs": "eba40a562300b0aae8080e5a80c39342f30bb3d0fc0f3c31db46f0d79a481e76",
+        "dist/index.cjs": "ecfe94b32f6d04c48f46ab5813e70a257aa603e3095a54ccb8ec949d840083c9",
+        "dist/index.d.cts": "e256968f0102b914a5a5c3e101948a530e8a7be6cfcdf837e856a8f5302752da",
+        "dist/index.d.mts": "b05b45533387db2552462e7dbc783fa35e9b9081e349c3ecbedb57866b39866a",
+        "dist/index.d.ts": "22c0d1182915d2e2b51d12d01eb56aef3fa16f7104716a380f35a61fb75d088d",
+        "dist/index.mjs": "7eae1d2b7035677e9343b12a6470ba5538f9822c50d7c5c5361bd664f93079ef",
+        "dist/shared/listhen.DAqrw83w.cjs": "d6623f7f4168a808b3d9a7cf782179d5623b86bc0fed116be30c3fd71e55253e",
+        "dist/shared/listhen.Dh3trXcM.d.cts": "3a89a877b8fb2fe1736aa3400663e1ad2c16c1c8e48d5d8e7b9a3cfdd4c78b37",
+        "dist/shared/listhen.Dh3trXcM.d.mts": "3a89a877b8fb2fe1736aa3400663e1ad2c16c1c8e48d5d8e7b9a3cfdd4c78b37",
+        "dist/shared/listhen.Dh3trXcM.d.ts": "3a89a877b8fb2fe1736aa3400663e1ad2c16c1c8e48d5d8e7b9a3cfdd4c78b37",
+        "dist/shared/listhen.tqe5I1Rl.mjs": "6dbdc05150208d5c518bfe646ad77cdf7a8c63a334c58a411b1a063761e68020",
+        "package.json": "be6f92de1616903182bcfd16b47099d7a912878607ed3005e0f43e672ff8107f"
+      }
+    }
+  }
+}

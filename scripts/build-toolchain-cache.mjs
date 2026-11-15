@@ -138,7 +138,12 @@ export function cacheIdentity(nodeExecutable = process.execPath) {
     name,
     sha256(readFileSync(path.join(toolchainSource, name))),
   ])
-  const code = ['build-toolchain.mjs', 'build-toolchain-state.mjs', 'build-toolchain-cache.mjs']
+  const code = [
+    'build-toolchain.mjs',
+    'build-toolchain-state.mjs',
+    'build-toolchain-cache.mjs',
+    'build-toolchain-seed.mjs',
+  ]
     .map(name => [
       name,
       sha256(readFileSync(path.join(import.meta.dirname, name))),

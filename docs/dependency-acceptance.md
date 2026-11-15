@@ -1,5 +1,31 @@
 # Dependency acceptance
 
+## Immutable maintained local libraries
+
+The application installs maintained Braces 3.0.4-webops.3, Deepmerge
+4.3.2-webops.2 and Listhen 1.10.1-webops.3 from reproducible archives.
+Their reviewed source, licenses and original manifests remain intact under
+`vendor/`; `vendor/local-libraries/INPUTS.json` binds all 39 original files
+to the exact source revision. Only distribution version/private metadata and
+provenance members are added. Earlier framework reference archives stay exact.
+
+These archives replace folder links, which npm treats as separate projects
+during updates. Linked Listhen could acquire a raw Jiti dependency and resolve
+the root-relative maintained Jiti override below its own source directory,
+breaking the following clean installation. Ordinary archive installation keeps
+all three libraries and their overridden dependencies in the application graph.
+
+`npm run package:local-libraries` reproduces the immutable distributions;
+`npm run check:local-libraries` verifies source hashes, exact archive bytes,
+every consuming lock identity and installed byte, and Listhen's executable CLI.
+`npm run test:local-libraries` covers restrictive umasks, required licenses and
+entrypoints, changed source, unsafe paths, links, lock tampering, nested
+linked projects and installed-file tampering. Existing behavior regressions
+exercise the installed distributions. The executable installation regression
+starts with its own empty download cache, then updates and reinstalls offline
+using only that first installation's inputs. Normal updates followed by strict
+locked installation remain required alongside full source and dependency checks.
+
 ## Schema and identifier parents
 
 The application graph uses Ajv 8.20.0, Fast URI 4.2.3 and NanoID 6.0.2.
@@ -30,18 +56,23 @@ application validation remain separate required gates.
 
 ## Framework bundler and configuration parents
 
-The active framework uses Rolldown 1.3.0 and c12 4.0.0-rc.4. The c12 version is
-the publisher's current `latest` prerelease and is already embedded in Nuxt kit;
+The active framework uses Vite 8.3.8, Rolldown 1.3.2 and c12 4.0.0-rc.4. The
+c12 version is the publisher's current `latest` prerelease and is already embedded in Nuxt kit;
 the independently installed Nitro configuration loader is qualified on the same
-major. Original Rolldown 1.2.16, c12 3.3.4 and registry framework parents remain
+major. Original Rolldown 1.2.19, c12 3.3.4 and registry framework parents remain
 in the independently installed, audited and signature-verified reference graph.
 
 `vendor/framework-parents/UPSTREAM.json` binds 774 original files, including
 every executable mode, type, runtime and license. The reproducible distributions
-are Vite 8.3.6+webops.3, Nuxt 4.6.4+webops.2 and Nitro 2.13.6+webops.1.
+are Vite 8.3.8+webops.1, Nuxt 4.6.4+webops.2 and Nitro 2.13.6+webops.1.
 Build metadata preserves normal framework SemVer comparisons while identifying
 the reviewed local distributions. Their provider contracts select the qualified
 versions; the original metadata is retained inside each archive.
+
+The Vite 8.3.8 input retains its upstream fixes for development workers,
+type-only imports, CSS entry validation and the bundled WebSocket transport.
+The retained 8.3.6 original and maintained archives keep their exact bytes;
+the successor has a separate source inventory and distribution identity.
 
 Nuxt consistently bundles its `unctx` runtime because its transform emits an
 absolute helper import alongside bare application imports. This fixes the
@@ -203,8 +234,17 @@ the bridge and upstream modules independently of the generated inventory and
 exercises cookie serialization, URL encoding, MIME matching, UTF-32 reading
 and body limits without source or development dependencies.
 
-Builds use npm 12.2.2 with Node 26.13.0. Its bundled Undici 6.29.1 replaces
-the affected 6.29.0 copy in npm 12.2.1, covering
+Builds use npm 12.2.2 with Node 26.13.1. The Node security baseline is the
+[November 11 security release](https://nodejs.org/en/blog/release/v26.13.1).
+The API checks this minimum before application construction; the independent
+artifact contract requires the compiled guard. Earlier signed-source Unimport
+archives retain their original identities. The `7.0.2+webops.3` archive records
+the secured build runtime and reproduces from two fresh source directories.
+Independent original/control graphs may retain compatible minimum ranges;
+the qualified executable and build provenance select the exact secured patch.
+
+The independently locked build profile selects Undici 8.12.4. The original
+npm 12.2.2 bundle advanced the affected 6.29.0 copy in npm 12.2.1 to 6.29.1 for
 https://github.com/nodejs/undici/security/advisories/GHSA-2m5v-pch6-74hx and
 https://github.com/nodejs/undici/security/advisories/GHSA-qrxm-fqhp-jwvm.
 Application dependency overrides do not update npm's private dependency tree.
@@ -254,7 +294,7 @@ Normal audits include that graph. Integrity, cancellation, bounded pattern
 expansion, offline pack/install/executable delivery and source-only cold
 bootstrap are required regressions. Seed-only ignored-script settings do not
 leak into application installation. No global tool or security setting changes.
-The bootstrap-only manifest accepts Node 26.13.0's bundled npm 11.20.0. Its role
+The bootstrap-only manifest accepts Node 26.13.1's bundled npm 11.20.0. Its role
 is a script-free locked installation of the reviewed profile, not application
 installation or release qualification. The application engine and selected
 build-profile checks remain pinned to the repaired npm 12.2.2 distribution.
@@ -362,7 +402,7 @@ checks reject both compiler packages; Linux ARM64 binding and artifact checks
 remain required.
 
 Nuxt 4.6.4 requires `unimport ^7.0.2`. Its locked and installed provider must
-satisfy that original API contract. The maintained `7.0.2+webops.2` provider is
+satisfy that original API contract. The maintained `7.0.2+webops.3` provider is
 independently rebuilt from the complete signed v7.0.2 source tree. Both signed
 Git objects, the public signer, all 224 source files, the independent audited
 compiler lock, source patch and resulting installed bytes are verified.
@@ -644,24 +684,29 @@ Existing compiled Nitro and browser checks remain separate required gates.
 
 ## Vite checker and native Babel 8 code frames
 
-The maintained `vite-plugin-checker@0.14.5-webops.1` distribution uses
-`@babel/code-frame@8.0.6`, its current identifier validator and tokenizer.
-Babel 8's code-frame columns are zero-based and its former `SourceLocation`
-type is no longer exported. The checker retains its one-based diagnostic
-locations and optional-column declarations, converting only at its code-frame
-boundary. Exclusive multiline end columns follow the actual source range;
-the previous renderer's extra final caret is corrected. Other checker engines,
-public entrypoints, peer contracts, runtime overlay and license remain unchanged.
+The official `vite-plugin-checker@1.0.0` distribution natively supports Babel8
+positions and optional-column declarations. It retains one-based diagnostic
+locations and converts them at the code-frame boundary. The application uses
+the original registry bytes rather than the retired maintained0.14.5 bridge.
+The reviewed Nuxt4.6.4 Vite-builder parent explicitly admits checker1 and routes
+its development-only injection through the current overlay entrypoint. The
+original archive, package metadata and MIT license remain preserved alongside
+the exact reviewed source correction and dependency/runtime declarations.
+Nuxt type-checking behavior requires real integration and browser acceptance.
 
 The integrity-bound original archive and independently locked original graph
 remain under `vendor/vite-plugin-checker/upstream` for comparison and audits.
-`npm run check:checker-package` verifies deterministic packaging, consuming
-integrity and every installed byte. `npm run test:checker` checks source and
+`CURRENT.json` binds the official1.0.0 archive, while `UPSTREAM.json` retains
+the historical0.14.5 reference and deterministic retired-archive reproduction.
+`npm run check:checker-package` verifies both references, every current locked
+consumer, every installed official byte and the actual Nuxt parent admission.
+`npm run test:checker` checks source and
 location preservation, original single-line output, correct multiline ranges,
-native public types, real ESLint diagnostics, Stylelint adapter fixtures and
+native public types, admitted terminal-color modes, real ESLint diagnostics, Stylelint adapter fixtures and
 actual TypeScript worker error/recovery. `npm run test:checker-browser` checks
 real overlay highlighting, reconnection, repeated repair and clean production
-builds, including a deliberately rejected type-error build. The full and
+builds through both Vite and Nuxt's actual type-checking parent, including
+deliberately rejected type-error builds. The full and
 production audit commands retain original package identities in that separate
 graph. Application Babel providers use major 8; original-version fixtures retain
 their own reviewed dependencies. Release/provenance and host acceptance remain

@@ -5,7 +5,7 @@ import path from 'node:path'
 import process from 'node:process'
 import test from 'node:test'
 import { cacheIdentity, digestRegularFile, finishToolchainCache, inspectToolchainPayload, maximumCachedProfiles, nodeIdentity, pairedCommandScript, selectToolchainCache, verifyReusableToolchain } from './build-toolchain-cache.mjs'
-import { selectedNpmCli, toolchainInputNames, toolchainSource } from './build-toolchain-state.mjs'
+import { selectedNpmCli, sha256, toolchainInputNames, toolchainSource } from './build-toolchain-state.mjs'
 
 const root = path.resolve(import.meta.dirname, '..')
 const scratch = path.join(root, '.ai-work/runs/toolchain-cache-fixtures')
@@ -15,6 +15,30 @@ const profile = path.resolve(path.dirname(selectedNpmCli()), '../../..')
 function fixture() {
   return mkdtempSync(path.join(scratch, 'case-'))
 }
+
+test('cache identity independently binds every bootstrap module including npm seed selection', () => {
+  const identity = cacheIdentity()
+  const inputs = toolchainInputNames.map(name => [
+    name,
+    sha256(readFileSync(path.join(toolchainSource, name))),
+  ])
+  const code = [
+    'build-toolchain.mjs',
+    'build-toolchain-state.mjs',
+    'build-toolchain-cache.mjs',
+    'build-toolchain-seed.mjs',
+  ].map(name => [
+    name,
+    sha256(readFileSync(path.join(import.meta.dirname, name))),
+  ])
+  assert.equal(identity.key, sha256(JSON.stringify({
+    inputs,
+    code,
+    node: identity.node,
+    platform: process.platform,
+    architecture: process.arch,
+  })))
+})
 
 test('the complete payload matches a source-pinned digest rather than a mutable cache receipt', () => {
   const expected = JSON.parse(readFileSync(path.join(toolchainSource, 'PAYLOAD.json'), 'utf8'))

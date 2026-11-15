@@ -7,7 +7,7 @@ import { resolve } from 'node:path'
 import process from 'node:process'
 import { promisify } from 'node:util'
 
-assert.equal(process.version, 'v26.13.0')
+assert.equal(process.version, 'v26.13.1')
 const run = resolve('.ai-work/runs/20260916-shared-baseline')
 if (process.argv[2] === 'child') {
   const { MemoryStore } = createRequire(resolve('back-end/package.json'))('express-rate-limit')

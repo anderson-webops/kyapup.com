@@ -9,10 +9,10 @@
     "npm": ">=12.2.2 <13"
   },
   "dependencies": {
-    "vite": "8.3.6",
+    "vite": "8.3.8",
     "nuxt": "4.6.4",
     "nitropack": "2.13.6",
-    "rolldown": "1.2.16",
+    "rolldown": "1.2.19",
     "c12": "3.3.4",
     "cookie": "file:../../../back-end/vendor/cookie-2.0.2-webops.2.tgz",
     "encodeurl": "file:../../../back-end/vendor/encodeurl-3.0.0-webops.2.tgz",
@@ -92,7 +92,7 @@
       ".": "2.13.6"
     },
     "vite": {
-      ".": "8.3.6",
+      ".": "8.3.8",
       "esbuild": "^0.28.2"
     },
     "brace-expansion": "5.0.12",
@@ -112,7 +112,7 @@
     "@unocss/transformer-attributify-jsx": "$@unocss/transformer-attributify-jsx",
     "unconfig": "$unconfig",
     "@unocss/vite": "$@unocss/vite",
-    "rolldown": "1.2.16",
+    "rolldown": "1.2.19",
     "c12": "3.3.4"
   },
   "allowScripts": {

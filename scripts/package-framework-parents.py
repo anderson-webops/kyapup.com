@@ -17,12 +17,12 @@ IO = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(IO)
 PACKAGES = {
     "vite": {
-        "version": "8.3.6",
-        "revision": 3,
+        "version": "8.3.8",
+        "revision": 1,
         "count": 37,
         "section": "dependencies",
         "provider": "rolldown",
-        "before": "~1.2.16",
+        "before": "~1.2.18",
         "after": "~1.3.0",
         "required": {"LICENSE.md", "bin/vite.js", "client.d.ts", "dist/client/client.mjs", "dist/node/index.js", "dist/node/index.d.ts", "dist/node/chunks/node.js"},
         "replacements": [
@@ -71,6 +71,24 @@ PACKAGES = {
         "after": "^4.0.0-rc.4",
         "required": {"LICENSE", "dist/cli/index.mjs", "dist/core/index.mjs", "dist/core/index.d.ts", "dist/config/index.mjs", "dist/runtime/index.mjs"},
     },
+    "@nuxt/vite-builder": {
+        "version": "4.6.4",
+        "count": 16,
+        "section": "dependencies",
+        "provider": "vite-plugin-checker",
+        "before": "^0.14.5",
+        "after": "^1.0.0",
+        "node": "^26.13.1",
+        "has_bin": False,
+        "required": {"LICENSE", "dist/index.mjs", "dist/index.d.mts"},
+        "replacements": [
+            {
+                "file": "dist/index.mjs",
+                "before": 's.prepend("import \\"/@vite-plugin-checker-runtime-entry\\";\\n");',
+                "after": 's.prepend("import \\"/@vite-plugin-checker/overlay-entry\\";\\n");',
+            },
+        ],
+    },
 }
 
 
@@ -103,21 +121,23 @@ def pack_files(files, modes):
     return output.getvalue()
 
 
-def original_archive(name):
-    return "upstream/" + name + "-" + PACKAGES[name]["version"] + ".tgz"
+def original_archive(name, policies=None):
+    policy = (PACKAGES if policies is None else policies)[name]
+    return "upstream/" + name.removeprefix("@").replace("/", "-") + "-" + policy["version"] + ".tgz"
 
 
-def maintained_archive(name):
-    policy = PACKAGES[name]
-    return name + "-" + policy["version"] + "-webops." + str(policy.get("revision", 1)) + ".tgz"
+def maintained_archive(name, policies=None):
+    policy = (PACKAGES if policies is None else policies)[name]
+    return name.removeprefix("@").replace("/", "-") + "-" + policy["version"] + "-webops." + str(policy.get("revision", 1)) + ".tgz"
 
 
-def build_archive(payload, record):
+def build_archive(payload, record, policies=None):
+    policies = PACKAGES if policies is None else policies
     name = record["package"]["name"]
-    require(name in PACKAGES, "Unknown framework parent")
-    policy = PACKAGES[name]
+    require(name in policies, "Unknown framework parent")
+    policy = policies[name]
     require(record["schemaVersion"] == 1, "Unsupported parent input schema")
-    require(record["archive"] == original_archive(name), "Use the reviewed original archive path")
+    require(record["archive"] == original_archive(name, policies), "Use the reviewed original archive path")
     require(record["patchedVersion"] == policy["version"] + "+webops." + str(policy.get("revision", 1)), "Use the reviewed maintained build identity")
     require(record["registryIntegrity"] == IO.integrity(payload), "Original registry integrity mismatch")
     require(record["registryArchiveSha256"] == hashlib.sha256(payload).hexdigest(), "Original archive digest mismatch")
@@ -133,8 +153,14 @@ def build_archive(payload, record):
     metadata = json.loads(original)
     require(metadata == record["package"], "Original framework metadata changed")
     require(metadata["version"] == policy["version"] and metadata["license"] == "MIT", "Preserve the reviewed original version and license")
-    require(metadata[policy["section"]][policy["provider"]] == policy["before"], "Original provider contract changed")
-    for filename in metadata["bin"].values():
+    providers = [policy, *policy.get("additionalProviders", [])]
+    for provider in providers:
+        require(metadata[provider["section"]][provider["provider"]] == provider["before"], "Original provider contract changed")
+    for section, dependencies in policy.get("addedDependencies", {}).items():
+        for dependency in dependencies:
+            require(dependency not in metadata.get(section, {}), "Review an already declared added dependency")
+    require(("bin" in metadata) == policy.get("has_bin", True), "Review changed framework CLI ownership")
+    for filename in metadata.get("bin", {}).values():
         command = "package/" + filename.removeprefix("./")
         require(command in files and modes[command] == 0o755, "Required framework CLI must retain executable mode")
     for change in policy.get("replacements", []):
@@ -145,7 +171,12 @@ def build_archive(payload, record):
         require(filename not in files, "Reserved source provenance member already exists")
     metadata["version"] = record["patchedVersion"]
     metadata["private"] = True
-    metadata[policy["section"]][policy["provider"]] = policy["after"]
+    for provider in providers:
+        metadata[provider["section"]][provider["provider"]] = provider["after"]
+    for section, dependencies in policy.get("addedDependencies", {}).items():
+        metadata.setdefault(section, {}).update(dependencies)
+    if "node" in policy:
+        metadata.setdefault("engines", {})["node"] = policy["node"]
     files["package/package.json"] = (json.dumps(metadata, indent=2) + "\n").encode()
     files["package/UPSTREAM-PACKAGE.json"] = original
     files["package/WEBOPS-PARENT.json"] = (json.dumps(record, indent=2) + "\n").encode()

@@ -3,7 +3,7 @@ publish = "front-end/.output/public"
 command = "node scripts/build-toolchain.mjs --install -- npm run build:netlify"
 
 [build.environment]
-NODE_VERSION = "26.13.0"
+NODE_VERSION = "26.13.1"
 NPM_VERSION = "12.2.2"
 NPM_FLAGS = "--prefix=build-toolchain --workspaces=false --ignore-scripts --include=optional"
 

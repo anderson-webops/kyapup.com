@@ -6,6 +6,7 @@ for graph in \
   vendor/schema-parents/tools \
   vendor/schema-parents/upstream \
   vendor/framework-parents/upstream \
+  vendor/terminal-parents/upstream \
   vendor/native-providers/upstream \
   vendor/vite-plugin-vue-devtools/upstream \
   vendor/vue-compiler/browser-tools \

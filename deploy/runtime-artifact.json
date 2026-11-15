@@ -11,6 +11,7 @@
     "front-end/package.json",
     ".vitesse-release-prepared.json",
     "back-end/dist/server.js",
+    "back-end/dist/runtime-version.js",
     "back-end/dist/app.js",
     "back-end/dist/server-config.js",
     "back-end/dist/boundedRateStore.js",
@@ -41,11 +42,11 @@
   "runtime": {
     "os": "linux",
     "arch": "arm64",
-    "node": "26.13.0",
+    "node": "26.13.1",
     "npmBuildOnly": "12.2.2",
     "npmBuildProfile": "webops-locked-npm-v1",
-    "npmBuildLockSha256": "bcfa34772389911542075e02943bc92a1165badd00729b606810f6d934f4e4fe",
-    "npmBuildPayloadSha256": "ff91fd6a363203289928568eaa9500dc36648f5851f395bfd302b47a819f314c",
+    "npmBuildLockSha256": "87f602703478c129d228479cd4638f46e36057fd9299d214090057ca75d74bde",
+    "npmBuildPayloadSha256": "266bb8045b5fd0c689010b9b1b1ec44a489147607836dc583243087e23fcc7b8",
     "libc": "glibc"
   },
   "modulesOutsideDist": [],

@@ -1,3 +1,4 @@
+import contextlib
 import copy
 import gzip
 import importlib.util
@@ -100,6 +101,61 @@ class VueDevtoolsDistributionTests(unittest.TestCase):
         with patch.object(producer, "MAX_EXPANDED", 256):
             with self.assertRaisesRegex(ValueError, "Expanded archive"):
                 producer.archive_files(gzip.compress(b"x" * 257))
+
+    def test_output_creation_is_private_and_rejected_aliases_preserve_the_victim(self):
+        base = producer.ROOT / ".ai-work/runs"
+        base.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=base) as directory:
+            root = Path(directory)
+            for mask in [0, 0o022, 0o077]:
+                filename = root / ("output-" + str(mask))
+                previous = os.umask(mask)
+                try:
+                    producer.write_regular(filename, b"public distribution fixture")
+                finally:
+                    os.umask(previous)
+                self.assertEqual(filename.stat().st_mode & 0o777, 0o600)
+                producer.write_regular(filename, b"retained")
+                self.assertEqual(filename.read_bytes(), b"retained")
+                self.assertEqual(filename.stat().st_mode & 0o777, 0o600)
+            legacy = root / "existing-public-output"
+            previous = os.umask(0o022)
+            try:
+                legacy.write_bytes(b"public distribution fixture")
+            finally:
+                os.umask(previous)
+            self.assertEqual(legacy.stat().st_mode & 0o777, 0o644)
+            producer.write_regular(legacy, b"retained public distribution")
+            self.assertEqual(legacy.stat().st_mode & 0o777, 0o644)
+            self.assertEqual(legacy.read_bytes(), b"retained public distribution")
+            alias = root / "alias"
+            alias.symlink_to(filename)
+            with self.assertRaises(OSError):
+                producer.write_regular(alias, b"replacement")
+            hardlink = root / "hardlink"
+            os.link(filename, hardlink)
+            with self.assertRaisesRegex(ValueError, "unshared regular"):
+                producer.write_regular(hardlink, b"replacement")
+            self.assertEqual(filename.read_bytes(), b"retained")
+            fifo = root / "fifo"
+            os.mkfifo(fifo)
+            with self.assertRaises(OSError):
+                producer.write_regular(fifo, b"replacement")
+
+    def test_cli_rejects_a_shared_output_before_mutating_the_victim(self):
+        base = producer.ROOT / ".ai-work/runs"
+        base.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=base) as directory:
+            root = Path(directory)
+            victim = root / "victim"
+            victim.write_bytes(b"retained public fixture")
+            target = root / "output.tgz"
+            os.link(victim, target)
+            with patch.object(producer, "TARGET", target), patch("sys.argv", [str(__file__)]):
+                with self.assertRaisesRegex(ValueError, "unshared regular"):
+                    with contextlib.redirect_stdout(io.StringIO()):
+                        producer.main()
+            self.assertEqual(victim.read_bytes(), b"retained public fixture")
 
     def test_regular_file_inputs_preserve_private_modes_and_reject_links_and_fifos(self):
         base = producer.ROOT / ".ai-work/runs"

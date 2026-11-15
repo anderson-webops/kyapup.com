@@ -118,7 +118,7 @@ class UnimportSourceTests(unittest.TestCase):
         with tarfile.open(BUILD.TARGET, mode="r:gz") as archive:
             self.assertEqual(archive.extractfile("package/LICENSE").read(), original["LICENSE"])
             self.assertEqual(archive.extractfile("package/UPSTREAM-PACKAGE.json").read(), original["package.json"])
-            self.assertEqual(json.load(archive.extractfile("package/package.json"))["version"], "7.0.2+webops.2")
+            self.assertEqual(json.load(archive.extractfile("package/package.json"))["version"], "7.0.2+webops.3")
 
     def test_compressed_git_objects_reject_wrong_headers_and_trailing_data(self):
         data = (SOURCE.SOURCE / "commit.git").read_bytes()

@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url'
 import puppeteer from 'puppeteer-core'
 import { createServer } from 'vite'
 import checker from 'vite-plugin-checker'
+import { waitForCheckerDiagnostic, waitForCheckerRecovery } from './checker-browser-helpers.mjs'
 
 const root = fileURLToPath(new URL('..', import.meta.url))
 const executablePath = [
@@ -26,18 +27,6 @@ const scratch = await mkdtemp(path.join(parent, 'checker-browser-'))
 const source = path.join(scratch, 'case.ts')
 let server
 let browser
-
-function overlayContains(message) {
-  const overlay = document.querySelector('vite-plugin-checker-error-overlay')
-  function text(element) {
-    if (!element)
-      return ''
-    return (element.textContent || '') + (element.shadowRoot
-      ? text(element.shadowRoot)
-      : '') + Array.from(element.children || [], text).join('')
-  }
-  return text(overlay).includes(message)
-}
 
 try {
   await writeFile(path.join(scratch, 'index.html'), '<!doctype html><html><head><title>Checker fixture</title><link rel="icon" href="data:,"></head><body><output id="count"></output><script type="module" src="/main.ts"></script></body></html>')
@@ -83,23 +72,18 @@ try {
   const errors = []
   page.on('pageerror', error => errors.push(error.message))
   await page.goto(origin, { waitUntil: 'networkidle0' })
-  await page.waitForFunction(overlayContains, {}, 'not assignable')
-  await page.waitForFunction(overlayContains, {}, 'count:number="bad"')
+  await waitForCheckerDiagnostic(page, 'not assignable', 'count:number="bad"')
   assert.equal(await page.$eval('#count', element => element.textContent), 'counter:bad')
   await page.reload({ waitUntil: 'networkidle0' })
-  await page.waitForFunction(overlayContains, {}, 'not assignable')
+  await waitForCheckerDiagnostic(page, 'not assignable', 'count:number="bad"')
   for (const value of ['2', '"second"', '3']) {
     await writeFile(source, `export const count:number=${value};\n`)
     await page.waitForFunction(expected => document.querySelector('#count')?.textContent === expected, {}, `counter:${JSON.parse(value)}`)
     if (value === '"second"') {
-      await page.waitForFunction(overlayContains, {}, 'not assignable')
-      await page.waitForFunction(overlayContains, {}, 'count:number="second"')
+      await waitForCheckerDiagnostic(page, 'not assignable', 'count:number="second"')
     }
     else {
-      await page.waitForFunction(() => {
-        const overlay = document.querySelector('vite-plugin-checker-error-overlay')
-        return Boolean(overlay?.shadowRoot) && !overlay.shadowRoot.querySelector('main')
-      })
+      await waitForCheckerRecovery(page)
     }
   }
   assert.deepEqual(errors, [])

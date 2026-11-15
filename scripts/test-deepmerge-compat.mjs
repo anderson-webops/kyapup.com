@@ -5,13 +5,13 @@ import test from 'node:test'
 import vm from 'node:vm'
 
 const require = createRequire(import.meta.url)
-const common = require('../vendor/deepmerge')
+const common = require('deepmerge')
 
 const context = vm.createContext({
   module: { exports: {} },
   exports: {},
 })
-vm.runInContext(await readFile(new URL('../vendor/deepmerge/dist/umd.js', import.meta.url), 'utf8'), context)
+vm.runInContext(await readFile(new URL('../node_modules/deepmerge/dist/umd.js', import.meta.url), 'utf8'), context)
 const variants = [
   ['commonjs', common, Object.prototype],
   [
@@ -99,7 +99,9 @@ test('all locked deepmerge consumers use the reviewed guarded fork', async () =>
   const consumers = Object.entries(lock.packages).filter(([name]) => name.endsWith('node_modules/deepmerge'))
   assert.ok(consumers.length > 0)
   for (const [, entry] of consumers) {
-    assert.equal(entry.resolved, 'vendor/deepmerge')
+    assert.equal(entry.resolved, 'file:vendor/deepmerge-4.3.2-webops.2.tgz')
+    assert.equal(entry.version, '4.3.2-webops.2')
+    assert.equal(entry.link, undefined)
   }
-  assert.equal(lock.packages['vendor/deepmerge'].version, '4.3.2-webops.1')
+  assert.equal(lock.packages['vendor/deepmerge'], undefined)
 })

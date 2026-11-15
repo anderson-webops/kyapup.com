@@ -18,6 +18,7 @@ const entry = require.resolve('vite-plugin-checker')
 const directory = path.dirname(entry)
 const checkerRequire = createRequire(entry)
 const frames = await import(pathToFileURL(path.join(directory, 'codeFrame.js')))
+const colors = await import(pathToFileURL(path.join(directory, 'colors.js')))
 const logger = await import(pathToFileURL(path.join(directory, 'logger.js')))
 const originalRequire = createRequire(path.join(root, 'vendor/vite-plugin-checker/upstream/package.json'))
 const originalEntry = originalRequire.resolve('vite-plugin-checker')
@@ -32,15 +33,15 @@ async function temporary(context) {
   return scratch
 }
 
-test('the maintained ESM checker uses native Babel8 and preserves the exact original identity', () => {
+test('the official current ESM checker uses native Babel8 while retaining the original comparison', () => {
   assert.ok(entry.startsWith(path.join(root, 'node_modules/')))
   const nuxt = createRequire(require.resolve('@nuxt/vite-builder'))
   assert.equal(nuxt.resolve('vite-plugin-checker'), entry)
   const parent = JSON.parse(readFileSync(path.join(directory, '../package.json'), 'utf8'))
-  assert.equal(parent.version, '0.14.5-webops.1')
+  assert.equal(parent.version, '1.0.0')
   assert.equal(parent.type, 'module')
-  assert.equal(parent.dependencies['@babel/code-frame'], '8.0.6')
-  const upstream = JSON.parse(readFileSync(path.join(directory, '../UPSTREAM-PACKAGE.json'), 'utf8'))
+  assert.equal(parent.dependencies['@babel/code-frame'], '^8.0.0')
+  const upstream = JSON.parse(readFileSync(path.join(path.dirname(originalEntry), '../package.json'), 'utf8'))
   assert.equal(upstream.version, '0.14.5')
   assert.equal(upstream.dependencies['@babel/code-frame'], '^7.29.0')
   const providerPath = checkerRequire.resolve('@babel/code-frame/package.json')
@@ -57,7 +58,11 @@ test('the maintained ESM checker uses native Babel8 and preserves the exact orig
   const manifest = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'))
   assert.equal(manifest.overrides['vite-plugin-checker'], '$vite-plugin-checker')
   assert.equal(manifest.overrides['@babel/code-frame'], undefined)
-  assert.match(readFileSync(path.join(directory, 'codeFrame.js'), 'utf8'), /import \{ codeFrameColumns \} from "\.\/babel8.js"/)
+  assert.match(readFileSync(path.join(directory, 'codeFrame.js'), 'utf8'), /import \{ codeFrameColumns \} from "@babel\/code-frame"/)
+  assert.match(readFileSync(path.join(directory, 'codeFrame.js'), 'utf8'), /toZeroBasedPosition/)
+  const nuxtParent = JSON.parse(readFileSync(path.join(path.dirname(require.resolve('@nuxt/vite-builder')), '../package.json'), 'utf8'))
+  assert.equal(nuxtParent.version, '4.6.4+webops.1')
+  assert.equal(nuxtParent.dependencies['vite-plugin-checker'], '^1.0.0')
   const baseline = createRequire(originalEntry)
   assert.equal(JSON.parse(readFileSync(path.join(path.dirname(baseline.resolve('@babel/code-frame')), '../package.json'), 'utf8')).version, '7.29.7')
 })
@@ -90,7 +95,10 @@ test('TypeScript, line/column and UTF16 offset locations preserve the actual par
   })
 })
 
-test('the actual checker renders the retained source line and caret range', () => {
+test('the actual checker renders the retained source line and caret range', (context) => {
+  const priorColors = colors.supportsTerminalColors()
+  colors.setTerminalColors(true)
+  context.after(() => colors.setTerminalColors(priorColors))
   const source = 'const count: number = "bad";\nexport { count };'
   const output = frames.createFrame(source, {
     start: { line: 1, column: 7 },
@@ -98,6 +106,23 @@ test('the actual checker renders the retained source line and caret range', () =
   })
   assert.ok(output.includes(`${String.fromCharCode(27)}[`))
   assert.equal(stripVTControlCharacters(output), '  > 1 | const count: number = "bad";\n      |       ^^^^^\n    2 | export { count };')
+})
+
+test('the current checker preserves caret content across admitted terminal color modes', (context) => {
+  const priorColors = colors.supportsTerminalColors()
+  context.after(() => colors.setTerminalColors(priorColors))
+  const source = 'const count: number = "bad";\nexport { count };'
+  const location = {
+    start: { line: 1, column: 7 },
+    end: { line: 1, column: 12 },
+  }
+  const expected = stripVTControlCharacters(original.createFrame(source, location))
+  for (const enabled of [false, true]) {
+    colors.setTerminalColors(enabled)
+    const result = frames.createFrame(source, location)
+    assert.equal(stripVTControlCharacters(result), expected)
+    assert.equal(result.includes(`${String.fromCharCode(27)}[`), enabled)
+  }
 })
 
 test('the native boundary preserves original single-line and omitted-column output without mutation', () => {
@@ -255,7 +280,12 @@ test('the actual TypeScript worker reports an error and clears it after a source
   let failure
   serve.worker.on('error', error => failure = error)
   serve.worker.on('message', action => actions.push(action))
-  serve.config({ enableOverlay: true, enableTerminal: true })
+  serve.config({
+    enableOverlay: true,
+    enableTerminal: true,
+    terminalColors: false,
+    terminalHyperlinks: false,
+  })
   serve.configureServer({ root: scratch })
   async function waitFor(predicate) {
     const deadline = Date.now() + 12_000
@@ -269,15 +299,15 @@ test('the actual TypeScript worker reports an error and clears it after a source
     }
     assert.fail(`Missing checker worker outcome: ${JSON.stringify(actions)}`)
   }
-  const failed = await waitFor(action => action.type === 'overlayError' && action.payload.data.diagnostics.length > 0)
-  const [diagnostic] = failed.payload.data.diagnostics
+  const failed = await waitFor(action => action.type === 'diagnostics' && action.payload.length > 0)
+  const [diagnostic] = failed.payload
   assert.equal(diagnostic.id, source)
   assert.match(diagnostic.message, /not assignable/)
   assert.match(diagnostic.frame, /count: number = "bad"/)
   assert.deepEqual(diagnostic.loc, { file: source, line: 1, column: 14 })
   actions.length = 0
   await writeFile(source, 'export const count: number = 2;\n')
-  await waitFor(action => action.type === 'overlayError' && action.payload.data.diagnostics.length === 0)
+  await waitFor(action => action.type === 'diagnostics' && action.payload.length === 0)
   await waitFor(action => action.type === 'console' && stripVTControlCharacters(action.payload).includes('Found 0 errors'))
 })
 

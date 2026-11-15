@@ -4,7 +4,7 @@ root=$(cd -- "$(dirname -- "$0")/.." && pwd)
 node=$(realpath "$(command -v node)")
 test "$(uname -s)" = Linux
 test "$(id -u)" -ne 0
-test "$(node --version)" = v26.13.0
+test "$(node --version)" = v26.13.1
 loaderMounts=()
 if test -d /usr/lib64; then
   loaderMounts=(--symlink usr/lib64 /lib64)

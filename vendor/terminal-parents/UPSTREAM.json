@@ -1,0 +1,873 @@
+{
+  "brace-expansion": {
+    "schemaVersion": 1,
+    "archive": "upstream/brace-expansion-5.0.13.tgz",
+    "patchedVersion": "5.0.13+webops.1",
+    "registryIntegrity": "sha512-Vh3dmFbc4wZeox7M9I/0L9GfFd83Su4+yCck/OF9Gi/P/dAHn0RT7X4K9R7gMNMhDck3DvhR6QXsnQdjjgwNvQ==",
+    "registryArchiveSha256": "015c8761629e59fc31f3a6e472a940f6d759fc8227e67882c399dfb9a703ae6e",
+    "package": {
+      "name": "brace-expansion",
+      "description": "Brace expansion as known from sh/bash",
+      "version": "5.0.13",
+      "files": [
+        "dist"
+      ],
+      "exports": {
+        "./package.json": "./package.json",
+        ".": {
+          "import": {
+            "types": "./dist/esm/index.d.ts",
+            "default": "./dist/esm/index.js"
+          },
+          "require": {
+            "types": "./dist/commonjs/index.d.ts",
+            "default": "./dist/commonjs/index.js"
+          }
+        }
+      },
+      "type": "module",
+      "scripts": {
+        "preversion": "npm test",
+        "postversion": "npm publish",
+        "prepublishOnly": "git push origin --follow-tags",
+        "prepare": "tshy",
+        "pretest": "npm run prepare",
+        "presnap": "npm run prepare",
+        "test": "tap",
+        "snap": "tap",
+        "format": "prettier --write .",
+        "format:check": "prettier --check .",
+        "benchmark": "node benchmark/index.js",
+        "typedoc": "typedoc --tsconfig .tshy/esm.json ./src/*.ts"
+      },
+      "devDependencies": {
+        "@types/brace-expansion": "^1.1.2",
+        "@types/node": "^25.2.1",
+        "mkdirp": "^3.0.1",
+        "prettier": "^3.3.2",
+        "tap": "^21.6.2",
+        "tshy": "^3.0.2",
+        "typedoc": "^0.28.5"
+      },
+      "dependencies": {
+        "balanced-match": "^4.0.2"
+      },
+      "license": "MIT",
+      "engines": {
+        "node": "20 || >=22"
+      },
+      "tshy": {
+        "exports": {
+          "./package.json": "./package.json",
+          ".": "./src/index.ts"
+        }
+      },
+      "main": "./dist/commonjs/index.js",
+      "types": "./dist/commonjs/index.d.ts",
+      "module": "./dist/esm/index.js",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/juliangruber/brace-expansion.git"
+      }
+    },
+    "files": {
+      "LICENSE": {
+        "sha256": "9c63a23124d68cd30cd316a94a1a0bca34f032786df6df69fc4b5f136bac8d2e",
+        "mode": 420
+      },
+      "dist/commonjs/index.js": {
+        "sha256": "a291183178d52cd3101e7aa75470a2f8992c990a1344d24b256b639c656d792e",
+        "mode": 420
+      },
+      "dist/esm/index.js": {
+        "sha256": "cbbf255db1118abe734d6d8f0c4ab12165ed3a552289c280a39aac02282592b0",
+        "mode": 420
+      },
+      "dist/commonjs/package.json": {
+        "sha256": "8005a3491db7d92f36ac66369861589f9c47123d3a7c71e643fc2c06168cd45a",
+        "mode": 420
+      },
+      "dist/esm/package.json": {
+        "sha256": "3ca9d4afd21425087cf31893b8f9f63c81b0b8408db5e343ca76e5f8aa26ab9a",
+        "mode": 420
+      },
+      "package.json": {
+        "sha256": "f3003567866767f2685b97136c99c47886a09be0b2d82ad9818b5b390cc38988",
+        "mode": 420
+      },
+      "dist/commonjs/index.d.ts.map": {
+        "sha256": "d754f3331774abf2be4c223234251618b193a61071f90f420afc33909ca9f5a8",
+        "mode": 420
+      },
+      "dist/esm/index.d.ts.map": {
+        "sha256": "d754f3331774abf2be4c223234251618b193a61071f90f420afc33909ca9f5a8",
+        "mode": 420
+      },
+      "dist/commonjs/index.js.map": {
+        "sha256": "684357a35a006ef2e13bca812c1e766fd5c3846096a6b204713611ef53516923",
+        "mode": 420
+      },
+      "dist/esm/index.js.map": {
+        "sha256": "e40599ba4c8503c1a60f09d740d444ff795549a662f11807b4790b25267ed0fa",
+        "mode": 420
+      },
+      "README.md": {
+        "sha256": "1eb7577eb9f8c36016934378cf3700ab39bbdf439a5bb827d18597061bc0883d",
+        "mode": 420
+      },
+      "dist/commonjs/index.d.ts": {
+        "sha256": "c76352c917efdf1750b3331b17e24ddf9e120415791cbac6e0b85ac3ce9ccd2c",
+        "mode": 420
+      },
+      "dist/esm/index.d.ts": {
+        "sha256": "c76352c917efdf1750b3331b17e24ddf9e120415791cbac6e0b85ac3ce9ccd2c",
+        "mode": 420
+      }
+    }
+  },
+  "@poppinss/dumper": {
+    "schemaVersion": 1,
+    "archive": "upstream/poppinss-dumper-0.7.0.tgz",
+    "patchedVersion": "0.7.0+webops.1",
+    "registryIntegrity": "sha512-0UTYalzk2t6S4rA2uHOz5bSSW2CHdv4vggJI6Alg90yvl0UgXs6XSXpH96OH+bRkX4J/06djv29pqXJ0lq5Kag==",
+    "registryArchiveSha256": "c43c9cedc62edede0f470fc5b250fc2f7ebe86c2ac4e7d97af6b2d424ae68502",
+    "package": {
+      "name": "@poppinss/dumper",
+      "version": "0.7.0",
+      "description": "Pretty print JavaScript data types in the terminal and the browser",
+      "main": "build/index.js",
+      "type": "module",
+      "files": [
+        "build",
+        "!build/bin",
+        "!build/examples",
+        "!build/tests"
+      ],
+      "scripts": {
+        "pretest": "npm run lint",
+        "test": "npm run quick:test",
+        "lint": "eslint .",
+        "format": "prettier --write .",
+        "clean": "del-cli build",
+        "typecheck": "tsc --noEmit",
+        "precompile": "npm run lint && npm run clean",
+        "compile": "tsup-node && tsc --emitDeclarationOnly --declaration",
+        "build": "npm run compile",
+        "version": "npm run build",
+        "prepublishOnly": "npm run build",
+        "release": "release-it",
+        "quick:test": "node --import @poppinss/ts-exec --enable-source-maps bin/test.js"
+      },
+      "exports": {
+        ".": "./build/index.js",
+        "./types": "./build/src/types.js",
+        "./html": "./build/formatters/html/main.js",
+        "./html/types": "./build/formatters/html/types.js",
+        "./console": "./build/formatters/console/main.js",
+        "./console/types": "./build/formatters/console/types.js"
+      },
+      "devDependencies": {
+        "@adonisjs/eslint-config": "^3.0.0-next.0",
+        "@adonisjs/prettier-config": "^1.4.5",
+        "@adonisjs/tsconfig": "^2.0.0-next.0",
+        "@japa/expect": "^3.0.4",
+        "@japa/runner": "^4.2.0",
+        "@japa/snapshot": "^2.0.8",
+        "@poppinss/ts-exec": "^1.4.0",
+        "@poppinss/utils": "^6.10.0",
+        "@release-it/conventional-changelog": "^10.0.1",
+        "@types/luxon": "^3.6.2",
+        "del-cli": "^6.0.0",
+        "eslint": "^9.30.1",
+        "luxon": "^3.6.1",
+        "prettier": "^3.6.2",
+        "release-it": "^19.0.3",
+        "rxjs": "^7.8.2",
+        "tsup": "^8.5.0",
+        "typescript": "^5.8.3"
+      },
+      "dependencies": {
+        "@poppinss/colors": "^4.1.5",
+        "@sindresorhus/is": "^7.0.2",
+        "supports-color": "^10.0.0"
+      },
+      "homepage": "https://github.com/poppinss/dumper#readme",
+      "bugs": {
+        "url": "https://github.com/poppinss/dumper/issues"
+      },
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/poppinss/dumper.git"
+      },
+      "keywords": [
+        "dumper",
+        "inspect",
+        "object-inspect",
+        "pretty"
+      ],
+      "author": "Harminder Virk <virk@adonisjs.com>",
+      "license": "MIT",
+      "publishConfig": {
+        "provenance": true,
+        "access": "public"
+      },
+      "tsup": {
+        "entry": [
+          "index.ts",
+          "src/types.ts",
+          "formatters/html/main.ts",
+          "formatters/html/types.ts",
+          "formatters/console/main.ts",
+          "formatters/console/types.ts"
+        ],
+        "outDir": "./build",
+        "clean": true,
+        "format": "esm",
+        "dts": false,
+        "sourcemap": false,
+        "target": "esnext"
+      },
+      "release-it": {
+        "git": {
+          "requireCleanWorkingDir": true,
+          "requireUpstream": true,
+          "commitMessage": "chore(release): ${version}",
+          "tagAnnotation": "v${version}",
+          "push": true,
+          "tagName": "v${version}"
+        },
+        "github": {
+          "release": true
+        },
+        "npm": {
+          "publish": true,
+          "skipChecks": true
+        },
+        "plugins": {
+          "@release-it/conventional-changelog": {
+            "preset": {
+              "name": "angular"
+            }
+          }
+        }
+      },
+      "prettier": "@adonisjs/prettier-config"
+    },
+    "files": {
+      "build/chunk-26HALFTP.js": {
+        "sha256": "1a3d802955a8c8aabe2562baf42092f13e0bf322f4b5aea40f803e0db4ba180d",
+        "mode": 420
+      },
+      "build/index.js": {
+        "sha256": "7c2ff96ef4859261d8c21b2c57f2908d93ae5f3f63e01e1dbd6332d007202caa",
+        "mode": 420
+      },
+      "build/formatters/console/main.js": {
+        "sha256": "49d56d395a0692f527738afb7004800551026eccb05fe8e107cdb17498e09ed1",
+        "mode": 420
+      },
+      "build/formatters/html/main.js": {
+        "sha256": "7e54ab670eb580e90b4f7b6ff6e44266baad1c568e3b492394db6567c9f9977f",
+        "mode": 420
+      },
+      "build/formatters/console/types.js": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "mode": 420
+      },
+      "build/formatters/html/types.js": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "mode": 420
+      },
+      "build/src/types.js": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "mode": 420
+      },
+      "package.json": {
+        "sha256": "b9e961fc085e9742f345e722438f3070d7451e96ab15cae15632e08da5d90556",
+        "mode": 420
+      },
+      "LICENSE.md": {
+        "sha256": "bba2399e2c617b0577fc3f4e22299367625824959945318b17b39ac3c910ce5f",
+        "mode": 420
+      },
+      "README.md": {
+        "sha256": "5ca63d1b4a631ca857d7c11546f5bc01f34df5d6b7d720101d61ce21696e8e71",
+        "mode": 420
+      },
+      "build/formatters/console/formatter.d.ts": {
+        "sha256": "85cffbf5340305bbe9b2cbb1c64716e8f4e39a89f79f2d341d5bd06ba0db481e",
+        "mode": 420
+      },
+      "build/formatters/html/formatter.d.ts": {
+        "sha256": "4046385e102dfac1ab94dcbd9914322aeb1626347d99a3b634d3a8f930feb90f",
+        "mode": 420
+      },
+      "build/formatters/html/head.d.ts": {
+        "sha256": "4dafa339832c161cc37842ae187302eb0c9c73ccbe3a3452f6698186b344814d",
+        "mode": 420
+      },
+      "build/src/helpers.d.ts": {
+        "sha256": "3d1166ead0c41488e71b319577593118c96c76053a542774d9b44e82c6254c22",
+        "mode": 420
+      },
+      "build/index.d.ts": {
+        "sha256": "fdf13f42a0e966423ae47ea8bbae0a8a63a200e7b516bbd9c4f3b85d545d0795",
+        "mode": 420
+      },
+      "build/formatters/console/main.d.ts": {
+        "sha256": "6b8dbd25bfd7d264585c34009be912c64d156a08756135e11e4be82444349e14",
+        "mode": 420
+      },
+      "build/formatters/console/printers/main.d.ts": {
+        "sha256": "be1c2515b19073984c49b99f506bdbd602d41e2676c6e9ba0522cf40cf1883c0",
+        "mode": 420
+      },
+      "build/formatters/html/main.d.ts": {
+        "sha256": "60903befe770d100510500e759039055f160bac86ccfecf9a8ba007780827813",
+        "mode": 420
+      },
+      "build/formatters/html/printers/main.d.ts": {
+        "sha256": "e25e8be69f2fa535cf52b827625832cab4f494d6724bf16a21dc71eac5a6c35d",
+        "mode": 420
+      },
+      "build/src/tokenizers/main.d.ts": {
+        "sha256": "74bdef0278b89d69184db7af92af842347cf7200247b5ca9532d8cc8d476fcd9",
+        "mode": 420
+      },
+      "build/src/parser.d.ts": {
+        "sha256": "a4ff64a8d136d339f83dfd419cfdef367ecdea3e1b4b21612114306bd5167e64",
+        "mode": 420
+      },
+      "build/formatters/console/themes.d.ts": {
+        "sha256": "aaff5377858bd907097e2db264eda89b814be5aa54dd5380e4ac6d585236f9ed",
+        "mode": 420
+      },
+      "build/formatters/html/themes.d.ts": {
+        "sha256": "9a8e0e808ee5360967e1433125c049eec7a5a8ad76f37f3810e524b8400f44f9",
+        "mode": 420
+      },
+      "build/formatters/console/types.d.ts": {
+        "sha256": "dd5783a7ec90389ef07872700d862e43d2825b6b1f1565ce91a8c6137bd9d820",
+        "mode": 420
+      },
+      "build/formatters/html/types.d.ts": {
+        "sha256": "19177c3cad69318e072a6855730502db6d9e6999e1f172742d5adf4c265fc039",
+        "mode": 420
+      },
+      "build/src/types.d.ts": {
+        "sha256": "02edc389fc0db13f8bfd5916792152e32c78b2471d8e1c108449ab17d61ff2d0",
+        "mode": 420
+      }
+    }
+  },
+  "jest-worker": {
+    "schemaVersion": 1,
+    "archive": "upstream/jest-worker-30.5.1.tgz",
+    "patchedVersion": "30.5.1+webops.1",
+    "registryIntegrity": "sha512-Cbxh5v7AoLuFRmFJSM4/aHdQ68rjXvUWr716EE0Dh3I7T+T/3FgFKhOERGXHcU2Meftq9+9zxPM3TSNyI9D+HA==",
+    "registryArchiveSha256": "4e36b5fa748e039d3481c889059799484920095a931cb0c1707fe9617b8351e8",
+    "package": {
+      "name": "jest-worker",
+      "version": "30.5.1",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/jestjs/jest.git",
+        "directory": "packages/jest-worker"
+      },
+      "license": "MIT",
+      "main": "./build/index.js",
+      "types": "./build/index.d.ts",
+      "exports": {
+        ".": {
+          "types": "./build/index.d.ts",
+          "require": "./build/index.js",
+          "import": "./build/index.mjs",
+          "default": "./build/index.js"
+        },
+        "./package.json": "./package.json"
+      },
+      "dependencies": {
+        "@types/node": "*",
+        "@ungap/structured-clone": "^1.3.0",
+        "jest-util": "30.5.1",
+        "merge-stream": "^2.0.0",
+        "supports-color": "^8.1.1"
+      },
+      "devDependencies": {
+        "@babel/core": "^7.27.4",
+        "@types/merge-stream": "^2.0.0",
+        "@types/supports-color": "^8.1.3",
+        "@types/ungap__structured-clone": "^1.2.0",
+        "get-stream": "^6.0.0",
+        "jest-leak-detector": "30.5.1",
+        "worker-farm": "^1.7.0"
+      },
+      "engines": {
+        "node": "^18.14.0 || ^20.0.0 || ^22.0.0 || >=24.0.0"
+      },
+      "publishConfig": {
+        "access": "public"
+      },
+      "gitHead": "9ab14feccd6c15fec1334dbcb03a53a079d153d3"
+    },
+    "files": {
+      "LICENSE": {
+        "sha256": "9d5211db733ccdd26f9170bec24cdca84093f60415da6b769ee9cdf23d04e19f",
+        "mode": 420
+      },
+      "build/index.js": {
+        "sha256": "267d98ed34b787257044c0c9ffcb5b8450cab3d1be3da97a80679f8b520a6262",
+        "mode": 420
+      },
+      "build/processChild.js": {
+        "sha256": "b1621b9d8cc9951abc03b03153f0a9b064b3cc9b400f99a9aacfc86e1d84868a",
+        "mode": 420
+      },
+      "build/threadChild.js": {
+        "sha256": "f69538dcb89c257785c8727211651a269e899971d44ea103151fcfd513522d9b",
+        "mode": 420
+      },
+      "package.json": {
+        "sha256": "26a139ca6e32bf270a366da53ecb44828de7f9ae8b059b96dca0960d41b599a6",
+        "mode": 420
+      },
+      "README.md": {
+        "sha256": "3bcfec3cf1ceb2d0c2fde67114f49db0fe54f23abae2446150941367962f2935",
+        "mode": 420
+      },
+      "build/index.mjs": {
+        "sha256": "ebff8d3d299e2fb1cb028994ac2bb52f078c2c15df12df2c41bbd519c208c536",
+        "mode": 420
+      },
+      "build/index.d.ts": {
+        "sha256": "aa30b629a8b42b593b9dadc073b79968f7560072a59c3d91203e832e261320ec",
+        "mode": 420
+      }
+    }
+  },
+  "minimizer-webpack-plugin": {
+    "schemaVersion": 1,
+    "archive": "upstream/minimizer-webpack-plugin-5.14.0.tgz",
+    "patchedVersion": "5.14.0+webops.1",
+    "registryIntegrity": "sha512-PnvQXCJxhgH2ZVVO7Lj0sM6q8L1XGxnUvd8wVQIRwi8khMCLq5wg0Ngxe44bcuZL2FSN81RdVE7YHEVzTKsQDQ==",
+    "registryArchiveSha256": "b23dd203e802845aadcfb137365d847b697f00584072dbd24ea2e32c9d96659c",
+    "package": {
+      "name": "minimizer-webpack-plugin",
+      "version": "5.14.0",
+      "description": "Minimizer plugin for webpack",
+      "keywords": [
+        "avif",
+        "clean-css",
+        "compress",
+        "compressor",
+        "css",
+        "cssnano",
+        "csso",
+        "esbuild",
+        "html",
+        "html-minifier",
+        "html-minifier-terser",
+        "image",
+        "imagemin",
+        "images",
+        "jpeg",
+        "lightningcss",
+        "min",
+        "minification",
+        "minifier",
+        "minify",
+        "napi",
+        "optimize",
+        "optimizer",
+        "png",
+        "sharp",
+        "svg",
+        "svgo",
+        "swc",
+        "terser",
+        "uglify",
+        "uglify-es",
+        "uglify-js",
+        "webp",
+        "webpack",
+        "webpack-plugin"
+      ],
+      "homepage": "https://github.com/webpack/minimizer-webpack-plugin",
+      "bugs": "https://github.com/webpack/minimizer-webpack-plugin/issues",
+      "repository": "webpack/minimizer-webpack-plugin",
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/webpack"
+      },
+      "license": "MIT",
+      "author": "webpack Contrib Team",
+      "main": "dist/index.js",
+      "types": "types/index.d.ts",
+      "files": [
+        "dist",
+        "types"
+      ],
+      "scripts": {
+        "clean": "del-cli dist types",
+        "prebuild": "npm run clean",
+        "build:serialize-javascript": "node ./scripts/copy-serialize-javascript.js",
+        "build:types": "tsc --declaration --emitDeclarationOnly --outDir types && prettier \"types/**/*.ts\" --write",
+        "build:code": "babel src -d dist --copy-files",
+        "build": "npm-run-all -p \"build:**\"",
+        "security": "npm audit --production",
+        "lint:serialize-javascript": "node ./scripts/copy-serialize-javascript.js --check",
+        "lint:schema": "schema-utils precompile --check src/options.json",
+        "lint:prettier": "prettier --list-different .",
+        "lint:code": "eslint --cache .",
+        "lint:spelling": "cspell \"**/*.*\"",
+        "lint:types": "tsc --pretty --noEmit",
+        "lint": "npm-run-all -l -p \"lint:**\"",
+        "fix:code": "npm run lint:code -- --fix",
+        "fix:prettier": "npm run lint:prettier -- --write",
+        "fix:schema": "schema-utils precompile src/options.json",
+        "fix": "npm-run-all -l fix:schema fix:code fix:prettier",
+        "test:base": "node ./scripts/jest.js",
+        "test:watch": "npm run test:base -- --watch",
+        "test:coverage": "npm run test:base -- --collectCoverageFrom=\"src/**/*.js\" --coverage",
+        "pretest": "npm run lint",
+        "test": "npm run test:coverage",
+        "prepare": "husky && npm run build",
+        "version": "changeset version",
+        "release": "npm run build && changeset publish"
+      },
+      "dependencies": {
+        "jest-worker": "^27.4.5",
+        "schema-utils": "^4.6.0",
+        "terser": "^5.51.0"
+      },
+      "devDependencies": {
+        "@babel/cli": "^7.28.6",
+        "@babel/core": "^7.29.0",
+        "@babel/preset-env": "^7.29.5",
+        "@changesets/cli": "^3.0.1",
+        "@changesets/get-github-info": "^1.0.0",
+        "@jridgewell/trace-mapping": "^0.3.31",
+        "@minify-html/node": "^0.18.1",
+        "@napi-rs/image": "^1.14.0",
+        "@swc/core": "^1.16.1",
+        "@swc/css": "^0.0.28",
+        "@swc/html": "^1.16.1",
+        "@types/clean-css": "^4.2.11",
+        "@types/csso": "^5.0.5",
+        "@types/html-minifier-terser": "^7.0.2",
+        "@types/node": "^26.3.0",
+        "@types/serialize-javascript": "^5.0.4",
+        "@types/uglify-js": "^3.17.5",
+        "clean-css": "^5.3.3",
+        "copy-webpack-plugin": "^14.0.0",
+        "cspell": "^10.1.1",
+        "cssnano": "^8.0.9",
+        "csso": "^5.0.5",
+        "del": "^6.1.1",
+        "del-cli": "^7.0.0",
+        "esbuild": "^0.28.2",
+        "eslint": "^10.9.1",
+        "eslint-config-webpack": "^4.9.6",
+        "file-loader": "^6.2.0",
+        "html-minifier-terser": "^7.2.0",
+        "husky": "^9.1.7",
+        "imagemin": "^9.0.1",
+        "imagemin-svgo": "^12.0.0",
+        "jest": "^30.4.2",
+        "lightningcss": "^1.33.0",
+        "lint-staged": "^17.3.0",
+        "memfs": "^4.68.1",
+        "npm-run-all": "^4.1.5",
+        "postcss": "^8.5.26",
+        "prettier": "^3.9.6",
+        "prettier-2": "npm:prettier@^2",
+        "serialize-javascript": "^7.1.0",
+        "sharp": "^0.35.0",
+        "svgo": "^4.0.0",
+        "typescript": "^6.0.3",
+        "uglify-js": "^3.19.3",
+        "webpack": "^5.109.2",
+        "webpack-cli": "^7.2.2",
+        "worker-loader": "^3.0.8"
+      },
+      "peerDependencies": {
+        "webpack": "^5.1.0"
+      },
+      "peerDependenciesMeta": {
+        "@minify-html/node": {
+          "optional": true
+        },
+        "@napi-rs/image": {
+          "optional": true
+        },
+        "@swc/core": {
+          "optional": true
+        },
+        "@swc/css": {
+          "optional": true
+        },
+        "@swc/html": {
+          "optional": true
+        },
+        "clean-css": {
+          "optional": true
+        },
+        "cssnano": {
+          "optional": true
+        },
+        "csso": {
+          "optional": true
+        },
+        "esbuild": {
+          "optional": true
+        },
+        "html-minifier-terser": {
+          "optional": true
+        },
+        "imagemin": {
+          "optional": true
+        },
+        "lightningcss": {
+          "optional": true
+        },
+        "postcss": {
+          "optional": true
+        },
+        "sharp": {
+          "optional": true
+        },
+        "svgo": {
+          "optional": true
+        },
+        "uglify-js": {
+          "optional": true
+        }
+      },
+      "engines": {
+        "node": ">= 10.13.0"
+      }
+    },
+    "files": {
+      "LICENSE": {
+        "sha256": "9068a8782d2fb4c6e432cfa25334efa56f722822180570802bf86e71b6003b1e",
+        "mode": 420
+      },
+      "dist/fileType.js": {
+        "sha256": "c16f24b0f43eeaa1a54964b0134b5ceaed3b8b8bfb68d546b5fa552a5b33b34b",
+        "mode": 420
+      },
+      "dist/implementation.js": {
+        "sha256": "3ef7ba394d82c4992e4e3699a2752259532c505a81d25c4134fe97693aa27d7f",
+        "mode": 420
+      },
+      "dist/index.js": {
+        "sha256": "2046a450811525b28cc938fb2843ab14f971cef5f23070b33a19a407f4def2d8",
+        "mode": 420
+      },
+      "dist/minify.js": {
+        "sha256": "01430f5ed88250e9d2acac177e067e6c2a46ae274681d501b7070d56d111457a",
+        "mode": 420
+      },
+      "dist/options.check.js": {
+        "sha256": "6b7a6098c62eecdb0ac0a028d739b7b4264914741477675c7206c135d4144712",
+        "mode": 420
+      },
+      "dist/serialize-javascript.js": {
+        "sha256": "e0676414ffe20578cbca42e5847620782d8fe26062adf645e26d170a9ceca9c0",
+        "mode": 420
+      },
+      "dist/sources.js": {
+        "sha256": "3769c53b0343f0ab82e28007548bf76a94ba9c0d2809cd7aa848498c82a280d9",
+        "mode": 420
+      },
+      "dist/utils.js": {
+        "sha256": "30563d386a7d8c7eaecb09bcfae799acfae9961ed942dc0157187b565bade973",
+        "mode": 420
+      },
+      "dist/options.json": {
+        "sha256": "c416b783e49659b79a1016453dd98809898202752557005b991b4667899ed621",
+        "mode": 420
+      },
+      "package.json": {
+        "sha256": "f41060d11ee3a7d351dd0d6dcb593c40e094016ce0a98b7f2cb3ea3bb56c52a1",
+        "mode": 420
+      },
+      "README.md": {
+        "sha256": "783f791d07ba02ff287a99c8fde4a8e7cfe7fb09176a9903eddcceef3c628ebf",
+        "mode": 420
+      },
+      "types/fileType.d.ts": {
+        "sha256": "bdac7bfa7e9d3868f2fd782b1219793ae8277638d487a90a59634c9997cba346",
+        "mode": 420
+      },
+      "types/implementation.d.ts": {
+        "sha256": "c522621d5efffb5a354798f51b03ba201f7c26eb5d15ee470f429df39e925b3d",
+        "mode": 420
+      },
+      "types/index.d.ts": {
+        "sha256": "0f081d29cf204608c6017db6eb4da7b4aa760967ff41ecc0ed364a7611be21ec",
+        "mode": 420
+      },
+      "types/minify.d.ts": {
+        "sha256": "c42c55b18a669e7cb8484834b3f0d5d2d8a95c336ee81269aaaddf827d5d0bf9",
+        "mode": 420
+      },
+      "types/options.check.d.ts": {
+        "sha256": "65604fc97d7bb938fb9f5a37dff2a845c72e177d96973e4efff74c99d125d39f",
+        "mode": 420
+      },
+      "types/serialize-javascript.d.ts": {
+        "sha256": "ad3e25eeecfe81e8a2ca116a4535d24410c6af9fc8871e5173c2084fbc21e42d",
+        "mode": 420
+      },
+      "types/sources.d.ts": {
+        "sha256": "614ed8953766a22d2f4b04b5dfe364010e790cecc04042f2cdf49afa233cd024",
+        "mode": 420
+      },
+      "types/utils.d.ts": {
+        "sha256": "d27e48949b08d1ef13d470580e481fee83f0ecbe26161f56087817aaba4825d0",
+        "mode": 420
+      }
+    }
+  },
+  "jest-util": {
+    "schemaVersion": 1,
+    "archive": "upstream/jest-util-30.5.1.tgz",
+    "patchedVersion": "30.5.1+webops.1",
+    "registryIntegrity": "sha512-yKuxmNy2rSbTXw+3SIPanJo+nV4/BS1p26v44IYBFMsswSQySfMMcPHErnOncda7i9HEz0q605rIhSTBVgrZTg==",
+    "registryArchiveSha256": "805131017a9d72fafa3924f4b4b93f4a1913c01c3a6cabc086e5c099080b86f7",
+    "package": {
+      "name": "jest-util",
+      "version": "30.5.1",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/jestjs/jest.git",
+        "directory": "packages/jest-util"
+      },
+      "license": "MIT",
+      "main": "./build/index.js",
+      "types": "./build/index.d.ts",
+      "exports": {
+        ".": {
+          "types": "./build/index.d.ts",
+          "require": "./build/index.js",
+          "import": "./build/index.mjs",
+          "default": "./build/index.js"
+        },
+        "./package.json": "./package.json"
+      },
+      "dependencies": {
+        "@jest/types": "30.5.1",
+        "@types/node": "*",
+        "chalk": "^4.1.2",
+        "ci-info": "^4.2.0",
+        "graceful-fs": "^4.2.11",
+        "picomatch": "^4.0.3"
+      },
+      "devDependencies": {
+        "@types/graceful-fs": "^4.1.9",
+        "@types/micromatch": "^4.0.10",
+        "@types/picomatch": "^4.0.0",
+        "lodash": "^4.17.19",
+        "micromatch": "^4.0.8"
+      },
+      "engines": {
+        "node": "^18.14.0 || ^20.0.0 || ^22.0.0 || >=24.0.0"
+      },
+      "publishConfig": {
+        "access": "public"
+      },
+      "gitHead": "9ab14feccd6c15fec1334dbcb03a53a079d153d3"
+    },
+    "files": {
+      "LICENSE": {
+        "sha256": "9d5211db733ccdd26f9170bec24cdca84093f60415da6b769ee9cdf23d04e19f",
+        "mode": 420
+      },
+      "build/index.js": {
+        "sha256": "ccadb71ddd85af3bfcc3ce4eaa253fbc8ff4423c258991ab7d3b1467a3b844d3",
+        "mode": 420
+      },
+      "package.json": {
+        "sha256": "ad9d9cb5c919d35714b19359b00fcee9e49b38a6db9f5d432bc50d74f6a5b2d3",
+        "mode": 420
+      },
+      "Readme.md": {
+        "sha256": "f7f090cc896994c8e8c5d2ea7143d0f5ea4cdc85a1079d5a0506171f5d0972ea",
+        "mode": 420
+      },
+      "build/index.mjs": {
+        "sha256": "d0a83528c47951d9465bd98c79a45a155956d5eb81bf128da5d1a236e4b4ca40",
+        "mode": 420
+      },
+      "build/index.d.ts": {
+        "sha256": "35d46b18a4360a8cce01f08a75ae02ce2f3d62cd09fdbc12c7e9a6032ddc3a23",
+        "mode": 420
+      }
+    }
+  },
+  "@jest/types": {
+    "schemaVersion": 1,
+    "archive": "upstream/jest-types-30.5.1.tgz",
+    "patchedVersion": "30.5.1+webops.1",
+    "registryIntegrity": "sha512-LvVYn83nnXPl+Rg98nvcFgjx6nRMTArhSn6RAX/w3ELn54S8A42TYZvsCMdGUqTM8S0wyXbtlQdU6Hi6dykj9g==",
+    "registryArchiveSha256": "6eefce50098840d10b3e61fbf699728abc3f9a20aa6783765ad794ca129237ba",
+    "package": {
+      "name": "@jest/types",
+      "version": "30.5.1",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/jestjs/jest.git",
+        "directory": "packages/jest-types"
+      },
+      "engines": {
+        "node": "^18.14.0 || ^20.0.0 || ^22.0.0 || >=24.0.0"
+      },
+      "license": "MIT",
+      "main": "./build/index.js",
+      "types": "./build/index.d.ts",
+      "exports": {
+        ".": {
+          "types": "./build/index.d.ts",
+          "default": "./build/index.js"
+        },
+        "./package.json": "./package.json"
+      },
+      "dependencies": {
+        "@jest/pattern": "30.5.0",
+        "@jest/schemas": "30.5.0",
+        "@types/istanbul-lib-coverage": "^2.0.6",
+        "@types/istanbul-reports": "^3.0.4",
+        "@types/node": "*",
+        "@types/yargs": "^17.0.33",
+        "chalk": "^4.1.2"
+      },
+      "publishConfig": {
+        "access": "public"
+      },
+      "gitHead": "9ab14feccd6c15fec1334dbcb03a53a079d153d3"
+    },
+    "files": {
+      "LICENSE": {
+        "sha256": "9d5211db733ccdd26f9170bec24cdca84093f60415da6b769ee9cdf23d04e19f",
+        "mode": 420
+      },
+      "build/index.js": {
+        "sha256": "a0d3f11f4444391992607489998d315d94fb4c9e12cbbb562d7804bc56c20292",
+        "mode": 420
+      },
+      "package.json": {
+        "sha256": "9270973ec16d74987de301d602f64cca329ad69a67cd471dfd75819ae31ec00e",
+        "mode": 420
+      },
+      "README.md": {
+        "sha256": "4d8ee480fed8bef4b053806ff09e1ed723907a668b45344ec0b216a7b7d8bafa",
+        "mode": 420
+      },
+      "build/index.d.ts": {
+        "sha256": "334dd06975f109a1876d7bcd550420960d719302ae0dce0ba88d389d8e1ca884",
+        "mode": 420
+      }
+    }
+  }
+}

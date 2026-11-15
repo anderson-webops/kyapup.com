@@ -7,6 +7,7 @@ import { Sessions, verifyImportToken, verifyPassword } from './auth.js'
 import { BoundedRateStore } from './boundedRateStore.js'
 import { GalleryError, maxUploadBytes, PhotoStore, readImportIdentity } from './photo-store.js'
 import type { SecondaryAuthenticator } from './secondary-auth.js'
+import { assertSupportedRuntime } from './runtime-version.js'
 
 const allowedMethods = ['GET', 'HEAD', 'OPTIONS'] as const
 const allowHeader = allowedMethods.join(', ')
@@ -36,6 +37,7 @@ function sessionId(request: Request) {
 }
 
 export function createApp(options: AppOptions = {}) {
+  assertSupportedRuntime()
   const trustProxyHops = options.trustProxyHops ?? 0
   validateTrustProxyHops(trustProxyHops)
   const sessions = new Sessions(sessionLifetime)

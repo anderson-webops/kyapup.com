@@ -152,6 +152,29 @@ class NativeProviderPackages(unittest.TestCase):
         with self.assertRaises(ValueError):
             PRODUCER.archive_files(b"a" * (PRODUCER.MAX_COMPRESSED + 1))
 
+    def test_fresh_outputs_are_private_under_permissive_umasks(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / ".ai-work/runs") as directory:
+            for mask in [0, 0o022, 0o077]:
+                filename = Path(directory) / ("output-" + str(mask))
+                previous = os.umask(mask)
+                try:
+                    PRODUCER.write_regular(filename, b"public distribution fixture")
+                finally:
+                    os.umask(previous)
+                self.assertEqual(stat.S_IMODE(filename.stat().st_mode), 0o600)
+                self.assertEqual(filename.read_bytes(), b"public distribution fixture")
+
+            legacy = Path(directory) / "existing-public-output"
+            previous = os.umask(0o022)
+            try:
+                legacy.write_bytes(b"public distribution fixture")
+            finally:
+                os.umask(previous)
+            self.assertEqual(stat.S_IMODE(legacy.stat().st_mode), 0o644)
+            PRODUCER.write_regular(legacy, b"retained public distribution")
+            self.assertEqual(stat.S_IMODE(legacy.stat().st_mode), 0o644)
+            self.assertEqual(legacy.read_bytes(), b"retained public distribution")
+
     def test_descriptor_reads_and_writes_preserve_private_modes(self):
         with tempfile.TemporaryDirectory(dir=ROOT / ".ai-work/runs") as directory:
             root = Path(directory)

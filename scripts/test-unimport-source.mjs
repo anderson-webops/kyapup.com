@@ -118,7 +118,7 @@ test('each locked consumer carries identical source provenance and archive ident
   const consumers = Object.entries(lock.packages).filter(([location]) => location === 'node_modules/unimport' || location.endsWith('/node_modules/unimport'))
   assert.ok(consumers.length)
   for (const [location, metadata] of consumers) {
-    assert.equal(metadata.version, '7.0.2+webops.2')
+    assert.equal(metadata.version, '7.0.2+webops.3')
     const provenance = JSON.parse(await readFile(path.join(root, location, 'WEBOPS-SOURCE.json'), 'utf8'))
     assert.equal(provenance.schemaVersion, 2)
     assert.equal(provenance.source.commit, 'bbd07768ddb4919205bcb5a3cbc06c3a2791981a')

@@ -125,6 +125,15 @@ def build_archive(data, upstream):
     return pack_files(files)
 
 
+def write_regular(filename, payload):
+    descriptor = os.open(filename, os.O_WRONLY | os.O_CREAT | os.O_NOFOLLOW | os.O_NONBLOCK, 0o600)
+    with os.fdopen(descriptor, "wb") as stream:
+        metadata = os.fstat(stream.fileno())
+        require(stat.S_ISREG(metadata.st_mode) and metadata.st_nlink == 1, "Output must be an unshared regular file")
+        os.ftruncate(stream.fileno(), 0)
+        stream.write(payload)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true")
@@ -144,10 +153,7 @@ def main():
         require(original["version"] == upstream["package"]["version"] and original["integrity"] == upstream["registryIntegrity"], "Original auditing must retain the official identity")
         print("Vue DevTools distribution reproduces with every original module, declaration, UI and license preserved.")
     else:
-        descriptor = os.open(TARGET, os.O_WRONLY | os.O_CREAT | os.O_TRUNC | os.O_NOFOLLOW | os.O_NONBLOCK, 0o644)
-        with os.fdopen(descriptor, "wb") as stream:
-            require(stat.S_ISREG(os.fstat(stream.fileno()).st_mode), "Output must be a regular file")
-            stream.write(archive)
+        write_regular(TARGET, archive)
         print(json.dumps({"archive": str(TARGET.relative_to(ROOT)), "integrity": integrity(archive)}))
 
 

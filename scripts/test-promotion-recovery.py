@@ -169,7 +169,7 @@ for mode in modes:
         (root/'build/bin').mkdir()
         (root/'protected/link').symlink_to(root/'build/subdir')
         unsafe=root/'build/bin/node'
-        unsafe.write_text('#!/bin/sh\ntouch "'+str(sentinel)+'"\nprintf "v26.13.0\\n"\n')
+        unsafe.write_text('#!/bin/sh\ntouch "'+str(sentinel)+'"\nprintf "v26.13.1\\n"\n')
         unsafe.chmod(0o755)
         (root/'build').chmod(0o777)
         env['NODE_BIN_DIR']=str(root/'protected/link')+'/../bin'
