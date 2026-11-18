@@ -4,6 +4,7 @@ import { useEventListener } from '@vueuse/core'
 import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from 'vue'
 import { onBeforeRouteLeave } from 'vue-router'
 import { useHead } from '#app'
+import { $fetch } from '#build/fetch'
 import { NuxtLink } from '#components'
 import PhotoLightbox from '~/components/PhotoLightbox.vue'
 

@@ -2,6 +2,8 @@
 import type { Gallery, Photo } from '~/types/gallery'
 import { useDocumentVisibility, usePreferredReducedMotion } from '@vueuse/core'
 import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue'
+import { setInterval } from '#app/compat/interval'
+import { $fetch } from '#build/fetch'
 import { NuxtLink } from '#components'
 import PhotoLightbox from '~/components/PhotoLightbox.vue'
 
