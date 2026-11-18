@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import type { Gallery, Photo } from '~/types/gallery'
+import { useDocumentVisibility, usePreferredReducedMotion } from '@vueuse/core'
+import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue'
+import { NuxtLink } from '#components'
+import PhotoLightbox from '~/components/PhotoLightbox.vue'
 
 const gallery = ref<Gallery>({
   photos: [],
@@ -77,7 +81,7 @@ onBeforeUnmount(() => {
       <h1 class="wordmark">
         kya<span class="wordmark-dot">.</span>
       </h1>
-      <span class="i-carbon-favorite gallery-paw" aria-hidden="true" />
+      <span class="gallery-paw i-carbon-favorite" aria-hidden="true" />
     </header>
     <main id="gallery" aria-label="Photos of Kya" :aria-busy="loading">
       <div v-if="loading" class="gallery-loading" role="status">

@@ -15,20 +15,31 @@ SOURCE = ROOT / "vendor/native-providers"
 MAX_COMPRESSED = 4 * 1024 * 1024
 MAX_EXPANDED = 16 * 1024 * 1024
 PACKAGES = {
+    "nuxt-explicit-imports": {
+        "version": "0.1.0",
+        "dependency": "oxc-parser",
+        "originalRange": "^0.158.0",
+        "qualifiedRange": "^0.159.0",
+        "referenceGraph": "vendor/framework-parents/upstream",
+        "executables": {"package/dist/cli.mjs"},
+        "fileCount": 10,
+        "required": {"LICENSE.md", "dist/cli.mjs", "dist/module.mjs", "dist/module.d.mts", "dist/report-BKPqp4bg.mjs", "skills/nuxt-explicit-imports/SKILL.md", "skills/nuxt-explicit-imports/references/manual-fixes.md"},
+    },
     "eslint-plugin-format": {
         "version": "2.0.1",
-        "revision": 2,
+        "revision": 3,
         "dependency": "oxfmt",
         "originalRange": "^0.35.0",
-        "qualifiedRange": "^0.78.0",
+        "qualifiedRange": "^0.79.0",
         "fileCount": 10,
         "required": {"LICENSE", "dist/index.mjs", "dist/index.d.mts", "dts/rule-options.d.ts", "workers/oxfmt.cjs", "workers/prettier.cjs", "workers/dprint.cjs"},
     },
     "@unocss/transformer-attributify-jsx": {
         "version": "66.13.0",
+        "revision": 2,
         "dependency": "oxc-parser",
         "originalRange": "^0.153.0",
-        "qualifiedRange": "^0.158.0",
+        "qualifiedRange": "^0.159.0",
         "fileCount": 4,
         "required": {"README.md", "dist/index.mjs", "dist/index.d.mts"},
     },
@@ -113,7 +124,7 @@ def archive_files(data):
     return files
 
 
-def pack_files(files):
+def pack_files(files, executables=frozenset()):
     payload = io.BytesIO()
     directories = set()
     for name in files:
@@ -126,7 +137,7 @@ def pack_files(files):
             archive.addfile(member)
         for name, data in sorted(files.items()):
             member = tarfile.TarInfo(name)
-            member.mode = 0o644
+            member.mode = 0o755 if name in executables else 0o644
             member.size = len(data)
             archive.addfile(member, io.BytesIO(data))
     output = io.BytesIO()
@@ -168,7 +179,10 @@ def build_archive(data, record):
     files["package/package.json"] = (json.dumps(metadata, indent=2) + "\n").encode()
     files["package/UPSTREAM-PACKAGE.json"] = original
     files["package/WEBOPS-COMPAT.json"] = (json.dumps(record, indent=2) + "\n").encode()
-    return pack_files(files)
+    executables = policy.get("executables", set())
+    with tarfile.open(fileobj=io.BytesIO(data), mode="r:gz") as archive:
+        require({member.name for member in archive if member.isfile() and member.mode & 0o111} == executables, "Preserve the reviewed executable inventory")
+    return pack_files(files, executables)
 
 
 def write_regular(filename, payload):
@@ -187,7 +201,7 @@ def main():
     records = json.loads(regular_bytes(SOURCE / "UPSTREAM.json", 1024 * 1024))
     require(set(records) == set(PACKAGES), "The complete reviewed parent cohort is required")
     lock = json.loads(regular_bytes(ROOT / "package-lock.json", 8 * 1024 * 1024)) if arguments.check else None
-    original_lock = json.loads(regular_bytes(SOURCE / "upstream/package-lock.json", 4 * 1024 * 1024)) if arguments.check else None
+    reference_locks = {}
     for name, record in records.items():
         require(record["package"]["name"] == name, "Upstream record identity mismatch")
         expected_archive = "upstream/" + name.replace("@", "").replace("/", "-") + "-" + PACKAGES[name]["version"] + ".tgz"
@@ -199,7 +213,10 @@ def main():
             consumers = [value for filename, value in lock["packages"].items() if filename.endswith("node_modules/" + name)]
             require(bool(consumers), "Maintained parent has no locked consumer")
             require(all(value["version"] == record["patchedVersion"] and value["integrity"] == integrity(payload) for value in consumers), "Every consumer must bind the maintained archive")
-            original = original_lock["packages"]["node_modules/" + name]
+            graph = PACKAGES[name].get("referenceGraph", "vendor/native-providers/upstream")
+            if graph not in reference_locks:
+                reference_locks[graph] = json.loads(regular_bytes(ROOT / graph / "package-lock.json", 8 * 1024 * 1024))
+            original = reference_locks[graph]["packages"]["node_modules/" + name]
             require(original["version"] == record["package"]["version"] and original["integrity"] == record["registryIntegrity"], "Original audit graph must retain the registry identity")
         else:
             write_regular(target, payload)

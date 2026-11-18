@@ -8,11 +8,10 @@ import { assertDevtoolsProviderVersions } from './devtools-provider.mjs'
 const require = createRequire(import.meta.url)
 const frontendRequire = createRequire(new URL('../front-end/package.json', import.meta.url))
 
-for (const version of ['0.8.0', '0.8.1', '0.8.2']) {
-  test(`the reviewed ${version} host and exact kit pair are accepted`, () => {
+test('reviewed host patches and their exact kit pairs are accepted', () => {
+  for (const version of ['0.8.0', '0.8.1', '0.8.2', '0.8.3'])
     assertDevtoolsProviderVersions({ version }, { version })
-  })
-}
+})
 
 test('a legacy peer is not accepted as the Nuxt-selected host', () => {
   assert.throws(() => assertDevtoolsProviderVersions({ version: '0.7.6' }, { version: '0.7.6' }))
@@ -21,10 +20,11 @@ test('a legacy peer is not accepted as the Nuxt-selected host', () => {
 test('host and kit patch mismatches are rejected', () => {
   assert.throws(() => assertDevtoolsProviderVersions({ version: '0.8.1' }, { version: '0.8.0' }))
   assert.throws(() => assertDevtoolsProviderVersions({ version: '0.8.2' }, { version: '0.8.1' }))
+  assert.throws(() => assertDevtoolsProviderVersions({ version: '0.8.3' }, { version: '0.8.2' }))
 })
 
 test('unreviewed provider patches and APIs are rejected', () => {
-  for (const version of ['0.8.3', '0.9.0', '1.0.0'])
+  for (const version of ['0.8.4', '0.9.0', '1.0.0'])
     assert.throws(() => assertDevtoolsProviderVersions({ version }, { version }))
 })
 

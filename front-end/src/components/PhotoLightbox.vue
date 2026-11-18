@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Photo } from '~/types/gallery'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 
 const props = defineProps<{ photos: Photo[] }>()
 const emit = defineEmits<{ change: [open: boolean] }>()

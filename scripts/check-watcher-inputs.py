@@ -43,7 +43,7 @@ def main():
     verify_package({**record["jiti"], "installed": "vendor/watchers/upstream/node_modules/jiti", "lock": "vendor/watchers/upstream/package-lock.json"})
     manifest = json.loads((ROOT / "package.json").read_text())
     INPUTS.require(manifest["overrides"]["chokidar"] == "6.0.0", "Review changed watcher cohort")
-    INPUTS.require(manifest["overrides"]["@nuxt/devtools"]["."] == "4.1.0" and manifest["overrides"]["@nuxt/devtools-kit"] == "4.1.0", "Review changed Nuxt DevTools cohort")
+    INPUTS.require(manifest["overrides"]["@nuxt/devtools"]["."] == "4.2.0" and manifest["overrides"]["@nuxt/devtools-kit"] == "4.2.0", "Review changed Nuxt DevTools cohort")
     print("Original watcher modules, types, licenses and consuming locks verified")
 
 

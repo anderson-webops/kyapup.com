@@ -102,8 +102,8 @@
     "archive": "upstream/eslint-plugin-format-2.0.1.tgz",
     "registryIntegrity": "sha512-0BA65p5DAiuKtx5MmMJfPk9WaTjoHHbyVW7ZXRhaZoA1fdiMHhay9QRiDL2wr0hJWZxdF7CRThOK/70VUKVg2g==",
     "registryArchiveSha256": "c98d5af4e2a49a846fca865cdedf6401be359ed062a088a4c5362c5afff93481",
-    "patchedVersion": "2.0.1-webops.2",
-    "qualifiedRange": "^0.78.0",
+    "patchedVersion": "2.0.1-webops.3",
+    "qualifiedRange": "^0.79.0",
     "files": {
       "LICENSE": "af32efdd008a371c77b13eef5010c81d6c5c2f67c054b6bb74317e13ac38c171",
       "README.md": "b2098317872a2504dc5f626177afed0a74d30325696d661fa05438538bd59937",
@@ -163,8 +163,8 @@
     "archive": "upstream/unocss-transformer-attributify-jsx-66.13.0.tgz",
     "registryIntegrity": "sha512-oaaSsyH01qE/emuMHIqXCgLotWWKCsQhs0fjpr4QH1cBC5shqKOsvML1Qyf2nvryLC4PIhD1xpwDl5lWKmtHVA==",
     "registryArchiveSha256": "8d48c19700ae228bc377f669370a318ccf4acd9febd130ca95998ef1f031a3ae",
-    "patchedVersion": "66.13.0-webops.1",
-    "qualifiedRange": "^0.158.0",
+    "patchedVersion": "66.13.0-webops.2",
+    "qualifiedRange": "^0.159.0",
     "files": {
       "README.md": "e591f2a5e0f08d7ff4d2b027c4557042cab229f1cbde7c8794d79f70fe37bc9d",
       "dist/index.d.mts": "7f266cc89a89fa15f639282e90b69ca51cdc7bf785d884f75248d19c7e9b6305",
@@ -316,6 +316,121 @@
       "dist/index.d.mts": "71ee67fc4d1d1d23989cf0628fc4e43c5321c765af148a3f4c6db027eb466b22",
       "dist/index.mjs": "6596d47639b00c96dbfba878d5db2945ed9e55f6d61f12718f3feca1a568777d",
       "package.json": "cf3f611c303b13c8829fc14500f5d7bcaefe167eec212f70a2287c8914001faa"
+    }
+  },
+  "nuxt-explicit-imports": {
+    "schemaVersion": 1,
+    "package": {
+      "name": "nuxt-explicit-imports",
+      "type": "module",
+      "version": "0.1.0",
+      "description": "Migrate a Nuxt app away from auto-imports, step by step, with agent skills, a codemod and a warn mode",
+      "author": "Anthony Fu <anthonyfu117@hotmail.com>",
+      "license": "MIT",
+      "funding": "https://github.com/sponsors/antfu",
+      "homepage": "https://github.com/antfu/nuxt-explicit-imports#readme",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/antfu/nuxt-explicit-imports.git"
+      },
+      "bugs": "https://github.com/antfu/nuxt-explicit-imports/issues",
+      "keywords": [
+        "nuxt",
+        "nuxt-module",
+        "auto-imports",
+        "codemod",
+        "unimport",
+        "agent-skills"
+      ],
+      "sideEffects": false,
+      "exports": {
+        "./package.json": "./package.json",
+        ".": "./dist/module.mjs"
+      },
+      "types": "./dist/module.d.mts",
+      "bin": {
+        "nuxt-explicit-imports": "./dist/cli.mjs"
+      },
+      "files": [
+        "dist",
+        "skills"
+      ],
+      "peerDependencies": {
+        "nuxt": "^4.0.0"
+      },
+      "dependencies": {
+        "@nuxt/kit": "^4.6.4",
+        "@vue/compiler-sfc": "^3.5.45",
+        "cac": "^7.1.0",
+        "consola": "^3.4.2",
+        "magic-string": "^1.4.5",
+        "mlly": "^1.8.2",
+        "oxc-parser": "^0.158.0",
+        "oxc-walker": "^1.1.1",
+        "pathe": "^2.0.3",
+        "picomatch": "^4.0.7",
+        "tinyglobby": "^0.2.17",
+        "unimport": "^7.0.3"
+      },
+      "devDependencies": {
+        "@antfu/eslint-config": "^10.0.0",
+        "@antfu/ni": "^30.6.0",
+        "@antfu/skills": "^0.1.3",
+        "@antfu/utils": "^9.3.0",
+        "@types/node": "^26.6.6",
+        "@types/picomatch": "^4.0.3",
+        "bumpp": "^12.3.0",
+        "eslint": "^10.14.0",
+        "eslint-plugin-slop": "^0.1.3",
+        "eslint-plugin-sonarjs": "^4.2.2",
+        "knip": "^6.45.1",
+        "nano-staged": "^1.0.2",
+        "nuxt": "^4.6.4",
+        "publint": "^0.3.25",
+        "simple-git-hooks": "^2.14.0",
+        "skills": "^1.8.1",
+        "taze": "^21.3.0",
+        "tsdown": "^0.23.7",
+        "tsdown-stale-guard": "^0.1.3",
+        "tsnapi": "^1.6.1",
+        "tsx": "^4.23.15",
+        "typescript": "^6.0.3",
+        "vite": "^8.3.8",
+        "vitest": "^5.1.0"
+      },
+      "simple-git-hooks": {
+        "pre-commit": "pnpm i --frozen-lockfile --ignore-scripts --offline && pnpm run ci && pnpx nano-staged"
+      },
+      "nano-staged": {
+        "*.{js,ts,tsx,json,css,md,yaml,vue}": "eslint --fix --no-warn-ignored"
+      },
+      "scripts": {
+        "build": "tsdown",
+        "dev": "tsdown --watch",
+        "knip": "knip",
+        "lint": "eslint --cache",
+        "release": "bumpp",
+        "test": "pnpm run build && vitest",
+        "typecheck": "tsc",
+        "ci": "pnpm run lint && pnpm run typecheck && pnpm run knip && pnpm run test --run"
+      }
+    },
+    "patchedVersion": "0.1.0-webops.1",
+    "qualifiedRange": "^0.159.0",
+    "archive": "upstream/nuxt-explicit-imports-0.1.0.tgz",
+    "registryIntegrity": "sha512-Vemqd0kA6WkF7STk9DzcWYqdBbD5Qh/p4fxZoi8CNlgw3lCCtf6ND/JlNO5fC6z1g1TzU9jzheJIoIVFHIvONA==",
+    "registryArchiveSha256": "097bd92d0ede10ede95ee7355d35de5fefb491d78bb007e2a3c755b039770130",
+    "files": {
+      "LICENSE.md": "2a596f697b619094b6f4067936e0f385027a393bce32211383db0478774c1cb2",
+      "README.md": "c239803301361a83870c5158d6b75a42c1a05fed64c2e194726c4d4f45bd2a6c",
+      "dist/cli.d.mts": "f4c5cf9bb78e85f15dc27180260637cf24b2a24bc39e0788783a3accc4dde614",
+      "dist/cli.mjs": "cf57766ab96d2572285c502c87bfac18c9abe3983c940d12674f013a9779bb32",
+      "dist/module.d.mts": "84e0aa230b7061c1a2ab64e3262107a2276f412e7aade29b019ee7146a9bb8e0",
+      "dist/module.mjs": "146db7c2dcf14d1439d3417c18ea710f15e7b6c3ff7eb0935f345e7f57a13468",
+      "dist/report-BKPqp4bg.mjs": "0f5c603a6ccd35b3b435ec63539d24137fd69849bb259e74753a76cd3d574d5e",
+      "package.json": "adda11b4767431fd362180ae8ce305f8f91919f0909f685fa89e0f30fb9226e3",
+      "skills/nuxt-explicit-imports/SKILL.md": "0dd33a40db454530ffd76d0812424b4ce39ed7cf236f54928a820b4f4efde663",
+      "skills/nuxt-explicit-imports/references/manual-fixes.md": "763577e0cde84bc246124620a5de4bb1839dae88dc2a7acf23d57807554cc9e3"
     }
   }
 }

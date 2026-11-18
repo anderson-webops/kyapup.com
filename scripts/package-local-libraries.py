@@ -2,6 +2,7 @@ import argparse
 import hashlib
 import importlib.util
 import json
+import os
 import stat
 from pathlib import Path
 
@@ -60,19 +61,32 @@ def build_archive(root, record):
     return ARCHIVES.pack_files(files, executable_paths=executable), files
 
 
-def verify_consumers(root, record, archive, files, installed):
+def verify_consumers(root, record, archive, files, installed, reference=False):
     name = record["name"]
-    resolved = "file:vendor/" + name + "-" + record["version"] + ".tgz"
+    resolved = ("file:../../../vendor/" if reference else "file:vendor/") + name + "-" + record["version"] + ".tgz"
     manifest = json.loads((root / "package.json").read_text())
-    ARCHIVES.require(manifest["devDependencies"][name] == resolved and manifest["overrides"][name] == "$" + name, "Application library reference mismatch")
+    if reference:
+        declarations = [manifest[section][name] for section in ["dependencies", "devDependencies", "overrides"] if name in manifest.get(section, {})]
+        direct = manifest.get("dependencies", {}).get(name, manifest.get("devDependencies", {}).get(name))
+        declarations = [direct if value == "$" + name else value for value in declarations]
+        ARCHIVES.require(bool(declarations) and all(value == resolved for value in declarations), "Reference library archive mismatch")
+    else:
+        ARCHIVES.require(manifest["devDependencies"][name] == resolved and manifest["overrides"][name] == "$" + name, "Application library reference mismatch")
     packages = json.loads((root / "package-lock.json").read_text())["packages"]
     consumers = [(location, metadata) for location, metadata in packages.items() if location.endswith("node_modules/" + name)]
-    ARCHIVES.require(bool(consumers), "Locked library consumer required")
+    ARCHIVES.require(bool(consumers) or reference and direct is None, "Locked library consumer required")
+    if not reference or direct is not None:
+        ARCHIVES.require("node_modules/" + name in packages, "Direct library root consumer required")
     ARCHIVES.require(not any(location == "vendor/" + name or location.startswith("vendor/" + name + "/") for location in packages), "Library must not form a linked npm project")
+    if reference:
+        ARCHIVES.require(all(not Path(location).is_absolute() and ".." not in Path(location).parts for location in packages), "Library must not form a linked npm project")
     for location, metadata in consumers:
         ARCHIVES.require(not Path(location).is_absolute() and all(part not in {"", ".", ".."} for part in location.split("/")), "Library location must remain inside the checkout")
         ARCHIVES.require(location.startswith("node_modules/") or "/node_modules/" in location, "Library consumer must be installed in a dependency tree")
-        ARCHIVES.require(not metadata.get("link") and metadata.get("version") == record["version"] and metadata.get("resolved") == resolved and metadata.get("integrity") == ARCHIVES.integrity(archive), "Locked library identity or integrity mismatch")
+        resolved_matches = metadata.get("resolved") == resolved
+        if reference and isinstance(metadata.get("resolved"), str) and metadata["resolved"].startswith("file:"):
+            resolved_matches = os.path.normpath(root / metadata["resolved"][5:]) == os.path.normpath(root / resolved[5:])
+        ARCHIVES.require(not metadata.get("link") and metadata.get("version") == record["version"] and resolved_matches and metadata.get("integrity") == ARCHIVES.integrity(archive), "Locked library identity or integrity mismatch")
         if installed:
             directory = root / location
             ARCHIVES.require(not directory.is_symlink(), "Installed library must not be linked")
@@ -98,6 +112,10 @@ def main():
         if args.check:
             ARCHIVES.require(regular_bytes(ROOT, str(target.relative_to(ROOT))) == output, "Library archive must reproduce reviewed source: " + name)
             verify_consumers(ROOT, record, output, files, args.installed)
+            for manifest_path in sorted((ROOT / "vendor").glob("*/upstream/package.json")):
+                manifest = json.loads(regular_bytes(ROOT, str(manifest_path.relative_to(ROOT))))
+                if any(name in manifest.get(section, {}) for section in ["dependencies", "devDependencies", "overrides"]):
+                    verify_consumers(manifest_path.parent, record, output, files, args.installed, reference=True)
         else:
             ARCHIVES.require(not target.is_symlink(), "Archive output must remain local")
             if target.exists():

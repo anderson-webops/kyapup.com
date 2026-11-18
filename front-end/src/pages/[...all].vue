@@ -1,3 +1,7 @@
+<script setup lang="ts">
+import { NuxtLink } from '#components'
+</script>
+
 <template>
   <main class="not-found">
     <h1>Nothing here just yet.</h1><NuxtLink to="/">

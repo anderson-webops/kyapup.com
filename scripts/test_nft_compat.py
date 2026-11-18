@@ -16,7 +16,7 @@ class FileTracerCompatibilityTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.record = json.loads((COMPAT.SOURCE / "UPSTREAM.json").read_text())
-        cls.original = (COMPAT.SOURCE / "upstream/vercel-nft-1.11.1.tgz").read_bytes()
+        cls.original = (COMPAT.SOURCE / "upstream/vercel-nft-1.11.7.tgz").read_bytes()
 
     def test_reproducible_archive_preserves_modules_types_cli_and_license(self):
         output = COMPAT.build_archive(self.original, self.record)

@@ -10,17 +10,21 @@
   "dependencies": {
     "@unocss/transformer-attributify-jsx": "66.13.0",
     "@unocss/vite": "66.13.0",
-    "eslint": "10.14.0",
+    "eslint": "10.15.0",
     "eslint-plugin-format": "2.0.1",
     "oxc-parser": "0.153.0",
     "oxfmt": "0.35.0",
     "unconfig": "7.5.0"
   },
   "overrides": {
-    "minimatch": "11.0.5",
-    "tinypool": "2.2.0"
+    "minimatch": "11.0.9",
+    "tinypool": "2.2.0",
+    "picomatch": "$picomatch"
   },
   "allowScripts": {
     "fsevents@2.3.3": true
+  },
+  "devDependencies": {
+    "picomatch": "file:../../picomatch-4.0.7-webops.1.tgz"
   }
 }

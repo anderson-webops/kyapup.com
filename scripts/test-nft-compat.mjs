@@ -79,7 +79,7 @@ test('the actual file tracer consumes the current native ESM walker with unchang
   assert.ok(require.resolve('@vercel/nft').startsWith(path.join(root, 'node_modules/@vercel/nft/')))
   assert.ok(originalRequire.resolve('@vercel/nft').startsWith(path.join(root, 'vendor/nft/upstream/node_modules/@vercel/nft/')))
   const metadata = require('@vercel/nft/package.json')
-  assert.equal(metadata.version, '1.11.1-webops.1')
+  assert.equal(metadata.version, '1.11.7-webops.1')
   assert.equal(metadata.dependencies['estree-walker'], '3.0.3')
   assert.equal(originalRequire('@vercel/nft/package.json').dependencies['estree-walker'], '2.0.2')
   const walker = JSON.parse(await readFile(path.join(root, 'node_modules/estree-walker/package.json'), 'utf8'))
@@ -135,6 +135,47 @@ for (const entry of [
       assert.ok(actual.files.includes('dynamic/yes.cjs'))
   })
 }
+
+test('current upstream import metadata, package imports and CommonJS assets retain their dependencies', async (context) => {
+  const directory = await fixture(context)
+  await writeFile(path.join(directory, 'package.json'), JSON.stringify({
+    private: true,
+    imports: { '#/local': './dynamic/yes.cjs' },
+  }))
+  const cases = [
+    [
+      'resolved.mjs',
+      'export const target=import.meta.resolve("./dynamic/yes.cjs");',
+      ['dynamic/yes.cjs'],
+    ],
+    [
+      'metadata.mjs',
+      'import fs from "node:fs";import path from "node:path";fs.readFileSync(path.join(import.meta.dirname,"data/value.txt"));',
+      ['data/value.txt'],
+    ],
+    [
+      'imports.mjs',
+      'import value from "#/local";export default value;',
+      ['dynamic/yes.cjs'],
+    ],
+    [
+      'assets.cjs',
+      'const fs=require("node:fs");const path=require("node:path");fs.readFileSync(path.join(__dirname,"dynamic/asset.cjs"),"utf8");',
+      ['dynamic/asset.cjs', 'dynamic/nested.cjs'],
+    ],
+  ]
+  await writeFile(path.join(directory, 'dynamic/asset.cjs'), 'module.exports=require("./nested.cjs");')
+  await writeFile(path.join(directory, 'dynamic/nested.cjs'), 'module.exports=42;')
+  for (const [entry, source, required] of cases) {
+    await writeFile(path.join(directory, entry), source)
+    const options = { base: directory, processCwd: directory }
+    const actual = normalize(await trace(current, [entry], options))
+    assert.deepEqual(actual, normalize(await trace(original, [entry], options)), entry)
+    assert.deepEqual(actual.warnings, [], entry)
+    for (const filename of required)
+      assert.ok(actual.files.includes(filename), `${entry}: ${filename}`)
+  }
+})
 
 test('ignored assets remain explicitly ignored with original reason chains', async (context) => {
   const directory = await fixture(context)

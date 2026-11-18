@@ -64,7 +64,7 @@ PACKAGES = {
         "compiledSources": ["lib/core.ts", "lib/compile/validate/dataType.ts", "lib/compile/validate/index.ts"],
     },
     "postcss": {
-        "version": "8.5.32",
+        "version": "8.5.33",
         "revision": 1,
         "count": 55,
         "before": {"nanoid": "^3.3.20"},
@@ -74,7 +74,7 @@ PACKAGES = {
         "qualifiedNode": "^26.13.0",
     },
     "eslint": {
-        "version": "10.14.0",
+        "version": "10.15.0",
         "revision": 2,
         "count": 421,
         "before": {"ajv": "^6.14.0"},

@@ -11,10 +11,10 @@
     },
     {
       "name": "encodeurl",
-      "version": "3.0.0",
-      "revision": "0dc3870231fc7ea068830a66648c99453b4b1210",
+      "version": "3.0.1",
+      "revision": "206ab22eae8b321768997dc2895a3761efbd2604",
       "repository": "https://github.com/pillarjs/encodeurl",
-      "integrity": "sha512-4McP5wRMkyFkj2+U0GfnZVjUQBSu+6kqbNhZsRqO1UeDVsdY8GDloc1bfAGHJ4MAVgJjo5RHveJA4fUZQMSMMA==",
+      "integrity": "sha512-Q0sf/OO/QjJIpnVmCAbVrXPVtRIvswiUKn3tIix+o1ZoRNQUUaXozxW+0T6SPWNAU2w2eDSHAEhrZbMeobzg7A==",
       "dependencies": {}
     },
     {
@@ -23,7 +23,9 @@
       "revision": "c3949f885af40733c680eb410b7d1f5aeddc2877",
       "repository": "https://github.com/stream-utils/raw-body",
       "integrity": "sha512-TMHtwexrgOt9VJ2E5JF9RO8mRXGNgC5wXvKkc5AVSJUt1L5gxvjg7eiCQl96EqUEpCWrnNEkCnbAplYtyuq1IA==",
-      "dependencies": { "iconv-lite": "0.7.3" }
+      "dependencies": {
+        "iconv-lite": "0.7.3"
+      }
     },
     {
       "name": "type-is",
@@ -31,7 +33,9 @@
       "revision": "f61fd0318c775d8e4a9590143eb92487c23afe58",
       "repository": "https://github.com/jshttp/type-is",
       "integrity": "sha512-txjx+lbH40MgknWZzdizD8FjUukflN5xG/i8t6tggtJuHkEjHD1t6eYE4LwJRDImCbzU6FCg/IAsoyy/BoFIfw==",
-      "dependencies": { "mime-types": "3.0.2" }
+      "dependencies": {
+        "mime-types": "3.0.2"
+      }
     }
   ]
 }

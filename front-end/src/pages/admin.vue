@@ -1,5 +1,11 @@
 <script setup lang="ts">
 import type { Gallery, GallerySettings, Photo } from '~/types/gallery'
+import { useEventListener } from '@vueuse/core'
+import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from 'vue'
+import { onBeforeRouteLeave } from 'vue-router'
+import { useHead } from '#app'
+import { NuxtLink } from '#components'
+import PhotoLightbox from '~/components/PhotoLightbox.vue'
 
 useHead({
   title: 'Kya · Photos',

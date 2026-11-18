@@ -18,7 +18,7 @@ SOURCE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(SOURCE)
 ROOT = SOURCE.ROOT
 BUILD = SOURCE.SOURCE / "build"
-TARGET = ROOT / "vendor/unimport-7.0.2-webops.3.tgz"
+TARGET = ROOT / "vendor/unimport-7.0.3-webops.2.tgz"
 CONFIG = ROOT / "scripts/unimport-build.config.mjs"
 
 
@@ -79,6 +79,18 @@ def run(command, directory, environment):
     subprocess.run(command, cwd=directory, env=environment, timeout=300, check=True)
 
 
+def runtime_dependencies(manifest):
+    dependencies = dict(manifest["dependencies"])
+    provider = json.loads(SOURCE.regular_bytes(ROOT / "vendor/picomatch/UPSTREAM.json"))
+    archive = ROOT / "vendor" / f"picomatch-{provider['patchedVersion']}.tgz"
+    expected = "file:" + os.path.relpath(archive, BUILD)
+    SOURCE.require(dependencies["picomatch"] == expected, "Review changed compiler provider specification")
+    SOURCE.require(hashlib.sha256(SOURCE.regular_bytes(archive)).hexdigest() == provider["archiveSha256"], "Compiler provider differs from reviewed source")
+    dependencies["picomatch"] = provider["patchedVersion"]
+    SOURCE.require(all(not specification.startswith(("file:", "link:", "workspace:")) for specification in dependencies.values()), "Built runtime dependencies must be portable")
+    return dependencies
+
+
 def build_once(original, check_upstream):
     node = shutil.which("node")
     SOURCE.require(node is not None, "The qualified Node build profile is required")
@@ -86,6 +98,7 @@ def build_once(original, check_upstream):
     manifest = json.loads(SOURCE.regular_bytes(BUILD / "package.json"))
     lock = json.loads(SOURCE.regular_bytes(BUILD / "package-lock.json"))
     SOURCE.require(lock["packages"][""]["dependencies"] == manifest["dependencies"] and lock["packages"][""]["devDependencies"] == manifest["devDependencies"], "Source-build lock does not match its manifest")
+    runtime = runtime_dependencies(manifest)
     parent = ROOT / ".ai-work/runs"
     parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="unimport-build-", dir=parent) as temporary:
@@ -119,7 +132,7 @@ def build_once(original, check_upstream):
     metadata = json.loads(original["package.json"])
     for key in ["devDependencies", "scripts", "packageManager", "resolutions"]:
         metadata.pop(key, None)
-    metadata.update(version="7.0.2+webops.3", private=True, dependencies=manifest["dependencies"], engines={"node": ">=26.13.1 <27"})
+    metadata.update(version="7.0.3+webops.2", private=True, dependencies=runtime, engines={"node": ">=26.13.1 <27"})
     for filename in ["LICENSE", "README.md", *sorted(name for name in original if "/" not in name and name.endswith(".d.ts"))]:
         output["package/" + filename] = original[filename]
     output["package/package.json"] = (json.dumps(metadata, indent=2) + "\n").encode()
@@ -143,7 +156,7 @@ def verify_installed(data, prefix):
     with tarfile.open(fileobj=io.BytesIO(data), mode="r:gz") as archive:
         files = {member.name.removeprefix("package/"): archive.extractfile(member).read() for member in archive}
     for name, info in consumers:
-        SOURCE.require(info["version"] == "7.0.2+webops.3" and info["integrity"] == integrity, "Consuming source-built provider identity mismatch")
+        SOURCE.require(info["version"] == "7.0.3+webops.2" and info["integrity"] == integrity, "Consuming source-built provider identity mismatch")
         directory = prefix / name
         SOURCE.require(not directory.is_symlink(), "Source-built consumer must remain local")
         for filename, content in files.items():
@@ -155,9 +168,10 @@ def main():
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--installed", action="store_true")
     parser.add_argument("--installed-prefix", type=Path)
+    parser.add_argument("--validate-upstream", action="store_true")
     args = parser.parse_args()
     original = SOURCE.verify_source()
-    first = build_once(original, True)
+    first = build_once(original, args.validate_upstream)
     second = build_once(original, False)
     SOURCE.require(first == second, "Independent source builds are not reproducible")
     if args.check:

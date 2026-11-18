@@ -3,6 +3,7 @@ import gzip
 import importlib.util
 import io
 import json
+import sys
 import tarfile
 import unittest
 import zlib
@@ -36,7 +37,7 @@ class UnimportSourceTests(unittest.TestCase):
 
     def test_complete_signed_source_and_both_signatures_verify(self):
         files = SOURCE.verify_source()
-        self.assertEqual(len(files), 224)
+        self.assertEqual(len(files), 226)
         self.assertIn("test/unplugin.test.ts", files)
         self.assertIn("LICENSE", files)
 
@@ -118,7 +119,30 @@ class UnimportSourceTests(unittest.TestCase):
         with tarfile.open(BUILD.TARGET, mode="r:gz") as archive:
             self.assertEqual(archive.extractfile("package/LICENSE").read(), original["LICENSE"])
             self.assertEqual(archive.extractfile("package/UPSTREAM-PACKAGE.json").read(), original["package.json"])
-            self.assertEqual(json.load(archive.extractfile("package/package.json"))["version"], "7.0.2+webops.3")
+            metadata = json.load(archive.extractfile("package/package.json"))
+            self.assertEqual(metadata["version"], "7.0.3+webops.2")
+            self.assertEqual(metadata["dependencies"]["picomatch"], "4.0.7-webops.1")
+            self.assertTrue(all(not specification.startswith("file:") for specification in metadata["dependencies"].values()))
+
+    def test_runtime_provider_translation_preserves_the_compiler_graph_and_rejects_drift(self):
+        manifest = json.loads((BUILD.BUILD / "package.json").read_text())
+        unchanged = copy.deepcopy(manifest)
+        dependencies = BUILD.runtime_dependencies(manifest)
+        self.assertEqual(manifest, unchanged)
+        self.assertEqual(dependencies["picomatch"], "4.0.7-webops.1")
+        for name, specification in [("picomatch", "^4.0.7"), ("magic-string", "file:../unexpected")]:
+            with self.subTest(name=name):
+                changed = copy.deepcopy(manifest)
+                changed["dependencies"][name] = specification
+                with self.assertRaises(ValueError):
+                    BUILD.runtime_dependencies(changed)
+
+    def test_upstream_checks_run_once_when_requested_and_both_builds_always_run(self):
+        for arguments, expected in [([], [False, False]), (["--validate-upstream"], [True, False])]:
+            with self.subTest(arguments=arguments):
+                with patch.object(sys, "argv", ["build-unimport-source.py", "--check", *arguments]), patch.object(BUILD.SOURCE, "verify_source", return_value={}), patch.object(BUILD.SOURCE, "regular_bytes", return_value=b"compiled"), patch.object(BUILD, "build_once", return_value=b"compiled") as build:
+                    BUILD.main()
+                self.assertEqual([call.args[1] for call in build.call_args_list], expected)
 
     def test_compressed_git_objects_reject_wrong_headers_and_trailing_data(self):
         data = (SOURCE.SOURCE / "commit.git").read_bytes()

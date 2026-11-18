@@ -11,7 +11,7 @@ from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "vendor/nft"
-TARGET = ROOT / "vendor/vercel-nft-1.11.1-webops.1.tgz"
+TARGET = ROOT / "vendor/vercel-nft-1.11.7-webops.1.tgz"
 
 
 def require(condition, message):
@@ -70,7 +70,7 @@ def replace_once(source, before, after):
 
 
 def build_archive(data, record):
-    require(record["schemaVersion"] == 1 and record["name"] == "@vercel/nft" and record["version"] == "1.11.1" and record["patchedVersion"] == "1.11.1-webops.1", "Review changed maintained identity")
+    require(record["schemaVersion"] == 1 and record["name"] == "@vercel/nft" and record["version"] == "1.11.7" and record["patchedVersion"] == "1.11.7-webops.1", "Review changed maintained identity")
     require(record["walker"]["version"] == "3.0.3", "Review changed walker identity")
     require(record["syncTools"] == "@rollup/pluginutils@5.5.1-webops.1", "Review changed synchronous tool provider")
     require(integrity(data) == record["integrity"], "Original archive integrity mismatch")
@@ -109,7 +109,7 @@ def main():
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
     record = json.loads((SOURCE / "UPSTREAM.json").read_text())
-    require(record["archive"] == "vercel-nft-1.11.1.tgz" and record["walker"]["archive"] == "estree-walker-3.0.3.tgz", "Review changed input paths")
+    require(record["archive"] == "vercel-nft-1.11.7.tgz" and record["walker"]["archive"] == "estree-walker-3.0.3.tgz", "Review changed input paths")
     output = build_archive((SOURCE / "upstream" / record["archive"]).read_bytes(), record)
     if args.check:
         require(stat.S_ISREG(TARGET.lstat().st_mode) and TARGET.read_bytes() == output, "Maintained archive does not reproduce")

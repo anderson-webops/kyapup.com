@@ -134,6 +134,51 @@ class LocalLibraryPackaging(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "executable"):
             LIBRARIES.verify_consumers(self.root, record, archive, files, True)
 
+    def test_reference_graphs_preserve_archive_bytes_and_reject_folder_links(self):
+        for name in RECORDS:
+            with self.subTest(library=name):
+                record, archive, files, lock = self.install_fixture(name)
+                reference = self.root / "references" / name
+                shutil.copytree(self.root / "node_modules" / name, reference / "node_modules" / name)
+                resolved = "file:../../../vendor/" + name + "-" + record["version"] + ".tgz"
+                manifest = {"dependencies": {name: resolved}, "overrides": {name: resolved}}
+                (reference / "package.json").write_text(json.dumps(manifest))
+                lock["packages"]["node_modules/" + name]["resolved"] = resolved
+                (reference / "package-lock.json").write_text(json.dumps(lock))
+                for override in [resolved, "$" + name]:
+                    manifest["overrides"][name] = override
+                    (reference / "package.json").write_text(json.dumps(manifest))
+                    LIBRARIES.verify_consumers(reference, record, archive, files, True, reference=True)
+                lock["packages"]["node_modules/" + name]["resolved"] = resolved.replace("/vendor/", "/vendor/../vendor/")
+                (reference / "package-lock.json").write_text(json.dumps(lock))
+                LIBRARIES.verify_consumers(reference, record, archive, files, True, reference=True)
+                lock["packages"]["node_modules/" + name]["resolved"] = resolved + ".unrelated"
+                (reference / "package-lock.json").write_text(json.dumps(lock))
+                with self.assertRaisesRegex(ValueError, "integrity mismatch"):
+                    LIBRARIES.verify_consumers(reference, record, archive, files, False, reference=True)
+                lock["packages"]["node_modules/" + name]["resolved"] = resolved
+                nested_only = copy.deepcopy(lock)
+                nested_only["packages"]["node_modules/parent/node_modules/" + name] = nested_only["packages"].pop("node_modules/" + name)
+                (reference / "package-lock.json").write_text(json.dumps(nested_only))
+                with self.assertRaisesRegex(ValueError, "Direct library root consumer required"):
+                    LIBRARIES.verify_consumers(reference, record, archive, files, False, reference=True)
+                (reference / "package-lock.json").write_text(json.dumps({"packages": {}}))
+                with self.assertRaisesRegex(ValueError, "Locked library consumer required"):
+                    LIBRARIES.verify_consumers(reference, record, archive, files, False, reference=True)
+                lock["packages"]["../../" + name] = {"version": record["sourceVersion"]}
+                (reference / "package-lock.json").write_text(json.dumps(lock))
+                with self.assertRaisesRegex(ValueError, "linked npm project"):
+                    LIBRARIES.verify_consumers(reference, record, archive, files, False, reference=True)
+                del lock["packages"]["../../" + name]
+                lock["packages"]["node_modules/" + name]["link"] = True
+                (reference / "package-lock.json").write_text(json.dumps(lock))
+                with self.assertRaisesRegex(ValueError, "integrity mismatch"):
+                    LIBRARIES.verify_consumers(reference, record, archive, files, False, reference=True)
+                manifest["dependencies"][name] = "file:../../../vendor/" + name
+                (reference / "package.json").write_text(json.dumps(manifest))
+                with self.assertRaisesRegex(ValueError, "archive mismatch"):
+                    LIBRARIES.verify_consumers(reference, record, archive, files, False, reference=True)
+
 
 if __name__ == "__main__":
     unittest.main()

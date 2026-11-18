@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { access, readFile } from 'node:fs/promises'
+import { access, readdir, readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { toolchainMetadata } from './build-toolchain-state.mjs'
 
@@ -36,6 +36,18 @@ function assert(condition, message) {
 }
 
 assert(JSON.parse(frontendHealth).ok === true, 'Static health check must return {"ok":true}')
+const styleDirectory = resolve(projectRoot, 'front-end/.output/public/_nuxt')
+const styleFiles = (await readdir(styleDirectory)).filter(filename => filename.endsWith('.css'))
+const styles = (await Promise.all(styleFiles.map(filename => readFile(resolve(styleDirectory, filename), 'utf8')))).join('\n')
+for (const icon of [
+  'i-carbon-sun',
+  'i-carbon-moon',
+  'i-carbon-add',
+  'i-carbon-subtract',
+  'i-carbon-campsite',
+  'i-twemoji\\:waving-hand',
+])
+  assert(styles.includes(icon), `Generated CSS must retain the ${icon} icon`)
 assert(/http-equiv=["']content-security-policy["']/i.test(frontendIndex), 'Generated HTML must include a CSP meta policy')
 assert(!frontendIndex.includes('http://localhost:3006'), 'Generated HTML must not embed the local API origin')
 assert(!frontendIndex.includes('/api/pageview'), 'Generated HTML must not reference the removed mutable endpoint')

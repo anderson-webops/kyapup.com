@@ -35,7 +35,7 @@ async function fixturePackage(directory, name, symbol) {
 }
 
 test('compiled public entrypoints preserve the upstream API identity', () => {
-  assert.equal(unimport.version, '7.0.2')
+  assert.equal(unimport.version, '7.0.3')
   assert.equal(typeof unimport.createUnimport, 'function')
   assert.equal(typeof unimport.scanDirExports, 'function')
   assert.equal(typeof addons.vueDirectivesAddon, 'function')
@@ -118,10 +118,10 @@ test('each locked consumer carries identical source provenance and archive ident
   const consumers = Object.entries(lock.packages).filter(([location]) => location === 'node_modules/unimport' || location.endsWith('/node_modules/unimport'))
   assert.ok(consumers.length)
   for (const [location, metadata] of consumers) {
-    assert.equal(metadata.version, '7.0.2+webops.3')
+    assert.equal(metadata.version, '7.0.3+webops.2')
     const provenance = JSON.parse(await readFile(path.join(root, location, 'WEBOPS-SOURCE.json'), 'utf8'))
     assert.equal(provenance.schemaVersion, 2)
-    assert.equal(provenance.source.commit, 'bbd07768ddb4919205bcb5a3cbc06c3a2791981a')
+    assert.equal(provenance.source.commit, '2c8e185f8a52f763ade12d41117b56f4231e5866')
     assert.equal(provenance.source.signerFingerprint, '83DFB8EACB2CCD9ACE75B47CFB8599EBAB9E40B9')
     assert.equal(provenance.build.tool, 'tsdown@0.23.7')
   }

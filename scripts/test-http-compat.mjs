@@ -55,7 +55,7 @@ test('both package graphs select seven modern HTTP libraries and retire the unus
     'content-disposition': '3.0.0',
     'content-type': '3.1.1',
     'cookie': '2.0.2-webops.2',
-    'encodeurl': '3.0.0-webops.2',
+    'encodeurl': '3.0.1-webops.2',
     'path-to-regexp': '9.0.0',
     'raw-body': '4.0.0-webops.2',
     'type-is': '3.0.0-webops.2',
@@ -165,6 +165,18 @@ test('modern encoder preserves escaping, existing sequences and malformed surrog
     ['/broken%zz', '/broken%25zz'],
     ['/\uD800', '/%EF%BF%BD'],
     ['/\r\nInjected: yes', '/%0D%0AInjected:%20yes'],
+    [
+      '😀'.repeat(1025),
+      encodeURI('😀'.repeat(1025)),
+    ],
+    [
+      `${'%'.repeat(1025)}20`,
+      `${'%25'.repeat(1024)}%20`,
+    ],
+    [
+      `${' '.repeat(1025)}%20`,
+      '%20'.repeat(1026),
+    ],
   ])
     assert.equal(encodeUrl(value), expected)
 })

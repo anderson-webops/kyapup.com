@@ -18,6 +18,14 @@ export default defineConfig({
     presetAttributify(),
     presetIcons({
       scale: 1.2,
+      collections: {
+        carbon: () => import('@iconify-json/carbon/icons.json', {
+          with: { type: 'json' },
+        }).then(module => module.default),
+        twemoji: () => import('@iconify-json/twemoji/icons.json', {
+          with: { type: 'json' },
+        }).then(module => module.default),
+      },
     }),
     presetTypography(),
   ],

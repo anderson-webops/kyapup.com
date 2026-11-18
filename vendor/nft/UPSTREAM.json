@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
   "name": "@vercel/nft",
-  "version": "1.11.1",
-  "patchedVersion": "1.11.1-webops.1",
-  "archive": "vercel-nft-1.11.1.tgz",
-  "integrity": "sha512-RXQA08MdBy9WdKKXf1JCAM6HlZUOUDPDBjwHSz0ZaPcQDVisPR5hPJs2iLHVdfjHq36YIlS9AkzDceegukpqGA==",
-  "gitHead": "29eaa88aaf5d9c8b72758b3f064c5a70cd6a725c",
+  "version": "1.11.7",
+  "patchedVersion": "1.11.7-webops.1",
+  "archive": "vercel-nft-1.11.7.tgz",
+  "integrity": "sha512-dxQ4fppya6cmFsuMAmPo9bwR6DgOty2Bh7VPqT3T2IQi/7DCqSLFPzHrTgb+h7f+ls0RYwgLXljfyDijVOZm0w==",
+  "gitHead": "517e0bef392e58abd0c508a13165d486744c84a2",
   "walker": {
     "version": "3.0.3",
     "archive": "estree-walker-3.0.3.tgz",

@@ -13,9 +13,9 @@ from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "vendor/unimport"
-COMMIT = "bbd07768ddb4919205bcb5a3cbc06c3a2791981a"
-TREE = "d3dec0a75a2be87cfd16ec7cee3d1716b75e4ad2"
-TAG = "636f6dd4afa0c74469195f21d29c144ed1697efd"
+COMMIT = "2c8e185f8a52f763ade12d41117b56f4231e5866"
+TREE = "ba76d20ebf4c77d00bf3eabec7a8137a7514b2d0"
+TAG = "20056d33a647e21a60917cf76505e3e8c326582b"
 FINGERPRINT = "83DFB8EACB2CCD9ACE75B47CFB8599EBAB9E40B9"
 
 
@@ -131,22 +131,22 @@ def verify_signature(data, kind, keyring):
 def verify_source(record=None, archive=None):
     record = record if record is not None else json.loads((SOURCE / "UPSTREAM.json").read_text())
     require(record["schemaVersion"] == 1 and record["repository"] == "https://github.com/unjs/unimport", "Review changed upstream source")
-    require(record["tag"] == "v7.0.2" and record["tagObject"] == TAG and record["commit"] == COMMIT and record["tree"] == TREE, "Review changed signed source identity")
+    require(record["tag"] == "v7.0.3" and record["tagObject"] == TAG and record["commit"] == COMMIT and record["tree"] == TREE, "Review changed signed source identity")
     require(record["signerFingerprint"] == FINGERPRINT, "Review changed upstream signer")
     for name in ["tag.git", "commit.git", "signer.gpg"]:
         require(hashlib.sha256(regular_bytes(SOURCE / name)).hexdigest() == record["inputsSha256"][name], "Signed source input digest mismatch")
     data = archive if archive is not None else regular_bytes(SOURCE / "source.tgz")
     require(hashlib.sha256(data).hexdigest() == record["inputsSha256"]["source.tgz"], "Source archive digest mismatch")
     files = source_files(data)
-    require(len(files) == 224 and git_tree_id(files) == TREE, "Archive does not reproduce the signed Git tree")
+    require(len(files) == 226 and git_tree_id(files) == TREE, "Archive does not reproduce the signed Git tree")
     commit = git_object_payload(regular_bytes(SOURCE / "commit.git"), "commit")
     tag = git_object_payload(regular_bytes(SOURCE / "tag.git"), "tag")
     require(git_object_id("commit", commit) == COMMIT and commit.startswith(f"tree {TREE}\n".encode()), "Signed commit object mismatch")
-    require(git_object_id("tag", tag) == TAG and tag.startswith(f"object {COMMIT}\ntype commit\ntag v7.0.2\n".encode()), "Signed tag object mismatch")
+    require(git_object_id("tag", tag) == TAG and tag.startswith(f"object {COMMIT}\ntype commit\ntag v7.0.3\n".encode()), "Signed tag object mismatch")
     verify_signature(tag, "tag", SOURCE / "signer.gpg")
     verify_signature(commit, "commit", SOURCE / "signer.gpg")
     manifest = json.loads(files["package.json"])
-    require(manifest["name"] == "unimport" and manifest["version"] == "7.0.2" and manifest["license"] == "MIT", "Signed source package identity mismatch")
+    require(manifest["name"] == "unimport" and manifest["version"] == "7.0.3" and manifest["license"] == "MIT", "Signed source package identity mismatch")
     return files
 
 
@@ -163,7 +163,7 @@ def main():
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(content)
             target.chmod(0o644)
-    print("Unimport signed tag, commit and complete 224-file source tree verified")
+    print("Unimport signed tag, commit and complete 226-file source tree verified")
 
 
 if __name__ == "__main__":

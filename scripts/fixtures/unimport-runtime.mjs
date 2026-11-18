@@ -5,7 +5,7 @@ import { createUnimport, version } from 'unimport'
 import { vueTemplateAddon } from 'unimport/addons'
 import plugin from 'unimport/unplugin'
 
-assert.equal(version, '7.0.2')
+assert.equal(version, '7.0.3')
 const instance = createUnimport({
   parser: 'acorn',
   imports: [

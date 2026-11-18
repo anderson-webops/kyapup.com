@@ -34,8 +34,8 @@ test('actual consumers use the current native engines while original comparison 
   const lock = JSON.parse(readFileSync(path.join(root, 'package-lock.json'), 'utf8')).packages
   for (const [name, version] of [
     ['ajv', '8.20.0+webops.2'],
-    ['eslint', '10.14.0+webops.2'],
-    ['postcss', '8.5.32+webops.1'],
+    ['eslint', '10.15.0+webops.2'],
+    ['postcss', '8.5.33+webops.1'],
     ['fast-uri', '4.2.3'],
     ['nanoid', '6.0.2'],
   ]) {

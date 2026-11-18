@@ -12,5 +12,11 @@
   },
   "allowScripts": {
     "fsevents@2.3.3": true
+  },
+  "devDependencies": {
+    "picomatch": "file:../../picomatch-4.0.7-webops.1.tgz"
+  },
+  "overrides": {
+    "picomatch": "$picomatch"
   }
 }

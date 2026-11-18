@@ -2002,7 +2002,7 @@
     "schemaVersion": 1,
     "package": {
       "name": "eslint",
-      "version": "10.14.0",
+      "version": "10.15.0",
       "author": "Nicholas C. Zakas <nicholas+npm@nczconsulting.com>",
       "description": "An AST-based pattern checker for JavaScript.",
       "type": "commonjs",
@@ -2136,7 +2136,7 @@
       "dependencies": {
         "@eslint-community/eslint-utils": "^4.8.0",
         "@eslint-community/regexpp": "^4.12.2",
-        "@eslint/config-array": "^0.23.5",
+        "@eslint/config-array": "^0.23.6",
         "@eslint/config-helpers": "^0.7.0",
         "@eslint/core": "^1.2.1",
         "@eslint/plugin-kit": "^0.7.3",
@@ -2161,7 +2161,7 @@
         "imurmurhash": "^0.1.4",
         "is-glob": "^4.0.0",
         "json-stable-stringify-without-jsonify": "^1.0.1",
-        "minimatch": "^10.2.6",
+        "minimatch": "^11.0.5",
         "natural-compare": "^1.4.0",
         "optionator": "^0.9.3"
       },
@@ -2192,10 +2192,8 @@
         "eslint-rule-extender": "^0.0.1",
         "eslump": "^3.0.0",
         "esprima": "^4.0.1",
-        "fs-teardown": "^0.1.3",
         "glob": "^10.0.0",
         "globals": "^16.2.0",
-        "got": "^11.8.3",
         "gray-matter": "^4.0.3",
         "jiti": "^2.6.1",
         "knip": "^6.13.1",
@@ -2245,17 +2243,17 @@
         "node": "^20.19.0 || ^22.13.0 || >=24"
       }
     },
-    "archive": "upstream/eslint-10.14.0.tgz",
-    "patchedVersion": "10.14.0+webops.2",
-    "registryIntegrity": "sha512-T0pNsxkb9IKmtQjhpK3d7nWOpFv+YHuMbTJnSVMoQblF0onvXfErrtp4V1jHtsQPan7dKaGVD0q1WCXnzMF31A==",
-    "registryArchiveSha256": "e15ffa02262a7d359f9385e2d468f289dd309715261b2e3aa276ccd26ed14720",
+    "archive": "upstream/eslint-10.15.0.tgz",
+    "patchedVersion": "10.15.0+webops.2",
+    "registryIntegrity": "sha512-+5Wg4p+ze3sG1WErYgUO/3H1IQIfFBymVUA0Fo/XTeBOLS6UQIUekpSJ8sdRkn7O7wjh84b55w/roqavH2aScg==",
+    "registryArchiveSha256": "8cb5e45fb5b1174e4216d546b69d37c0ac5cb5d9ba8342946a04af1f59605edb",
     "files": {
       "LICENSE": {
         "sha256": "3b6be04f862a077a4b97929dbf247299360824d9365f8603c263769303ace18c",
         "mode": 420
       },
       "lib/rules/accessor-pairs.js": {
-        "sha256": "da2ab1dac86c01b16165bdeac7633e555a02e9c0b9fddb0e27aaa80dcab6d8bf",
+        "sha256": "ba5367549e904f34f91b4921f41e2eb89a2642d0526d77ac9764e15d1ae78113",
         "mode": 420
       },
       "lib/shared/ajv.js": {
@@ -2307,7 +2305,7 @@
         "mode": 420
       },
       "lib/rules/utils/ast-utils.js": {
-        "sha256": "be489ed939a6b8af428cd398053d14a266572ac91c596c0744ff1c7e3c0a377f",
+        "sha256": "1a1202aaf0fbbefc16f3d46b21f9f64cd9bec7071fdb7f870ccb85923b6f94f1",
         "mode": 420
       },
       "lib/shared/ast-utils.js": {
@@ -2463,7 +2461,7 @@
         "mode": 420
       },
       "lib/rules/default-case.js": {
-        "sha256": "efa7a0b006c4e88ccd238dde2e1ad3b8f641c1b4cf8852acaade3426fd411635",
+        "sha256": "31a9fcd66994dcb7373371889a0d49bcadc9c7acb96473e51250f2cdd05b9d97",
         "mode": 420
       },
       "lib/config/default-config.js": {
@@ -2587,7 +2585,7 @@
         "mode": 420
       },
       "lib/rules/func-names.js": {
-        "sha256": "474b9467306811279cd4102ba36066f953eea97e792a996b2b729f83c01d8d85",
+        "sha256": "88a5dd4bf90fe0d3720486cfe9fc97c82acc44f03cbc728d940e4dbf8ecda2ca",
         "mode": 420
       },
       "lib/rules/func-style.js": {
@@ -3263,7 +3261,7 @@
         "mode": 420
       },
       "lib/rules/no-prototype-builtins.js": {
-        "sha256": "9e980172bb9b9d8c1a053a59c29001570fb25c51008e9032979e6ee7a70fd255",
+        "sha256": "bde3469712aa7f9f2fe8e46e59f8bddeed4786fd9ea68465e39293b9d20c2bb3",
         "mode": 420
       },
       "lib/rules/no-redeclare.js": {
@@ -3331,7 +3329,7 @@
         "mode": 420
       },
       "lib/rules/no-shadow.js": {
-        "sha256": "005ba963c87237c1c326152c9a7ea49b85742affe5abc75c15959b38e102e78e",
+        "sha256": "175d8802b908bc6b6455d9b0a2506a78f73dd35d0613755d99aa69aba7338deb",
         "mode": 420
       },
       "lib/rules/no-spaced-func.js": {
@@ -3399,7 +3397,7 @@
         "mode": 420
       },
       "lib/rules/no-unneeded-ternary.js": {
-        "sha256": "cbf22b11d1e168b6bf2a7a7b54eb6fbe1c17f75aaba5b8d0908474c961a9cd02",
+        "sha256": "3ab5f8e12213abc5a44bf1723012c8dbdfa754dcb09a429a2d40df1048b0dccc",
         "mode": 420
       },
       "lib/rules/no-unreachable-loop.js": {
@@ -3475,7 +3473,7 @@
         "mode": 420
       },
       "lib/rules/no-useless-rename.js": {
-        "sha256": "64caccdca8f806efbbf15438bc7f17631881e38a11f706cf18d68ae4b4ba07d4",
+        "sha256": "4949ad883932cbd0169b7b4184c4d6639cbe46b527b87b7042767fc5a2b247ab",
         "mode": 420
       },
       "lib/rules/no-useless-return.js": {
@@ -3575,7 +3573,7 @@
         "mode": 420
       },
       "lib/rules/prefer-arrow-callback.js": {
-        "sha256": "2a89bf645c73451c9f03d06652428066b75aedc85d590db5451b62d3ec5e2a69",
+        "sha256": "b8e327035da2e43f7f65119461504962fe58577cdc95418bc019014579779e57",
         "mode": 420
       },
       "lib/rules/prefer-const.js": {
@@ -3899,7 +3897,7 @@
         "mode": 420
       },
       "package.json": {
-        "sha256": "a78ce8b6e726e4b1a9b6d776d77a28abee85e9fb3f40be9984e1b62f14c001db",
+        "sha256": "26b9157269c108314b524f3acbfc05cd173f1956cff57387f98e35481bdaec6b",
         "mode": 420
       },
       "conf/replacements.json": {
@@ -3911,7 +3909,7 @@
         "mode": 420
       },
       "README.md": {
-        "sha256": "a41bc731c816df59132cbb68fd298da3c948ba25cd04b18300a56f446c3c7be8",
+        "sha256": "53b7d752a5b3b5d6f0cac95af9e49e10b7a9808c2ad7d811e05aecfc484d38a4",
         "mode": 420
       },
       "lib/types/config-api.d.ts": {
@@ -3940,7 +3938,7 @@
     "schemaVersion": 1,
     "package": {
       "name": "postcss",
-      "version": "8.5.32",
+      "version": "8.5.33",
       "description": "Tool for transforming styles with JS plugins",
       "keywords": [
         "css",
@@ -4026,10 +4024,10 @@
         "node": "^10 || ^12 || >=14"
       }
     },
-    "archive": "upstream/postcss-8.5.32.tgz",
-    "patchedVersion": "8.5.32+webops.1",
-    "registryIntegrity": "sha512-LJlKCCAUFKOuZxipUdYw1NzIITEsPcgyOG9LkvRJvuKj/bRzbuRY0ARXvL0pWGpsZvn8jku+LMep2eU0seHp8g==",
-    "registryArchiveSha256": "8e8eb3453860bfc35cd0e51653a3565980a2d83e4ddcf93f8fa5455754cf9066",
+    "archive": "upstream/postcss-8.5.33.tgz",
+    "patchedVersion": "8.5.33+webops.1",
+    "registryIntegrity": "sha512-RVHEU9/Pp1Fnjr/MpAJsZoADukCKhfIi15OunEYiGktIkYLkPVvC1sioWolGDS7XByMTx9m/IGbro0Js13zhnQ==",
+    "registryArchiveSha256": "ed476390bb68df554790d035a942608a4d6ec0ec65147f9eaef182a24d815a8f",
     "files": {
       "LICENSE": {
         "sha256": "5be1f3465bba68a626777f984878814aaf35e7ef8e9fd314d469bcf887050fb8",
@@ -4048,7 +4046,7 @@
         "mode": 420
       },
       "lib/css-syntax-error.js": {
-        "sha256": "904b4bb371539a6303e4e211f0a8991fde7bc94d8674253d627389ff291d0ec1",
+        "sha256": "b2acd4198f5268a26aa2a79772d502b83d255dd7519bb27da9a279c29efdcac7",
         "mode": 420
       },
       "lib/declaration.js": {
@@ -4076,7 +4074,7 @@
         "mode": 420
       },
       "lib/map-generator.js": {
-        "sha256": "800dc6f5f11158db8c691fba7d6d0d8e723566034846348e1005ab3f388e2a91",
+        "sha256": "ff28666bbd0f23d1c5e5fbf96eb74c0c3857ae9bcbae711fb78eae8ce8ff257d",
         "mode": 420
       },
       "lib/no-work-result.js": {
@@ -4104,7 +4102,7 @@
         "mode": 420
       },
       "lib/processor.js": {
-        "sha256": "0d52f60022d1caedfe45c907f2b8cffa153cfad83709f17338adee9025a6c612",
+        "sha256": "ac7efdbf3849b15ec20286fadc0eacdcf85b19eacbb278e2867e6cb74aa70b57",
         "mode": 420
       },
       "lib/result.js": {
@@ -4136,7 +4134,7 @@
         "mode": 420
       },
       "lib/tokenize.js": {
-        "sha256": "ddfcaaa01f5eac9e4e8652044df1401ce6cc70295fd3f9fbb214ca66fb2bec72",
+        "sha256": "03cfea52399db617feb39a7e26da5ae6becec22aa086e0548187f18fe8087fae",
         "mode": 420
       },
       "lib/warn-once.js": {
@@ -4148,7 +4146,7 @@
         "mode": 420
       },
       "package.json": {
-        "sha256": "cee36f32138d673439accf98ba0b09c7d3df79a12202f9ee16198d3e2671edf1",
+        "sha256": "8c54659dbae525ebc655d3d329a5c329967471ebc85efcac2066b3f1e9ffab6a",
         "mode": 420
       },
       "README.md": {
@@ -4180,7 +4178,7 @@
         "mode": 420
       },
       "lib/declaration.d.ts": {
-        "sha256": "38cb107048cd8ba54a70014ef9a30cf57bee0d9f10a0ca4cefa974056e1ee460",
+        "sha256": "9d02496b4a77aa462aead8d76c22b391b841e758e4e149a6cd05680b62a08ca4",
         "mode": 420
       },
       "lib/document.d.ts": {

@@ -82,16 +82,16 @@ test('every actual parent resolves the current native watcher and Nuxt kit witho
   }
   for (const name of ['nuxt', '@nuxt/eslint']) {
     const consumer = createRequire(fileURLToPath(import.meta.resolve(name)))
-    assert.equal(metadata(consumer.resolve('@nuxt/devtools-kit')).version, '4.1.0')
+    assert.equal(metadata(consumer.resolve('@nuxt/devtools-kit')).version, '4.2.0')
   }
   const nuxt = createRequire(fileURLToPath(import.meta.resolve('nuxt')))
-  assert.equal(metadata(nuxt.resolve('@nuxt/devtools')).version, '4.1.0')
+  assert.equal(metadata(nuxt.resolve('@nuxt/devtools')).version, '4.2.0')
   const lock = JSON.parse(readFileSync(path.join(root, 'package-lock.json'), 'utf8'))
   for (const [location, info] of Object.entries(lock.packages)) {
     if (location.endsWith('/chokidar'))
       assert.equal(info.version, '6.0.0', location)
     if (location.endsWith('/@nuxt/devtools') || location.endsWith('/@nuxt/devtools-kit'))
-      assert.equal(info.version, '4.1.0', location)
+      assert.equal(info.version, '4.2.0', location)
   }
 })
 

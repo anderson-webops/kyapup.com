@@ -26,7 +26,11 @@
   },
   "overrides": {
     "ajv": "$ajv",
-    "fast-uri": "$fast-uri"
+    "fast-uri": "$fast-uri",
+    "picomatch": "$picomatch"
   },
-  "allowScripts": {}
+  "allowScripts": {},
+  "devDependencies": {
+    "picomatch": "file:../../picomatch-4.0.7-webops.1.tgz"
+  }
 }
