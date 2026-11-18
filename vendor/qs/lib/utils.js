@@ -85,7 +85,10 @@ var arrayToObject = function arrayToObject(source, options) {
 };
 
 var setProperty = function setProperty(obj, key, value) {
-    if (key === '__proto__' && defineProperty) {
+    if (key === '__proto__') {
+        if (!defineProperty) {
+            throw new TypeError('Safe own-property definition is required for __proto__ data');
+        }
         defineProperty(obj, key, {
             configurable: true,
             enumerable: true,

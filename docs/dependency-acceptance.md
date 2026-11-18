@@ -1,5 +1,15 @@
 # Dependency acceptance
 
+## Explicit type queries
+
+The maintained explicit-import checker 0.1.0-webops.2 recognizes declared
+type-only imports inside TypeScript `typeof` queries, including qualified
+namespace queries. Executable references still require value imports. The
+focused regression checks both forms and a runtime call after a type query.
+The deterministic producer changes only that reviewed analyzer boundary and
+package identity; the original CLI, other original files and earlier archives
+remain intact. Complete source, browser and native release checks still apply.
+
 ## Immutable maintained local libraries
 
 The application installs maintained Braces 3.0.4-webops.3, Deepmerge
@@ -371,7 +381,7 @@ outside its declared range, and neither dependency warnings nor checks are
 suppressed. The host test selects 0.8 explicitly through its public integration
 API rather than falling back to a legacy peer provider.
 
-The private qs 6.17.2-webops.4 patch is based on current upstream 6.17.1.
+The private qs 6.17.2-webops.5 patch is based on current upstream 6.17.1.
 It retains that release's input-copy prototype protection and fixes native
 comma-array coercion across realms. The source, license and compatibility
 boundary are in `vendor/qs/UPSTREAM.md`. The installed CommonJS files and all

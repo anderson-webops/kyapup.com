@@ -4,7 +4,13 @@ Based on the integrity-verified npm `qs@6.17.1` distribution.
 Original archive integrity:
 `sha512-jd3COkaKVgGUW+ZHyEHCG9bH7RoaaiWuMgzsIBjUMVjLAaWGWpoUAVwljVvBHxRu/2qEHnadLGZrkutYUBPQJA==`.
 The BSD-3-Clause license and original runtime dependencies are retained.
-`6.17.2-webops.4` identifies this private patch, not an upstream release.
+`6.17.2-webops.5` identifies this private patch, not an upstream release.
+
+The shared own-property writer rejects an explicit `__proto__` data key when
+safe property definition is unavailable. Supported Node and browser engines
+preserve that key as an own data property. Ordinary keys retain their existing
+behavior in the fault-injected fallback environment, and prototype setters
+receive no assignment. The browser bundle is rebuilt from the same source.
 
 The 6.17.1 parser fixes retain bracket-normalized prototype guards at zero
 depth, null prototypes for non-array brackets, supplementary Unicode entities

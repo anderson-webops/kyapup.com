@@ -64,6 +64,24 @@ async function transform(parent, generator, source, options = {}, filename = 'fi
 }
 
 function reviewedSource(name, filename, source) {
+  if (name === 'nuxt-explicit-imports' && filename === 'dist/report-BKPqp4bg.mjs') {
+    const original = source.toString()
+    const start = original.indexOf('function findRefs(')
+    const end = original.indexOf('function importsByName(')
+    assert.ok(start >= 0 && end > start)
+    let body = original.slice(start, end)
+    for (const [before, after] of [
+      ['const refs = /* @__PURE__ */ new Map();', 'const refs = /* @__PURE__ */ new Map();\n\tlet typeQueryDepth = 0;'],
+      ['enter(node, parent) {', 'enter(node, parent) {\n\t\t\tif (node.type === "TSTypeQuery") typeQueryDepth += 1;'],
+      ['const value = isReferenceIdentifier(node, parent, { mode: "value" });', 'const value = typeQueryDepth === 0 && isReferenceIdentifier(node, parent, { mode: "value" });'],
+      ['if (scopeTracker.isDeclared(node.name, { mode: value ? "value" : "type" })) return;', 'if (scopeTracker.isDeclared(node.name, { mode: value ? "value" : "type" }) || typeQueryDepth > 0 && scopeTracker.isDeclared(node.name, { mode: "value" })) return;'],
+      ['\n\t\t}\n\t});', '\n\t\t},\n\t\tleave(node) {\n\t\t\tif (node.type === "TSTypeQuery") typeQueryDepth -= 1;\n\t\t}\n\t});'],
+    ]) {
+      assert.equal(body.split(before).length, 2)
+      body = body.replace(before, after)
+    }
+    return Buffer.from(original.slice(0, start) + body + original.slice(end))
+  }
   if (name === 'unconfig' && filename === 'dist/index.d.mts')
     return Buffer.from(source.toString().replace('[force?: Args[0] | undefined]', '[force?: boolean | undefined]'))
   if (name === '@unocss/vite' && filename === 'dist/index.mjs') {
@@ -111,7 +129,7 @@ test('all parent consumers resolve the actual current native versions without le
   }
 })
 
-test('maintained parents preserve all original payload bytes except the two exact reviewed corrections', () => {
+test('maintained parents preserve all original payload bytes except exact reviewed corrections', () => {
   const dependencyNames = {
     'nuxt-explicit-imports': 'oxc-parser',
     'eslint-plugin-format': 'oxfmt',
@@ -194,6 +212,19 @@ test('the explicit-import analyzer preserves native scope, type and Vue-template
     assert.deepEqual(actual.usages, previous.usages, filename)
     assert.deepEqual(actual.usages.map(item => item.name).sort(), expected, filename)
   }
+  for (const source of [
+    'import type { ref } from "vue"; type Value = typeof ref',
+    'import type * as ref from "vue"; type Value = typeof ref.value',
+    'const ref = { value: 1 }; type Value = typeof ref.value',
+    'function ref() {} type Value = typeof ref',
+    'const Ref = ["one"] as const; type Value = typeof Ref[number]',
+  ]) {
+    const actual = await analyze(project, 'type-query.ts', source)
+    assert.deepEqual(actual.usages, [])
+  }
+  const mixed = await analyze(project, 'runtime-after-type-query.ts', 'import type { ref } from "vue"; type Value = typeof ref; ref(1)')
+  assert.deepEqual(mixed.usages.map(item => item.name), ['ref'])
+  assert.equal(mixed.usages[0].specs[0].type, false)
 })
 
 test('UnoCSS virtual CSS identities preserve queries and remain idempotent', async () => {

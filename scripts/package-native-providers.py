@@ -17,6 +17,12 @@ MAX_EXPANDED = 16 * 1024 * 1024
 PACKAGES = {
     "nuxt-explicit-imports": {
         "version": "0.1.0",
+        "revision": 2,
+        "replacement": {
+            "file": "dist/report-BKPqp4bg.mjs",
+            "before": "function findRefs(program, scopeTracker, names) {\n\tconst refs = /* @__PURE__ */ new Map();\n\twalk(program, {\n\t\tscopeTracker,\n\t\tenter(node, parent) {\n\t\t\tif (node.type === \"ExportNamedDeclaration\" && node.source) {\n\t\t\t\tthis.skip();\n\t\t\t\treturn;\n\t\t\t}\n\t\t\tif (node.type !== \"Identifier\" || !names.has(node.name)) return;\n\t\t\tif (!isReferenceIdentifier(node, parent, { mode: \"all\" })) return;\n\t\t\tconst value = isReferenceIdentifier(node, parent, { mode: \"value\" });\n\t\t\tif (scopeTracker.isDeclared(node.name, { mode: value ? \"value\" : \"type\" })) return;\n\t\t\tconst existing = refs.get(node.name);\n\t\t\tif (!existing) refs.set(node.name, {\n\t\t\t\tstart: node.start,\n\t\t\t\tvalue\n\t\t\t});\n\t\t\telse if (value) existing.value = true;\n\t\t}\n\t});\n\treturn refs;\n}\n",
+            "after": "function findRefs(program, scopeTracker, names) {\n\tconst refs = /* @__PURE__ */ new Map();\n\tlet typeQueryDepth = 0;\n\twalk(program, {\n\t\tscopeTracker,\n\t\tenter(node, parent) {\n\t\t\tif (node.type === \"TSTypeQuery\") typeQueryDepth += 1;\n\t\t\tif (node.type === \"ExportNamedDeclaration\" && node.source) {\n\t\t\t\tthis.skip();\n\t\t\t\treturn;\n\t\t\t}\n\t\t\tif (node.type !== \"Identifier\" || !names.has(node.name)) return;\n\t\t\tif (!isReferenceIdentifier(node, parent, { mode: \"all\" })) return;\n\t\t\tconst value = typeQueryDepth === 0 && isReferenceIdentifier(node, parent, { mode: \"value\" });\n\t\t\tif (scopeTracker.isDeclared(node.name, { mode: value ? \"value\" : \"type\" }) || typeQueryDepth > 0 && scopeTracker.isDeclared(node.name, { mode: \"value\" })) return;\n\t\t\tconst existing = refs.get(node.name);\n\t\t\tif (!existing) refs.set(node.name, {\n\t\t\t\tstart: node.start,\n\t\t\t\tvalue\n\t\t\t});\n\t\t\telse if (value) existing.value = true;\n\t\t},\n\t\tleave(node) {\n\t\t\tif (node.type === \"TSTypeQuery\") typeQueryDepth -= 1;\n\t\t}\n\t});\n\treturn refs;\n}\n",
+        },
         "dependency": "oxc-parser",
         "originalRange": "^0.158.0",
         "qualifiedRange": "^0.159.0",

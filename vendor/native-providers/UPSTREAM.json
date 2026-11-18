@@ -415,7 +415,7 @@
         "ci": "pnpm run lint && pnpm run typecheck && pnpm run knip && pnpm run test --run"
       }
     },
-    "patchedVersion": "0.1.0-webops.1",
+    "patchedVersion": "0.1.0-webops.2",
     "qualifiedRange": "^0.159.0",
     "archive": "upstream/nuxt-explicit-imports-0.1.0.tgz",
     "registryIntegrity": "sha512-Vemqd0kA6WkF7STk9DzcWYqdBbD5Qh/p4fxZoi8CNlgw3lCCtf6ND/JlNO5fC6z1g1TzU9jzheJIoIVFHIvONA==",
@@ -431,6 +431,7 @@
       "package.json": "adda11b4767431fd362180ae8ce305f8f91919f0909f685fa89e0f30fb9226e3",
       "skills/nuxt-explicit-imports/SKILL.md": "0dd33a40db454530ffd76d0812424b4ce39ed7cf236f54928a820b4f4efde663",
       "skills/nuxt-explicit-imports/references/manual-fixes.md": "763577e0cde84bc246124620a5de4bb1839dae88dc2a7acf23d57807554cc9e3"
-    }
+    },
+    "sourceChanges": "Classify identifiers inside TypeScript type queries as type references while preserving runtime-reference detection and the original CLI."
   }
 }

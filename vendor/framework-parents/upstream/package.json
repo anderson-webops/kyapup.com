@@ -21,7 +21,7 @@
     "type-is": "file:../../../back-end/vendor/type-is-3.0.0-webops.2.tgz",
     "braces": "file:../../../vendor/braces-3.0.4-webops.3.tgz",
     "listhen": "file:../../../vendor/listhen-1.10.1-webops.3.tgz",
-    "qs": "file:../../../back-end/vendor/qs-6.17.2-webops.4.tgz",
+    "qs": "file:../../../back-end/vendor/qs-6.17.2-webops.5.tgz",
     "jiti": "file:../../../vendor/jiti-2.7.0-webops.1.tgz",
     "unimport": "file:../../../vendor/unimport-7.0.3-webops.2.tgz",
     "@unhead/bundler": "file:../../../vendor/unhead-bundler-3.4.3-webops.1.tgz",

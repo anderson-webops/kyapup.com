@@ -5,6 +5,36 @@ import test from 'node:test'
 import vm from 'node:vm'
 
 const backendRequire = createRequire(new URL('../back-end/package.json', import.meta.url))
+
+test('the source helper rejects unsafe prototype fallback while retaining ordinary data keys', async () => {
+  const source = await readFile(new URL('../vendor/qs/lib/utils.js', import.meta.url), 'utf8')
+  const localRequire = createRequire(new URL('../vendor/qs/lib/utils.js', import.meta.url))
+  for (const unavailable of [null, false]) {
+    const context = vm.createContext({})
+    const factory = vm.runInContext(`(function(require,module,exports){${source}\n})`, context)
+    const module = { exports: {} }
+    factory((name) => {
+      if (name === 'es-define-property')
+        return unavailable
+      return localRequire(name)
+    }, module, module.exports)
+    const utilities = module.exports
+    const hostile = JSON.parse('{"0":"indexed","__proto__":{"untrustedPrototypeMarker":true}}')
+    utilities.markOverflow(hostile, 0)
+    assert.throws(() => utilities.merge('prefix', hostile, { plainObjects: false }), { name: 'TypeError' })
+    assert.equal(Object.prototype.untrustedPrototypeMarker, undefined)
+    assert.equal(vm.runInContext('Object.prototype.untrustedPrototypeMarker', context), undefined)
+    const ordinary = JSON.parse('{"0":"indexed","label":"named","constructor":"own constructor","prototype":"own prototype"}')
+    utilities.markOverflow(ordinary, 0)
+    const result = utilities.merge('prefix', ordinary, { plainObjects: false })
+    assert.equal(result[0], 'prefix')
+    assert.equal(result[1], 'indexed')
+    for (const key of ['label', 'constructor', 'prototype']) {
+      assert.equal(Object.hasOwn(result, key), true)
+      assert.equal(result[key], ordinary[key])
+    }
+  }
+})
 const browser = await readFile(new URL('../vendor/qs/dist/qs.js', import.meta.url), 'utf8')
 const variants = [
   {
