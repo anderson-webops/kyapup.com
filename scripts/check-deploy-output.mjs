@@ -40,12 +40,26 @@ const styleDirectory = resolve(projectRoot, 'front-end/.output/public/_nuxt')
 const styleFiles = (await readdir(styleDirectory)).filter(filename => filename.endsWith('.css'))
 const styles = (await Promise.all(styleFiles.map(filename => readFile(resolve(styleDirectory, filename), 'utf8')))).join('\n')
 for (const icon of [
-  'i-carbon-sun',
-  'i-carbon-moon',
   'i-carbon-add',
-  'i-carbon-subtract',
-  'i-carbon-campsite',
-  'i-twemoji\\:waving-hand',
+  'i-carbon-arrow-left',
+  'i-carbon-arrow-right',
+  'i-carbon-arrow-up-right',
+  'i-carbon-checkmark',
+  'i-carbon-circle-dash',
+  'i-carbon-close',
+  'i-carbon-cloud-upload',
+  'i-carbon-edit',
+  'i-carbon-favorite',
+  'i-carbon-image',
+  'i-carbon-maximize',
+  'i-carbon-pause-filled',
+  'i-carbon-play-filled',
+  'i-carbon-settings',
+  'i-carbon-star',
+  'i-carbon-star-filled',
+  'i-carbon-time',
+  'i-carbon-zoom-in',
+  'i-carbon-zoom-out',
 ])
   assert(styles.includes(icon), `Generated CSS must retain the ${icon} icon`)
 assert(/http-equiv=["']content-security-policy["']/i.test(frontendIndex), 'Generated HTML must include a CSP meta policy')
