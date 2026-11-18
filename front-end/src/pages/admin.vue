@@ -83,7 +83,7 @@ function errorMessage(cause: unknown) {
   return 'That didn’t save. Please try again.'
 }
 async function request<T>(path: string, body?: object | File, method: 'POST' | 'PATCH' | 'DELETE' = 'POST') {
-  return $fetch<T>(path, {
+  return $fetch<T, string, typeof method>(path, {
     method,
     body,
     ...(method === 'DELETE'
