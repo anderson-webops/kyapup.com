@@ -9,8 +9,8 @@
     "npm": ">=12.2.2 <13"
   },
   "dependencies": {
-    "unimport": "file:../../unimport-7.0.3-webops.2.tgz",
-    "acorn": "8.18.0"
+    "unimport": "file:../../unimport-7.0.3-webops.3.tgz",
+    "acorn": "8.19.0"
   },
   "allowScripts": {},
   "devDependencies": {

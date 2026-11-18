@@ -1,7 +1,7 @@
 # Signed-source auto-import compiler
 
-The maintained `unimport-7.0.3-webops.2.tgz` is compiled from upstream's complete
-signed v7.0.3 source tree. Its package version `7.0.3+webops.2` preserves the
+The maintained `unimport-7.0.3-webops.3.tgz` is compiled from upstream's complete
+signed v7.0.3 source tree. Its package version `7.0.3+webops.3` preserves the
 upstream API version and identifies this independently built derivative.
 The original npm package's registry signatures and exact-version SLSA subject
 were independently verified. `UPSTREAM.json` records that separate reference;
@@ -19,8 +19,16 @@ The independent `build/` lock selects Node 26, TypeScript 6 and tsdown 0.23.7.
 Unbuild 3.6.1's TypeScript peer range excludes TypeScript 6, so this build uses
 tsdown's supported TypeScript 6 declaration generator instead of overriding
 that incompatible peer. Original source, tests, declarations and license inputs
-remain available in the verified archive. H3 1.15.11 is the original upstream
-test fixture, matching the signed lock, rather than an application runtime.
+remain available in the verified archive. The maintained test graph uses
+H3 2.0.8. Its export-discovery fixture compares every filtered result with the
+actual module namespace and retains cache equivalence and a reviewed snapshot.
+The original H3 1 fixture remains intact in the signed source archive.
+
+ESLint config10's newline rules are applied through the hash-bound
+`source-formatting.json` delta. Its31 changed maintained files preserve the
+reviewed executable structure, comments and documentation prose; the signed
+originals and published package's original README remain intact. Input and
+output hashes, edit bounds and archive provenance bind the formatting delta.
 
 The reviewed source patch anchors implicit package export scanning to the
 working project's package URL. Upstream's implicit resolution can otherwise

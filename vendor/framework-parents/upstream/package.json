@@ -23,7 +23,7 @@
     "listhen": "file:../../../vendor/listhen-1.10.1-webops.3.tgz",
     "qs": "file:../../../back-end/vendor/qs-6.17.2-webops.5.tgz",
     "jiti": "file:../../../vendor/jiti-2.7.0-webops.1.tgz",
-    "unimport": "file:../../../vendor/unimport-7.0.3-webops.2.tgz",
+    "unimport": "file:../../../vendor/unimport-7.0.3-webops.3.tgz",
     "@unhead/bundler": "file:../../../vendor/unhead-bundler-3.4.3-webops.1.tgz",
     "@rollup/plugin-commonjs": "file:../../../vendor/rollup-plugin-commonjs-29.0.3-webops.1.tgz",
     "@rollup/plugin-inject": "file:../../../vendor/rollup-plugin-inject-5.0.5-webops.1.tgz",

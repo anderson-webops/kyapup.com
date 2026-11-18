@@ -1,5 +1,6 @@
 import copy
 import gzip
+import hashlib
 import importlib.util
 import io
 import json
@@ -92,16 +93,31 @@ class UnimportSourceTests(unittest.TestCase):
         original = SOURCE.source_files((SOURCE.SOURCE / "source.tgz").read_bytes())
         maintained = BUILD.maintained_source(original)
         changed = [name for name in original if original[name] != maintained[name]]
-        self.assertEqual(set(changed), {"src/node/extract-package.ts", "src/detect-acorn.ts", "src/presets/vueuse-core.ts"})
+        formatting = json.loads(BUILD.FORMATTING.read_text())
+        self.assertEqual(set(changed), {"src/node/extract-package.ts", "src/detect-acorn.ts", "src/presets/vueuse-core.ts", "test/auto-extract.test.ts"} | {entry["path"] for entry in formatting["files"]})
         self.assertIn(b"url ?? pathToFileURL", maintained["src/node/extract-package.ts"])
         self.assertEqual(maintained["src/node/extract-package.ts"].count(b"{ url: moduleUrl }"), 2)
         self.assertIn(b"paths: [import.meta.url]", maintained["src/detect-acorn.ts"])
+        self.assertIn(b"Object.keys(h3)", maintained["test/auto-extract.test.ts"])
+        self.assertIn(b"expect(result1).toEqual(expected)", maintained["test/auto-extract.test.ts"])
 
     def test_changed_source_patch_anchors_fail_closed(self):
         original = SOURCE.source_files((SOURCE.SOURCE / "source.tgz").read_bytes())
         original["src/node/extract-package.ts"] += b"\nimport os from 'node:os'\n"
         with self.assertRaises(ValueError):
             BUILD.maintained_source(original)
+
+    def test_formatting_binds_exact_inputs_edits_and_outputs(self):
+        entry = {"path": "example.ts", "inputSha256": hashlib.sha256(b"before").hexdigest(), "outputSha256": hashlib.sha256(b"after").hexdigest(), "edits": [[0, 6, "after"]]}
+        record = {"schemaVersion": 1, "files": [entry]}
+        with patch.object(BUILD.SOURCE, "regular_bytes", return_value=json.dumps(record).encode()):
+            self.assertEqual(BUILD.apply_formatting({"example.ts": b"before"}), {"example.ts": b"after"})
+            with self.assertRaises(ValueError):
+                BUILD.apply_formatting({"example.ts": b"changed"})
+        for changed in [{**entry, "edits": [[0, 7, "after"]]}, {**entry, "outputSha256": "0" * 64}, {**entry, "path": "missing.ts"}]:
+            with self.subTest(changed=changed), patch.object(BUILD.SOURCE, "regular_bytes", return_value=json.dumps({"schemaVersion": 1, "files": [changed]}).encode()):
+                with self.assertRaises(ValueError):
+                    BUILD.apply_formatting({"example.ts": b"before"})
 
     def test_packaging_is_deterministic_and_has_regular_readable_members(self):
         files = {"package/package.json": b"{}", "package/LICENSE": b"license"}
@@ -120,7 +136,7 @@ class UnimportSourceTests(unittest.TestCase):
             self.assertEqual(archive.extractfile("package/LICENSE").read(), original["LICENSE"])
             self.assertEqual(archive.extractfile("package/UPSTREAM-PACKAGE.json").read(), original["package.json"])
             metadata = json.load(archive.extractfile("package/package.json"))
-            self.assertEqual(metadata["version"], "7.0.3+webops.2")
+            self.assertEqual(metadata["version"], "7.0.3+webops.3")
             self.assertEqual(metadata["dependencies"]["picomatch"], "4.0.7-webops.1")
             self.assertTrue(all(not specification.startswith("file:") for specification in metadata["dependencies"].values()))
 

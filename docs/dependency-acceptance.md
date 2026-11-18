@@ -430,7 +430,7 @@ remain required.
 
 Nuxt 4.6.4 requires `unimport ^7.0.2`; `nuxt-explicit-imports@0.1.0` requires
 `^7.0.3`. Their locked and installed provider must satisfy both original API
-contracts. The maintained `7.0.3+webops.2` provider is independently rebuilt
+contracts. The maintained `7.0.3+webops.3` provider is independently rebuilt
 from the complete signed v7.0.3 source tree. Both signed Git objects, the public
 signer, all 226 source files, the independent audited
 compiler lock, source patch and resulting installed bytes are verified.
@@ -438,6 +438,18 @@ The official 7.0.3 registry reference separately passed exact-version signature
 and SLSA subject verification. Historical 7.0.2 provenance failures remain
 historical evidence; this new reference does not retrospectively certify them.
 See `vendor/unimport/README.md` for the reproducible build and exact scope.
+
+The independent compiler graph now uses ESLint config10, ESLint10.15,
+H3 2.0.8, JQuery4.1, OXC0.159, Rolldown1.3.3, Vite8.3.8 and Vitest5.1.1.
+Acorn8.19 is exercised in the separate production-only consumer. The original
+signed source remains unchanged. Its maintained H3 test checks every filtered
+export against the actual module namespace, preserves cached/uncached
+equivalence and retains an independently reviewed snapshot. The new lint
+rules remain enabled; a hash-bound formatting delta migrates maintained
+source and test layout while preserving executable structure, comments and
+documentation prose. The package provenance binds that delta, compiler lock
+and resulting source/output bytes. These fixture upgrades do not change
+Nuxt's own H3 parent contract or supply evidence for a host runtime transition.
 
 Antfu upstream `a5bb2968ff3562be8d7a01921572a2021c122852` introduces explicit
 Nuxt imports. The maintained frontend enables the module's strict mode and
