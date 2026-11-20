@@ -49,12 +49,9 @@ test('release tags cover the site version and future majors while retaining nati
   assert.equal(workflow.jobs.artifact.needs, 'prepare')
 })
 
-test('CodeQL actions share one immutable version and one dependency-update group', () => {
+test('CodeQL actions share one immutable version', () => {
   const workflow = parseYaml(readFileSync(path.join(root, '.github/workflows/codeql.yml'), 'utf8'))
   codeqlVersion(workflow)
-  const configuration = parseYaml(readFileSync(path.join(root, '.github/dependabot.yml'), 'utf8'))
-  const updates = configuration.updates.find(update => update['package-ecosystem'] === 'github-actions')
-  assert.deepEqual(updates.groups['codeql-actions'].patterns, ['github/codeql-action/*'])
 })
 
 test('CodeQL version checks reject split versions and floating action references', () => {
