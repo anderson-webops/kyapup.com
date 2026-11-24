@@ -58,6 +58,7 @@ function rename(node) {
 
 test('every locked application compiler consumer resolves the maintained native Babel8 editor', async () => {
   const expected = require.resolve('magicast')
+  const expectedSourceMap = require.resolve('source-map-js')
   const lock = JSON.parse(await readFile(path.join(root, 'package-lock.json'), 'utf8'))
   const parents = Object.entries(lock.packages).filter(([_location, info]) => info.dependencies?.magicast || info.peerDependencies?.magicast || info.devDependencies?.magicast)
   for (const required of ['node_modules/@nuxt/devtools', 'node_modules/c12', 'node_modules/nitropack'])
@@ -71,7 +72,7 @@ test('every locked application compiler consumer resolves the maintained native 
       const metadata = JSON.parse(await readFile(editor.resolve(`${dependency}/package.json`), 'utf8'))
       assert.match(metadata.version, /^8\./)
     }
-    assert.equal(JSON.parse(await readFile(editor.resolve('source-map-js/package.json'), 'utf8')).version, '1.2.2')
+    assert.equal(editor.resolve('source-map-js'), expectedSourceMap, location)
   }
 })
 

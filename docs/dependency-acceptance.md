@@ -77,14 +77,18 @@ application validation remain separate required gates.
 ## Framework bundler and configuration parents
 
 The active framework uses Vite 8.3.8, Rolldown 1.3.2 and c12 4.0.0-rc.4. The
-c12 version is the publisher's current `latest` prerelease and is already embedded in Nuxt kit;
+circular Nuxt 4.7 peers share the maintained Nuxt package. The inactive
+Nitro 3 adapter keeps its declared Rolldown 1.2.19 scope; the installed
+runtime uses Nitro 2.
+
+The c12 version is the publisher's current `latest` prerelease and is already embedded in Nuxt kit;
 the independently installed Nitro configuration loader is qualified on the same
 major. Original Rolldown 1.2.19, c12 3.3.4 and registry framework parents remain
 in the independently installed, audited and signature-verified reference graph.
 
-`vendor/framework-parents/UPSTREAM.json` binds 774 original files, including
+`vendor/framework-parents/UPSTREAM.json` binds 842 original files, including
 every executable mode, type, runtime and license. The reproducible distributions
-are Vite 8.3.8+webops.1, Nuxt 4.6.4+webops.2 and Nitro 2.13.6+webops.1.
+are Vite 8.3.8+webops.1, Nuxt 4.7.0+webops.1 and Nitro 2.13.6+webops.1.
 Build metadata preserves normal framework SemVer comparisons while identifying
 the reviewed local distributions. Their provider contracts select the qualified
 versions; the original metadata is retained inside each archive.
@@ -428,8 +432,8 @@ both legacy API consumers. Full production installation and runtime inventory
 checks reject both compiler packages; Linux ARM64 binding and artifact checks
 remain required.
 
-Nuxt 4.6.4 requires `unimport ^7.0.2`; `nuxt-explicit-imports@0.1.0` requires
-`^7.0.3`. Their locked and installed provider must satisfy both original API
+Nuxt 4.7.0 and `nuxt-explicit-imports@0.1.0` both require `unimport ^7.0.3`.
+Their locked and installed provider must satisfy both original API
 contracts. The maintained `7.0.3+webops.3` provider is independently rebuilt
 from the complete signed v7.0.3 source tree. Both signed Git objects, the public
 signer, all 226 source files, the independent audited
@@ -537,10 +541,10 @@ own supported parser explicitly. Unsupported syntax produces a parsing error.
 
 The historical input archive embeds source-map-js 1.2.1, affected by
 GHSA-68fv-2mgg-jv7q. Its original bytes remain evidence, not a clean runtime.
-The maintained archive removes that embedded implementation and uses patched
-source-map-js 1.2.2. A bounded subprocess regression sends invalid and excessive
-indexed offsets through Magicast's actual map-composition path. The independent
-original-version audit graph preserves Magicast 0.5.5, Recast 0.24.0 and
+The maintained archive removes that embedded implementation and resolves the
+workspace's locked source-map-js 1.2.4. A bounded subprocess regression sends
+invalid and excessive indexed offsets through Magicast's actual map-composition
+path. The independent original-version audit graph preserves Magicast 0.5.5, Recast 0.24.0 and
 ast-types 0.16.3, with the supported external source-map-js 1.2.2 dependency;
 it does not conceal or certify the historical embedded implementation.
 
@@ -554,7 +558,7 @@ audits, and exact artifact acceptance remain release requirements.
 ## Vue compiler dependency integration
 
 The maintained `@vue/compiler-core` and `@vue/compiler-sfc`
-`3.5.45-webops.1` distributions preserve the Vue 3.5 runtime interface and
+`3.5.46-webops.1` distributions preserve the Vue 3.5 runtime interface and
 official entrypoints, declarations and licenses. Their actual parser and
 walker graphs use Babel 8.1 and Estree-walker 3; SFC editing uses Magic-string 1.
 The SFC resolver consumes native argument, identifier, signature, mapped-type,
@@ -741,10 +745,9 @@ The official `vite-plugin-checker@1.0.0` distribution natively supports Babel8
 positions and optional-column declarations. It retains one-based diagnostic
 locations and converts them at the code-frame boundary. The application uses
 the original registry bytes rather than the retired maintained0.14.5 bridge.
-The reviewed Nuxt4.6.4 Vite-builder parent explicitly admits checker1 and routes
-its development-only injection through the current overlay entrypoint. The
-original archive, package metadata and MIT license remain preserved alongside
-the exact reviewed source correction and dependency/runtime declarations.
+The official Nuxt 4.7.0 Vite Builder declares checker 1 directly and uses its
+supported plugin entrypoint. The locked and installed builder must match the
+integrity-bound original archive, including its metadata and MIT license.
 Nuxt type-checking behavior requires real integration and browser acceptance.
 
 The integrity-bound original archive and independently locked original graph
@@ -757,10 +760,12 @@ consumer, every installed official byte and the actual Nuxt parent admission.
 location preservation, original single-line output, correct multiline ranges,
 native public types, admitted terminal-color modes, real ESLint diagnostics, Stylelint adapter fixtures and
 actual TypeScript worker error/recovery. `npm run test:checker-browser` checks
-real overlay highlighting, reconnection, repeated repair and clean production
-builds through both Vite and Nuxt's actual type-checking parent, including
-deliberately rejected type-error builds. The full and
-production audit commands retain original package identities in that separate
+diagnostic highlighting in Vite's checker overlay and Nuxt's native Problems
+panel, reconnection, repeated repair and clean production builds, including
+deliberately rejected type-error builds. The Nuxt fixture opens the diagnostic
+listed for the affected file and verifies its rendered message and source
+after navigation, reload and edits. The live report stream stays open.
+Full and production audit commands retain original package identities in that separate
 graph. Application Babel providers use major 8; original-version fixtures retain
 their own reviewed dependencies. Release/provenance and host acceptance remain
 separate gates.

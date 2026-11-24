@@ -1,16 +1,16 @@
 {
   "schemaVersion": 1,
-  "patchedVersion": "3.5.45-webops.1",
+  "patchedVersion": "3.5.46-webops.1",
   "packages": {
     "@vue/compiler-core": {
-      "version": "3.5.45",
-      "archive": "upstream/vue-compiler-core-3.5.45.tgz",
-      "integrity": "sha512-XGHJrM6ufZARAc/w+tyOswStw9tdKiqCKBScI4gGaNxD+aaGu/HQWgKJ+JItjRLPqenQ7iE7G8AJC7T5ew1p+g=="
+      "version": "3.5.46",
+      "archive": "upstream/vue-compiler-core-3.5.46.tgz",
+      "integrity": "sha512-yb+N8/mgBcoeqCJPVyJI/D3OphLrSMXnB3ZQUNmRLU/1fsMW4bFfdJWNi9oIj7+EA3ULKKkP7b/VCpcYQYeiuQ=="
     },
     "@vue/compiler-sfc": {
-      "version": "3.5.45",
-      "archive": "upstream/vue-compiler-sfc-3.5.45.tgz",
-      "integrity": "sha512-MKFjb2UX0M/l/jhfzqMLrI8VM4pfvFKG3pqFZkSZFHRLtNld/O4RtUPZFWSwhro/14qP88UQEkWzHxAZAQ0tsw=="
+      "version": "3.5.46",
+      "archive": "upstream/vue-compiler-sfc-3.5.46.tgz",
+      "integrity": "sha512-hjUvMxGh+QIgegwksfp6BRBYleE/a8veZHvTR6sa+o+bM4HU+WnrUZlhN0X+pDcsl8Lhwmbu72xPvLMk3XUwog=="
     }
   },
   "dependencies": {

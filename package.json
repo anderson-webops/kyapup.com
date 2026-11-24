@@ -1,7 +1,7 @@
 {
   "name": "kyapup",
   "type": "module",
-  "version": "1.2.8",
+  "version": "1.2.9",
   "private": true,
   "packageManager": "npm@12.2.2",
   "engines": {
@@ -154,7 +154,10 @@
     "@babel/types": "^8.1.0",
     "@jest/types": "file:vendor/jest-types-30.5.1-webops.1.tgz",
     "@netlify/functions": "^6.1.1",
-    "@nuxt/vite-builder": "file:vendor/nuxt-vite-builder-4.6.4-webops.1.tgz",
+    "@nuxt/nitro-server": "4.7.0",
+    "@nuxt/nitro-v3-server": "4.7.0",
+    "@nuxt/vite-builder": "4.7.0",
+    "@nuxt/vite-server": "4.7.0",
     "@poppinss/dumper": "file:vendor/poppinss-dumper-0.7.0-webops.1.tgz",
     "@rollup/plugin-commonjs": "file:vendor/rollup-plugin-commonjs-29.0.3-webops.1.tgz",
     "@rollup/plugin-inject": "file:vendor/rollup-plugin-inject-5.0.5-webops.1.tgz",
@@ -173,8 +176,8 @@
     "@vitejs/plugin-vue-jsx": "file:vendor/plugin-vue-jsx-5.1.6-webops.1.tgz",
     "@vue-macros/common": "file:vendor/vue-macros-common-3.1.4-webops.1.tgz",
     "@vue/babel-plugin-jsx": "^3.0.0",
-    "@vue/compiler-core": "file:vendor/vue-compiler-core-3.5.45-webops.1.tgz",
-    "@vue/compiler-sfc": "file:vendor/vue-compiler-sfc-3.5.45-webops.1.tgz",
+    "@vue/compiler-core": "file:vendor/vue-compiler-core-3.5.46-webops.1.tgz",
+    "@vue/compiler-sfc": "file:vendor/vue-compiler-sfc-3.5.46-webops.1.tgz",
     "ajv": "file:vendor/ajv-8.20.0-webops.2.tgz",
     "ajv-draft-04": "1.0.0",
     "archiver": "^8.0.0",
@@ -203,7 +206,7 @@
     "minimizer-webpack-plugin": "file:vendor/minimizer-webpack-plugin-5.14.0-webops.1.tgz",
     "nanoid": "6.0.2",
     "nitropack": "file:vendor/nitropack-2.13.6-webops.1.tgz",
-    "nuxt": "file:vendor/nuxt-4.6.4-webops.2.tgz",
+    "nuxt": "file:vendor/nuxt-4.7.0-webops.1.tgz",
     "nuxt-explicit-imports": "file:vendor/nuxt-explicit-imports-0.1.0-webops.2.tgz",
     "oxc-parser": "0.159.0",
     "oxfmt": "0.79.0",
@@ -227,6 +230,7 @@
     "vite": "file:vendor/vite-8.3.8-webops.1.tgz",
     "vite-plugin-checker": "1.0.0",
     "vite-plugin-vue-devtools": "file:vendor/vite-plugin-vue-devtools-9.0.0-rc.3-webops.1.tgz",
+    "vue": "3.5.46",
     "webpack": "^5.112.2",
     "yaml": "^2.9.1"
   },
@@ -241,7 +245,10 @@
     "pre-commit": "npm run lint"
   },
   "overrides": {
-    "nuxt-explicit-imports": "$nuxt-explicit-imports",
+    "nuxt-explicit-imports": {
+      ".": "$nuxt-explicit-imports",
+      "nuxt": "$nuxt"
+    },
     "content-disposition": "3.0.0",
     "content-type": "3.1.1",
     "cookie": "$cookie",
@@ -265,7 +272,21 @@
       "launch-editor": "2.14.2"
     },
     "@nuxt/devtools-kit": "4.2.0",
-    "@nuxt/vite-builder": "$@nuxt/vite-builder",
+    "@vueuse/nuxt": {
+      "nuxt": "$nuxt"
+    },
+    "@nuxt/nitro-server": {
+      "nuxt": "$nuxt"
+    },
+    "@nuxt/nitro-v3-server": {
+      "nuxt": "$nuxt"
+    },
+    "@nuxt/vite-builder": {
+      "nuxt": "$nuxt"
+    },
+    "@nuxt/vite-server": {
+      "nuxt": "$nuxt"
+    },
     "chokidar": "6.0.0",
     "jiti": "$jiti",
     "unimport": "$unimport",
@@ -317,8 +338,6 @@
     "@unocss/transformer-attributify-jsx": "$@unocss/transformer-attributify-jsx",
     "unconfig": "$unconfig",
     "@unocss/vite": "$@unocss/vite",
-    "nuxt": "$nuxt",
-    "rolldown": "$rolldown",
     "c12": "$c12",
     "ajv": "$ajv",
     "eslint": "$eslint",

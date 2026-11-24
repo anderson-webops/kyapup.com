@@ -15,6 +15,11 @@ export const cases = [
     props: ['value'],
   },
   {
+    name: 'generic default resolves the previous argument',
+    script: 'type Box<T,U=T> = {first:T;second:U}; defineProps<Box<string>>()',
+    props: ['first', 'second'],
+  },
+  {
     name: 'utility arguments',
     script: 'type Base = {first:string;second:number}; defineProps<Partial<Pick<Base,"first">>>()',
     props: ['first'],

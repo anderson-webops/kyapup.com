@@ -13,7 +13,8 @@ from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "vendor/vue-compiler"
-VERSION = "3.5.45-webops.1"
+UPSTREAM_VERSION = "3.5.46"
+VERSION = f"{UPSTREAM_VERSION}-webops.1"
 DEPENDENCIES = {"@babel/parser": "8.1.0", "estree-walker": "3.0.3", "magic-string": "1.4.5"}
 BROWSER_TOOLS = {"@babel/parser": "8.1.0", "esbuild": "0.28.2", "estree-walker": "3.0.3", "magic-string": "1.4.5"}
 
@@ -74,13 +75,12 @@ def replace_exact(source, original, replacement, count=1):
 
 
 def modernize_sfc(source):
-    require(source.count("node.typeParameters") == 46, "Review changed generic argument callers")
+    require(source.count("node.typeParameters") == 44, "Review changed generic argument callers")
     source = source.replace("node.typeParameters", "node.typeArguments")
     source = replace_exact(source, "types[node.id.name] = node.typeArguments ? node : node.typeAnnotation;", "types[node.id.name] = node.typeParameters ? node : node.typeAnnotation;")
     source = replace_exact(source, 'case "TSExpressionWithTypeArguments":', 'case "TSInterfaceHeritage":')
     source = replace_exact(source, 'node.type === "TSExpressionWithTypeArguments"', 'node.type === "TSInterfaceHeritage"')
-    source = replace_exact(source, "typeParameters[p.name]", "typeParameters[p.name.name]")
-    source = replace_exact(source, "typeParams[p.name]", "typeParams[p.name.name]", 2)
+    source = replace_exact(source, "res[p.name] = ", "res[p.name.name] = ", 2)
     source = replace_exact(source, "getId(node.argument)", "getId(node.source)")
     source = replace_exact(source, "node.argument.value", "node.source.value", 2)
     source, count = re.subn(r"(ctx,\s+)node\.argument,(\s+scope,\s+node\.source\.value)", r"\1node.source,\2", source)
@@ -93,9 +93,8 @@ def modernize_sfc(source):
     source = replace_exact(source, "isAllLiteral = node.members.every(", "isAllLiteral = node.body.members.every(")
     source = replace_exact(source, 'node.type === "TSModuleDeclaration" && node.global', 'node.type === "TSModuleDeclaration" && node.kind === "global"')
     source = replace_exact(source, "const { name, constraint } = node.typeParameter;", "const name = node.key.name;\n    const constraint = node.constraint;")
-    source = replace_exact(source, "node.typeParameter.constraint", "node.constraint")
     source = replace_exact(source, "const { typeAnnotation, typeParameter } = node;", "const { typeAnnotation, constraint, key } = node;")
-    source = replace_exact(source, "&& typeParameter && typeParameter.constraint && typeParameters", "&& constraint && typeParameters")
+    source = replace_exact(source, "&& typeParameter && typeParameter.constraint && scope.isGenericScope", "&& constraint && scope.isGenericScope")
     source = replace_exact(source, "          const constraint = typeParameter.constraint;\n", "")
     source = replace_exact(source, "index.typeName.name === typeParameter.name", "index.typeName.name === key.name")
     source = replace_exact(source, '    case "TemplateLiteral": {\n      return resolveTemplateKeys(ctx, node, scope);', '    case "TemplateLiteral":\n    case "TSTemplateLiteralType": {\n      return resolveTemplateKeys(ctx, node, scope);')
@@ -141,7 +140,7 @@ def build_archive(data, name, upstream, browser_builder):
     files = archive_files(data)
     original = files["package/package.json"]
     metadata = json.loads(original)
-    require(metadata["name"] == name and metadata["version"] == info["version"] == "3.5.45", "Unexpected upstream identity")
+    require(metadata["name"] == name and metadata["version"] == info["version"] == UPSTREAM_VERSION, "Unexpected upstream identity")
     require(metadata["license"] == "MIT" and metadata["dependencies"]["@babel/parser"] == "^7.29.12", "Review changed original compiler contract")
     module = name.split("/")[1]
     required = {f"package/dist/{module}.cjs.js", f"package/dist/{module}.d.ts"}
@@ -204,7 +203,7 @@ def main():
     upstream = json.loads((SOURCE / "UPSTREAM.json").read_text())
     for name, info in upstream["packages"].items():
         module = name.split("/")[1]
-        require(info["archive"] == f"upstream/vue-{module}-3.5.45.tgz", "Use the reviewed original archive path")
+        require(info["archive"] == f"upstream/vue-{module}-{UPSTREAM_VERSION}.tgz", "Use the reviewed original archive path")
         filename = SOURCE / info["archive"]
         require(stat.S_ISREG(filename.lstat().st_mode), "Original archive must be a regular file")
         archive = build_archive(filename.read_bytes(), name, upstream, rebuild_browser)

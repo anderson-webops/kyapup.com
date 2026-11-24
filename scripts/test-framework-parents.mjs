@@ -56,10 +56,9 @@ test('all actual framework consumers bind the qualified providers and complete o
   const original = JSON.parse(readFileSync(path.join(root, 'vendor/framework-parents/upstream/package-lock.json'), 'utf8')).packages
   for (const [name, version] of Object.entries({
     'vite': '8.3.8+webops.1',
-    'nuxt': '4.6.4+webops.2',
-    '@nuxt/vite-builder': '4.6.4+webops.1',
+    'nuxt': '4.7.0+webops.1',
+    '@nuxt/vite-builder': '4.7.0',
     'nitropack': '2.13.6+webops.1',
-    'rolldown': '1.3.2',
     'c12': '4.0.0-rc.4',
   })) {
     const matches = Object.entries(lock).filter(([filename]) => filename.endsWith(`node_modules/${name}`))
@@ -67,10 +66,18 @@ test('all actual framework consumers bind the qualified providers and complete o
     for (const [filename, metadata] of matches)
       assert.equal(metadata.version, version, filename)
   }
+  assert.deepEqual(
+    Object.fromEntries(Object.entries(lock).filter(([filename]) => filename.endsWith('node_modules/rolldown')).map(([filename, metadata]) => [filename, metadata.version])),
+    {
+      'node_modules/@nuxt/nitro-v3-server/node_modules/rolldown': '1.2.19',
+      'node_modules/rolldown': '1.3.2',
+    },
+  )
+  assert.equal(lock['node_modules/nitro'], undefined)
   for (const [name, version] of Object.entries({
     'vite': '8.3.8',
-    'nuxt': '4.6.4',
-    '@nuxt/vite-builder': '4.6.4',
+    'nuxt': '4.7.0',
+    '@nuxt/vite-builder': '4.7.0',
     'nitropack': '2.13.6',
     'rolldown': '1.2.19',
     'c12': '3.3.4',
@@ -80,6 +87,8 @@ test('all actual framework consumers bind the qualified providers and complete o
     const consumer = createRequire(import.meta.resolve(name))
     assert.equal(consumer.resolve('rolldown'), fileURLToPath(import.meta.resolve('rolldown')))
   }
+  const optionalNitro = createRequire(path.join(root, 'node_modules/@nuxt/nitro-v3-server/package.json'))
+  assert.ok(optionalNitro.resolve('rolldown').startsWith(path.join(root, 'node_modules/@nuxt/nitro-v3-server/node_modules/rolldown/')))
   const nitro = createRequire(import.meta.resolve('nitropack'))
   assert.equal(nitro.resolve('c12'), path.resolve(root, 'node_modules/c12/dist/index.mjs'))
 })

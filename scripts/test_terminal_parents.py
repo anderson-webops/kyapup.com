@@ -67,9 +67,9 @@ class TerminalParentTests(unittest.TestCase):
             self.assertEqual(metadata, expected, name)
             self.assertEqual(modes['package/UPSTREAM-PACKAGE.json'], 0o644)
 
-    def test_framework_defaults_still_reproduce_the_original_four_archives(self):
+    def test_framework_defaults_still_reproduce_every_maintained_archive(self):
         original_records = json.loads((ARCHIVES.SOURCE / 'UPSTREAM.json').read_text())
-        self.assertEqual(len(original_records), 4)
+        self.assertEqual(set(original_records), set(ARCHIVES.PACKAGES))
         for name, record in original_records.items():
             original = (ARCHIVES.SOURCE / record['archive']).read_bytes()
             self.assertEqual(ARCHIVES.build_archive(original, record), (PRODUCER.ROOT / 'vendor' / ARCHIVES.maintained_archive(name)).read_bytes())

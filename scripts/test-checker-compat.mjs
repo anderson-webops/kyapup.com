@@ -61,7 +61,7 @@ test('the official current ESM checker uses native Babel8 while retaining the or
   assert.match(readFileSync(path.join(directory, 'codeFrame.js'), 'utf8'), /import \{ codeFrameColumns \} from "@babel\/code-frame"/)
   assert.match(readFileSync(path.join(directory, 'codeFrame.js'), 'utf8'), /toZeroBasedPosition/)
   const nuxtParent = JSON.parse(readFileSync(path.join(path.dirname(require.resolve('@nuxt/vite-builder')), '../package.json'), 'utf8'))
-  assert.equal(nuxtParent.version, '4.6.4+webops.1')
+  assert.equal(nuxtParent.version, '4.7.0')
   assert.equal(nuxtParent.dependencies['vite-plugin-checker'], '^1.0.0')
   const baseline = createRequire(originalEntry)
   assert.equal(JSON.parse(readFileSync(path.join(path.dirname(baseline.resolve('@babel/code-frame')), '../package.json'), 'utf8')).version, '7.29.7')

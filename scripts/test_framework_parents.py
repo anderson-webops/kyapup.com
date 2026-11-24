@@ -120,26 +120,15 @@ class FrameworkParentTests(unittest.TestCase):
             with self.subTest(name=name), self.assertRaisesRegex(ValueError, "CLI must retain executable"):
                 PRODUCER.build_archive(changed_payload, changed)
 
-    def test_non_cli_nuxt_parent_admits_the_new_checker_without_introducing_commands(self):
-        record = RECORDS["@nuxt/vite-builder"]
-        original = (PRODUCER.SOURCE / record["archive"]).read_bytes()
-        files, modes = PRODUCER.archive_files(original)
+    def test_official_nuxt_builder_admits_checker_without_a_maintained_overlay(self):
+        original = (PRODUCER.SOURCE / f"upstream/nuxt-vite-builder-{PRODUCER.BUILDER_VERSION}.tgz").read_bytes()
+        files = PRODUCER.current_builder_files(original)
         metadata = json.loads(files["package/package.json"])
         self.assertNotIn("bin", metadata)
-        maintained, maintained_modes = PRODUCER.archive_files(PRODUCER.build_archive(original, record))
-        self.assertEqual(maintained_modes['package/dist/index.mjs'], modes['package/dist/index.mjs'])
-        current = json.loads(maintained["package/package.json"])
-        self.assertNotIn("bin", current)
-        self.assertEqual(current["dependencies"]["vite-plugin-checker"], "^1.0.0")
-        self.assertEqual(current["engines"]["node"], "^26.13.1")
-        self.assertIn(b'/@vite-plugin-checker/overlay-entry', maintained['package/dist/index.mjs'])
-        self.assertNotIn(b'/@vite-plugin-checker-runtime-entry', maintained['package/dist/index.mjs'])
-        metadata["bin"] = {"unreviewed-command": "dist/index.mjs"}
-        files["package/package.json"] = (json.dumps(metadata) + "\n").encode()
-        payload, changed = self.changed_record(record, files, modes)
-        changed["package"] = metadata
-        with self.assertRaisesRegex(ValueError, "CLI ownership"):
-            PRODUCER.build_archive(payload, changed)
+        self.assertEqual(metadata["dependencies"]["vite-plugin-checker"], "^1.0.0")
+        self.assertNotIn(b'/@vite-plugin-checker-runtime-entry', files['package/dist/index.mjs'])
+        with self.assertRaisesRegex(ValueError, "builder integrity mismatch"):
+            PRODUCER.current_builder_files(original + b"changed")
 
     def test_cli_rejects_source_path_before_opening_any_original_archive(self):
         records = copy.deepcopy(RECORDS)

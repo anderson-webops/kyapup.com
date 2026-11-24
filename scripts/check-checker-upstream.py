@@ -91,7 +91,7 @@ def main():
             require(metadata['version'] == record['version'] and metadata['integrity'] == record['registryIntegrity'], 'Every active checker must bind the official current release')
             verify_installed(ROOT / name, files)
         parent = json.loads(IO.regular_bytes(ROOT / 'node_modules/@nuxt/vite-builder/package.json', IO.MAX_COMPRESSED))
-        require(parent['version'] == '4.6.4+webops.1', 'Use the reviewed Nuxt Vite-builder parent')
+        require(parent['version'] == '4.7.0', 'Use the reviewed official Nuxt Vite-builder parent')
         require(parent['dependencies']['vite-plugin-checker'] == '^1.0.0', 'The actual Nuxt parent must admit checker1')
     print(json.dumps({'checker': record['version'], 'officialFiles': len(files), 'historicalReferencePreserved': True, 'scope': 'source-only' if arguments.source_only else 'source-lock-and-installed-parents'}))
 

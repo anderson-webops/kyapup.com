@@ -12,6 +12,9 @@ import tarfile
 
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "vendor/framework-parents"
+BUILDER_NAME = "@nuxt/vite-builder"
+BUILDER_VERSION = "4.7.0"
+BUILDER_INTEGRITY = "sha512-W3tFmdjgew5nGvXNLHt8IdVV3rj+XXQ4EovKBE7pNKGu8mBJuiYUkmz0XvOp/IBhaZTPOIyVm2NjLbpjAEuqVw=="
 SPEC = importlib.util.spec_from_file_location("native_package_io", ROOT / "scripts/package-native-providers.py")
 IO = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(IO)
@@ -45,9 +48,9 @@ PACKAGES = {
         ],
     },
     "nuxt": {
-        "version": "4.6.4",
-        "revision": 2,
-        "count": 397,
+        "version": "4.7.0",
+        "revision": 1,
+        "count": 465,
         "section": "peerDependencies",
         "provider": "rolldown",
         "before": "~1.2.1",
@@ -56,8 +59,8 @@ PACKAGES = {
         "replacements": [
             {
                 "file": filename,
-                "before": '\t\t}) ?? "unctx";\n\t\tconst unctxTransform = UnctxTransformPlugin({',
-                "after": '\t\t}) ?? "unctx";\n\t\tnuxt.options.build.transpile.push("unctx");\n\t\tconst unctxTransform = UnctxTransformPlugin({',
+                "before": '\t\tconst unctxTransform = UnctxTransformPlugin({',
+                "after": '\t\tnuxt.options.build.transpile.push("unctx");\n\t\tconst unctxTransform = UnctxTransformPlugin({',
             }
             for filename in ["dist/index.mjs", "dist/index.js"]
         ],
@@ -70,24 +73,6 @@ PACKAGES = {
         "before": "^3.3.4",
         "after": "^4.0.0-rc.4",
         "required": {"LICENSE", "dist/cli/index.mjs", "dist/core/index.mjs", "dist/core/index.d.ts", "dist/config/index.mjs", "dist/runtime/index.mjs"},
-    },
-    "@nuxt/vite-builder": {
-        "version": "4.6.4",
-        "count": 16,
-        "section": "dependencies",
-        "provider": "vite-plugin-checker",
-        "before": "^0.14.5",
-        "after": "^1.0.0",
-        "node": "^26.13.1",
-        "has_bin": False,
-        "required": {"LICENSE", "dist/index.mjs", "dist/index.d.mts"},
-        "replacements": [
-            {
-                "file": "dist/index.mjs",
-                "before": 's.prepend("import \\"/@vite-plugin-checker-runtime-entry\\";\\n");',
-                "after": 's.prepend("import \\"/@vite-plugin-checker/overlay-entry\\";\\n");',
-            },
-        ],
     },
 }
 
@@ -206,6 +191,18 @@ def verify_installed(payload, directory):
         require(stat.S_IMODE(target.lstat().st_mode) & 0o111 == modes[filename] & 0o111, "Installed framework executable mode differs")
 
 
+def current_builder_files(payload):
+    require(IO.integrity(payload) == BUILDER_INTEGRITY, "Official Nuxt builder integrity mismatch")
+    files, _modes = archive_files(payload)
+    metadata = json.loads(files["package/package.json"])
+    require(metadata["name"] == BUILDER_NAME and metadata["version"] == BUILDER_VERSION, "Official Nuxt builder identity mismatch")
+    require(metadata["license"] == "MIT" and "bin" not in metadata, "Review Nuxt builder licensing or CLI ownership")
+    require(len(files) == 19 and {"package/LICENSE", "package/dist/index.mjs", "package/dist/index.d.mts"} <= files.keys(), "Required Nuxt builder inventory changed")
+    require(metadata["dependencies"]["vite-plugin-checker"] == "^1.0.0", "The official Nuxt builder must admit checker 1")
+    require(b"/@vite-plugin-checker-runtime-entry" not in files["package/dist/index.mjs"], "The obsolete checker runtime entry must remain absent")
+    return files
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true")
@@ -231,6 +228,17 @@ def main():
         else:
             IO.write_regular(target, payload)
         print(json.dumps({"archive": str(target.relative_to(ROOT)), "originalFiles": len(record["files"]), "integrity": IO.integrity(payload)}))
+
+    builder = IO.regular_bytes(SOURCE / f"upstream/nuxt-vite-builder-{BUILDER_VERSION}.tgz", IO.MAX_COMPRESSED)
+    current_builder_files(builder)
+    if arguments.check:
+        original = reference["node_modules/" + BUILDER_NAME]
+        require(original["version"] == BUILDER_VERSION and original["integrity"] == BUILDER_INTEGRITY, "Independent reference graph must retain the official Nuxt builder")
+        consumers = [(filename, value) for filename, value in locked.items() if filename.endswith("node_modules/" + BUILDER_NAME)]
+        require(bool(consumers), "The official Nuxt builder must have a locked consumer")
+        for filename, value in consumers:
+            require(value["version"] == BUILDER_VERSION and value["integrity"] == BUILDER_INTEGRITY, "Every Nuxt builder consumer must bind the official archive")
+            verify_installed(builder, ROOT / filename)
 
 
 if __name__ == "__main__":

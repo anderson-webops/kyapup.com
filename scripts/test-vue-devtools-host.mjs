@@ -124,7 +124,8 @@ try {
   const unheadConfig = await getUnheadConfig()
   assert.equal(unheadConfig.cwd, scratch)
   assert.equal(unheadConfig.mode, unheadContext.mode)
-  assert.equal(unheadConfig.version, '3.4.3')
+  const sourceLock = JSON.parse(await readFile(new URL('../package-lock.json', import.meta.url), 'utf8'))
+  assert.equal(unheadConfig.version, sourceLock.packages['node_modules/unhead'].version)
   const address = server.httpServer.address()
   assert.equal(typeof address, 'object')
   const origin = `http://127.0.0.1:${address.port}`

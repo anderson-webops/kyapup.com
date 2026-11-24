@@ -9,7 +9,6 @@ import path from 'node:path'
 import process from 'node:process'
 import { setTimeout as delay } from 'node:timers/promises'
 import puppeteer from 'puppeteer-core'
-import { waitForCheckerDiagnostic, waitForCheckerRecovery } from './checker-browser-helpers.mjs'
 
 const root = path.resolve(import.meta.dirname, '..')
 const require = createRequire(import.meta.url)
@@ -92,6 +91,47 @@ async function build() {
   return child.exitCode
 }
 
+async function waitForNuxtDiagnostic(page, source) {
+  const errorButton = '[data-level="error"][data-on] button'
+  const drawer = 'iframe[title="Problems"]'
+  await page.waitForFunction(selector => Boolean(document.querySelector('[data-my-bad]')?.shadowRoot?.querySelector(selector)), {}, errorButton)
+  if (!await page.evaluate(selector => Boolean(document.querySelector('[data-my-bad]')?.shadowRoot?.querySelector(selector)), drawer))
+    await page.locator(`pierce/${errorButton}`).click()
+  await page.waitForFunction(selector => Boolean(document.querySelector('[data-my-bad]')?.shadowRoot?.querySelector(selector)), {}, drawer)
+  const handle = await page.evaluateHandle(selector => document.querySelector('[data-my-bad]').shadowRoot.querySelector(selector), drawer)
+  try {
+    const frame = await handle.asElement().contentFrame()
+    assert.ok(frame, 'The actual Nuxt Problems panel must load')
+    const diagnostic = await frame.waitForFunction(() => {
+      const entries = document.querySelectorAll('button[data-action="select"]')
+      return Array.from(entries).find(button => button.textContent.includes('not assignable') && button.textContent.includes('app.vue'))
+    })
+    try {
+      await diagnostic.asElement().click()
+    }
+    finally {
+      await diagnostic.dispose()
+    }
+    await frame.waitForFunction((expected) => {
+      const report = document.querySelector('article.mb-report')
+      return report?.querySelector('[data-message]')?.textContent.includes('not assignable')
+        && report.textContent.includes(expected)
+    }, {}, source)
+    assert.equal(new URL(frame.url()).origin, new URL(page.url()).origin)
+  }
+  finally {
+    await handle.dispose()
+  }
+}
+
+async function waitForNuxtRecovery(page) {
+  await page.waitForFunction(() => {
+    const badge = document.querySelector('[data-my-bad]')?.shadowRoot
+    return badge?.querySelector('[data-level="clear"][data-on]')?.textContent === 'All clear'
+      && !badge.querySelector('[data-level="error"][data-on]')
+  })
+}
+
 try {
   await mkdir(application)
   await writeFile(path.join(application, 'package.json'), JSON.stringify({ type: 'module', private: true }))
@@ -140,17 +180,24 @@ try {
   const page = await browser.newPage()
   const errors = []
   page.on('pageerror', error => errors.push(error.message))
-  await page.goto(origin, { waitUntil: 'networkidle0' })
-  await waitForCheckerDiagnostic(page, 'not assignable', 'count:number="bad"')
-  await page.reload({ waitUntil: 'networkidle0' })
-  await waitForCheckerDiagnostic(page, 'not assignable', 'count:number="bad"')
+  const navigation = await page.goto(origin, { waitUntil: 'domcontentloaded' })
+  assert.ok(navigation?.ok(), 'Nuxt must serve the checker fixture successfully')
+  await page.waitForFunction(() => document.querySelector('#count')?.textContent === 'bad')
+  phase = 'initial Nuxt browser diagnostic'
+  await waitForNuxtDiagnostic(page, 'count:number="bad"')
+  phase = 'Nuxt browser diagnostic after reload'
+  const reloaded = await page.reload({ waitUntil: 'domcontentloaded' })
+  assert.ok(reloaded?.ok(), 'The checker fixture must reload successfully')
+  await page.waitForFunction(() => document.querySelector('#count')?.textContent === 'bad')
+  await waitForNuxtDiagnostic(page, 'count:number="bad"')
   for (const value of ['2', '"second"', '3']) {
+    phase = `Nuxt browser checker after edit ${value}`
     await writeFile(source, pageSource(value))
     await page.waitForFunction(expected => document.querySelector('#count')?.textContent === expected, {}, String(JSON.parse(value)))
     if (value === '"second"')
-      await waitForCheckerDiagnostic(page, 'not assignable', 'count:number="second"')
+      await waitForNuxtDiagnostic(page, 'count:number="second"')
     else
-      await waitForCheckerRecovery(page)
+      await waitForNuxtRecovery(page)
   }
   assert.deepEqual(errors, [])
   await browser.close()
@@ -167,7 +214,7 @@ try {
   const publicRoot = path.join(application, '.output/public')
   for (const filename of await readdir(publicRoot, { recursive: true })) {
     if (/\.(?:js|mjs|html)$/.test(filename))
-      assert.doesNotMatch(await readFile(path.join(publicRoot, filename), 'utf8'), /vite-plugin-checker-overlay|@vite-plugin-checker\/overlay/)
+      assert.doesNotMatch(await readFile(path.join(publicRoot, filename), 'utf8'), /vite-plugin-checker-overlay|@vite-plugin-checker\/overlay|data-my-bad|\/__nuxt_dev__\/error/)
   }
   console.log('Checker1: actual Nuxt Vite-builder admission, Vue diagnostics, browser reconnect/repeated repair, type-error build rejection and overlay-free repaired production build passed')
 }
