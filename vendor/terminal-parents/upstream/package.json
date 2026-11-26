@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "packageManager": "npm@12.2.2",
+  "packageManager": "npm@12.2.3",
   "engines": {
     "node": ">=26.13.1 <27",
-    "npm": ">=12.2.2 <13"
+    "npm": ">=12.2.3 <13"
   },
   "dependencies": {
     "@jest/types": "30.5.1",

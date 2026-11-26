@@ -11,7 +11,7 @@ production, and Netlify each route that path to the Express application without 
 ## Supported toolchain
 
 - Node.js `26.13.0`
-- npm `12.2.2` through the independently locked `webops-locked-npm-v1` build profile
+- npm `12.2.3` through the independently locked `webops-locked-npm-v1` build profile
 
 ```sh
 export PATH="$(node scripts/build-toolchain.mjs --print-bin):$PATH"
@@ -23,7 +23,7 @@ locked build-tool graph. Application installation and checks use the repaired
 profile. The private installation survives application `npm ci`, and global
 tools remain unchanged. The bootstrap-only graph accepts the stock Node 26.13.0
 npm 11.20.0 seed; application and release commands still require the verified
-npm 12.2.2 profile. Bootstrap reuses a private installation only when its complete
+npm 12.2.3 profile. Bootstrap reuses a private installation only when its complete
 dependency payload matches the source-reviewed `build-toolchain/PAYLOAD.json`
 digest, its paired Node matches the selected executable, and current full,
 production and signature audits pass. A cache receipt alone never qualifies it.

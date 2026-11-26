@@ -265,7 +265,7 @@ the bridge and upstream modules independently of the generated inventory and
 exercises cookie serialization, URL encoding, MIME matching, UTF-32 reading
 and body limits without source or development dependencies.
 
-Builds use npm 12.2.2 with Node 26.13.1. The Node security baseline is the
+Builds use npm 12.2.3 with Node 26.13.1. The Node security baseline is the
 [November 11 security release](https://nodejs.org/en/blog/release/v26.13.1).
 The API checks this minimum before application construction; the independent
 artifact contract requires the compiled guard. Earlier signed-source Unimport
@@ -328,7 +328,7 @@ leak into application installation. No global tool or security setting changes.
 The bootstrap-only manifest accepts Node 26.13.1's bundled npm 11.20.0. Its role
 is a script-free locked installation of the reviewed profile, not application
 installation or release qualification. The application engine and selected
-build-profile checks remain pinned to the repaired npm 12.2.2 distribution.
+build-profile checks remain pinned to the repaired npm 12.2.3 distribution.
 Offline executable fixtures use their own packed package, cache and empty global
 prefix. Both npm exec and npx must preserve the audited CLI and paired Node
 identity without resolving a separate global or cached Node package.
@@ -436,6 +436,9 @@ contracts. The maintained `7.0.3+webops.3` provider is independently rebuilt
 from the complete signed v7.0.3 source tree. Both signed Git objects, the public
 signer, all 226 source files, the independent audited
 compiler lock, source patch and resulting installed bytes are verified.
+The signed-source build and runtime manifests and locks retain their
+reviewed bytes so the existing archive reproduces. The selected maintained
+npm profile satisfies their declared compatibility bounds.
 The official 7.0.3 registry reference separately passed exact-version signature
 and SLSA subject verification. Historical 7.0.2 provenance failures remain
 historical evidence; this new reference does not retrospectively certify them.
