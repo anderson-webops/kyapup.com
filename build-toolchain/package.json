@@ -7,7 +7,7 @@
     "npm": ">=11.20.0 <13"
   },
   "dependencies": {
-    "npm": "file:vendor/npm-12.2.2-webops.1.tgz",
+    "npm": "file:vendor/npm-12.2.3-webops.1.tgz",
     "env-paths": "file:vendor/env-paths-4.0.0-webops.1.tgz",
     "minipass-flush": "file:vendor/minipass-flush-2.0.1-webops.1.tgz",
     "minipass-pipeline": "file:vendor/minipass-pipeline-3.0.1-webops.1.tgz",

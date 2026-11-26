@@ -6,7 +6,7 @@ cd -- "$root"
 test "$(uname -s)" = Linux
 test "$(uname -m)" = aarch64
 test "$(node --version)" = v26.13.1
-test "$(npm --version)" = 12.2.2
+test "$(npm --version)" = 12.2.3
 toolchain_receipt=$(node scripts/check-build-toolchain.mjs)
 test -z "$(git status --porcelain)"
 commit=$(git rev-parse HEAD)

@@ -29,7 +29,7 @@ The installer does not start or restart a service.
 
 Use Node 26.13.1 from the approved protected location, normally
 `/opt/node-26.13.1/bin`, and the independently locked `webops-locked-npm-v1`
-profile for npm 12.2.2 builds. Preparation selects and audits the profile before
+profile for npm 12.2.3 builds. Preparation selects and audits the profile before
 installing the application; the host's original npm is only the bootstrap seed.
 `NODE_BIN_DIR` can select an
 approved alternative for the helpers; an alternate service ExecStart needs its
