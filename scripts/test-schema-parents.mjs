@@ -36,7 +36,7 @@ test('actual consumers use the current native engines while original comparison 
     ['ajv', '8.20.0+webops.2'],
     ['eslint', '10.15.0+webops.2'],
     ['postcss', '8.5.33+webops.1'],
-    ['fast-uri', '4.2.3'],
+    ['fast-uri', '4.2.4'],
     ['nanoid', '6.0.2'],
   ]) {
     const matches = Object.entries(lock).filter(([filename]) => filename.endsWith(`node_modules/${name}`))
