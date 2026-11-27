@@ -17,7 +17,7 @@ MAX_EXPANDED = 16 * 1024 * 1024
 PACKAGES = {
     "nuxt-explicit-imports": {
         "version": "0.1.0",
-        "revision": 2,
+        "revision": 3,
         "replacement": {
             "file": "dist/report-BKPqp4bg.mjs",
             "before": "function findRefs(program, scopeTracker, names) {\n\tconst refs = /* @__PURE__ */ new Map();\n\twalk(program, {\n\t\tscopeTracker,\n\t\tenter(node, parent) {\n\t\t\tif (node.type === \"ExportNamedDeclaration\" && node.source) {\n\t\t\t\tthis.skip();\n\t\t\t\treturn;\n\t\t\t}\n\t\t\tif (node.type !== \"Identifier\" || !names.has(node.name)) return;\n\t\t\tif (!isReferenceIdentifier(node, parent, { mode: \"all\" })) return;\n\t\t\tconst value = isReferenceIdentifier(node, parent, { mode: \"value\" });\n\t\t\tif (scopeTracker.isDeclared(node.name, { mode: value ? \"value\" : \"type\" })) return;\n\t\t\tconst existing = refs.get(node.name);\n\t\t\tif (!existing) refs.set(node.name, {\n\t\t\t\tstart: node.start,\n\t\t\t\tvalue\n\t\t\t});\n\t\t\telse if (value) existing.value = true;\n\t\t}\n\t});\n\treturn refs;\n}\n",
@@ -25,7 +25,7 @@ PACKAGES = {
         },
         "dependency": "oxc-parser",
         "originalRange": "^0.158.0",
-        "qualifiedRange": "^0.159.0",
+        "qualifiedRange": "^0.160.0",
         "referenceGraph": "vendor/framework-parents/upstream",
         "executables": {"package/dist/cli.mjs"},
         "fileCount": 10,
@@ -33,19 +33,19 @@ PACKAGES = {
     },
     "eslint-plugin-format": {
         "version": "2.0.1",
-        "revision": 3,
+        "revision": 4,
         "dependency": "oxfmt",
         "originalRange": "^0.35.0",
-        "qualifiedRange": "^0.79.0",
+        "qualifiedRange": "^0.80.0",
         "fileCount": 10,
         "required": {"LICENSE", "dist/index.mjs", "dist/index.d.mts", "dts/rule-options.d.ts", "workers/oxfmt.cjs", "workers/prettier.cjs", "workers/dprint.cjs"},
     },
     "@unocss/transformer-attributify-jsx": {
         "version": "66.13.0",
-        "revision": 2,
+        "revision": 3,
         "dependency": "oxc-parser",
         "originalRange": "^0.153.0",
-        "qualifiedRange": "^0.159.0",
+        "qualifiedRange": "^0.160.0",
         "fileCount": 4,
         "required": {"README.md", "dist/index.mjs", "dist/index.d.mts"},
     },

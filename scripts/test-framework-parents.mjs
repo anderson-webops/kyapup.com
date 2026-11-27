@@ -70,7 +70,7 @@ test('all actual framework consumers bind the qualified providers and complete o
     Object.fromEntries(Object.entries(lock).filter(([filename]) => filename.endsWith('node_modules/rolldown')).map(([filename, metadata]) => [filename, metadata.version])),
     {
       'node_modules/@nuxt/nitro-v3-server/node_modules/rolldown': '1.2.19',
-      'node_modules/rolldown': '1.3.2',
+      'node_modules/rolldown': '1.3.4',
     },
   )
   assert.equal(lock['node_modules/nitro'], undefined)

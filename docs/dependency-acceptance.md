@@ -2,7 +2,7 @@
 
 ## Explicit type queries
 
-The maintained explicit-import checker 0.1.0-webops.2 recognizes declared
+The maintained explicit-import checker 0.1.0-webops.3 recognizes declared
 type-only imports inside TypeScript `typeof` queries, including qualified
 namespace queries. Executable references still require value imports. The
 focused regression checks both forms and a runtime call after a type query.
@@ -76,7 +76,7 @@ application validation remain separate required gates.
 
 ## Framework bundler and configuration parents
 
-The active framework uses Vite 8.3.8, Rolldown 1.3.2 and c12 4.0.0-rc.4. The
+The active framework uses Vite 8.3.8, Rolldown 1.3.4 and c12 4.0.0-rc.4. The
 circular Nuxt 4.7 peers share the maintained Nuxt package. The inactive
 Nitro 3 adapter keeps its declared Rolldown 1.2.19 scope; the installed
 runtime uses Nitro 2.
@@ -137,14 +137,14 @@ trusted file-source identities, with strict script review retained.
 
 ## Native parser and formatter consumers
 
-The application uses Oxc parser 0.159.0 and Oxfmt 0.79.0 through qualified
+The application uses Oxc parser 0.160.0 and Oxfmt 0.80.0 through qualified
 UnoCSS and ESLint parents. `vendor/native-providers/UPSTREAM.json` binds the
 complete original package inventories and registry archives. Reproduce and
 verify the maintained distributions with `npm run check:native-providers`.
-Their identities are ESLint-format 2.0.1-webops.3, UnoCSS attributify-JSX
-66.13.0-webops.2, UnoCSS Vite 66.13.0-webops.1 and Unconfig 7.5.0-webops.1.
+Their identities are ESLint-format 2.0.1-webops.4, UnoCSS attributify-JSX
+66.13.0-webops.3, UnoCSS Vite 66.13.0-webops.1 and Unconfig 7.5.0-webops.1.
 
-Nuxt explicit-imports 0.1.0-webops.1 also selects Oxc 0.159. Its ten original
+Nuxt explicit-imports 0.1.0-webops.3 also selects Oxc 0.160. Its ten original
 files, executable CLI, module declarations and packaged guidance remain intact.
 The existing independent framework graph supplies the original comparison.
 Native analysis compares implicit references, shadowing, TypeScript type usage
@@ -345,7 +345,7 @@ the private toolchain cache outside its prepared runtime and removes the
 toolchain source inputs before runtime acceptance. Exact archive receipts bind
 the profile and lock digest, and the runtime verifier's allowlist is unchanged.
 
-Nuxt DevTools 4.2.0 uses the tested Vite DevTools 0.8.3 host and kit. The
+Nuxt DevTools 4.2.2 uses the tested Vite DevTools 0.8.3 host and kit. The
 frontend declares that current pair directly, and the root now requests the
 same 0.8.3 kit. The maintained Unhead 3.4.3-webops.1 distribution qualifies
 that modern kit for its unchanged RPC, frame and client modules. Its original
@@ -678,7 +678,7 @@ compatible active-fleet adoption remains unfinished.
 
 ## Native watcher and configuration-reload cohort
 
-The frontend selects Nuxt DevTools 4.2.0. The remaining Nuxt and
+The frontend selects Nuxt DevTools 4.2.2. The remaining Nuxt and
 ESLint kit consumers now select that same native major, and all application
 Chokidar consumers select 6.0.0 rather than retaining nested major-5 copies.
 Original package implementation, declarations and licenses remain unchanged.
@@ -742,7 +742,7 @@ Existing compiled Nitro and browser checks remain separate required gates.
 
 ## Vite checker and native Babel 8 code frames
 
-The official `vite-plugin-checker@1.0.0` distribution natively supports Babel8
+The official `vite-plugin-checker@1.1.0` distribution natively supports Babel8
 positions and optional-column declarations. It retains one-based diagnostic
 locations and converts them at the code-frame boundary. The application uses
 the original registry bytes rather than the retired maintained0.14.5 bridge.
@@ -753,8 +753,8 @@ Nuxt type-checking behavior requires real integration and browser acceptance.
 
 The integrity-bound original archive and independently locked original graph
 remain under `vendor/vite-plugin-checker/upstream` for comparison and audits.
-`CURRENT.json` binds the official1.0.0 archive, while `UPSTREAM.json` retains
-the historical0.14.5 reference and deterministic retired-archive reproduction.
+`CURRENT.json` binds the official 1.1.0 archive, while `UPSTREAM.json` retains
+the historical 0.14.5 reference and deterministic retired-archive reproduction.
 `npm run check:checker-package` verifies both references, every current locked
 consumer, every installed official byte and the actual Nuxt parent admission.
 `npm run test:checker` checks source and
