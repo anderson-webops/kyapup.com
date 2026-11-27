@@ -19,11 +19,8 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Set up Node.js
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: 26.13.1
-          package-manager-cache: false
+      - name: Stage verified Node for this runner
+        run: bash scripts/stage-ci-node.sh
 
       - name: Prepare exact tagged direct runtime
         env:
@@ -45,20 +42,8 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Stage the official pinned Node release
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 022
-          stage="$(mktemp -d "$RUNNER_TEMP/vitesse-node.XXXXXX")"
-          node_dist=node-v26.13.1-linux-arm64
-          archive="$stage/$node_dist.tar.xz"
-          curl --fail --silent --show-error --location --proto '=https' --retry 3 --max-time 90 \
-            --output "$archive" "https://nodejs.org/dist/v26.13.1/$node_dist.tar.xz"
-          printf '%s  %s\n' 89e1853138db51e8b82d3e98ba9c0d3f2956a28e5e55ea1b7e12d25aae92d5dd "$archive" |
-            sha256sum --check --strict
-          tar -xJf "$archive" -C "$stage" --no-same-owner --no-same-permissions
-          printf '%s\n' "$stage/$node_dist/bin" >> "$GITHUB_PATH"
+      - name: Stage verified Node for this runner
+        run: bash scripts/stage-ci-node.sh
       - name: Prepare isolated artifact-test tools
         run: |
           bin="$(node scripts/build-toolchain.mjs --print-bin)"
