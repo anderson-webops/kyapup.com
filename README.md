@@ -18,11 +18,11 @@ Photos. Choose **Cancel** to keep the photos, or **Save for later** to hide them
 
 ## Local development
 
-Use Node.js **26.13.0** and npm **12.2.2**. All dependency operations start at the repository root.
+Use Node.js **26.13.1** and npm **12.2.3**. All dependency operations start at the repository root.
 
 ```sh
 export PATH="$(node scripts/build-toolchain.mjs --print-bin):$PATH"
-npm ci
+npm ci --include=optional --strict-allow-scripts
 cp .env.example back-end/.env
 # Set ADMIN_PASSWORD_HASH in back-end/.env using the helper below.
 # Run these in two separate terminals:

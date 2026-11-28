@@ -103,8 +103,8 @@ function reviewedSource(name, filename, source) {
 test('all parent consumers resolve the actual current native versions without legacy application copies', () => {
   const lock = JSON.parse(readFileSync(path.join(root, 'package-lock.json'), 'utf8')).packages
   for (const [name, provider, version] of [
-    ['eslint-plugin-format', 'oxfmt', '0.79.0'],
-    ['@unocss/transformer-attributify-jsx', 'oxc-parser', '0.159.0'],
+    ['eslint-plugin-format', 'oxfmt', '0.80.0'],
+    ['@unocss/transformer-attributify-jsx', 'oxc-parser', '0.160.0'],
   ]) {
     const parent = createRequire(require.resolve(name))
     assert.equal(parent.resolve(provider), require.resolve(provider))

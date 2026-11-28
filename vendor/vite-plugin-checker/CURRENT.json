@@ -1,17 +1,18 @@
 {
   "schemaVersion": 1,
   "name": "vite-plugin-checker",
-  "version": "1.0.0",
-  "archive": "upstream/vite-plugin-checker-1.0.0.tgz",
-  "registryIntegrity": "sha512-3Ef78GTs13BUSTCqUCnl5kh8/Ev00G3cTt4z2mQacCODCdx6oq4B/TgXiCvGJ1D7/Hhbd84QKz691+8gbn1uog==",
-  "registryArchiveSha256": "29ae99e86c2e3e971cb58497c73f5b87d6f25064169cd8edd4f8b6cc90cee4ab",
+  "version": "1.1.0",
+  "archive": "upstream/vite-plugin-checker-1.1.0.tgz",
+  "registryIntegrity": "sha512-div6bd92uVpoTNUm3WYqlFQnc9MvAX8urim8VYjk14+15wzsefxs3DFO1S2WTlF1Gtg+4IWkfcsbyhqarQsusQ==",
+  "registryArchiveSha256": "db3c2263fb394fc1c96cef1e945d020d1938cbf3d72258debdf752baed6d7f54",
   "license": "MIT",
   "dependencies": {
     "@babel/code-frame": "^8.0.0",
     "chokidar": "^6.0.0"
   },
   "expectedExports": {
-    ".": "./dist/main.js"
+    ".": "./dist/main.js",
+    "./sv": "./dist/sv.js"
   },
   "expectedEngines": {
     "node": "^22.22.0 || >=24.11.0"

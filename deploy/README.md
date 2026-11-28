@@ -10,7 +10,7 @@ Never run an installer, promotion helper, or verifier from a build-owned checkou
 
 The installer preserves existing service units, creates root-controlled deployment/release parents, creates `/etc/kyapup` with mode `0700`, and installs immutable versioned helpers under `/usr/local/libexec/kyapup-release/<version>/`. Only `builds/` and `shared/` are writable by the build account. The unprivileged preparation step creates its own npm cache; root never changes paths inside `shared/`. Unexpected ownership, modes, and symlinked directories are rejected for operator review. The installer does not start or restart the service.
 
-Use Node 26.13.1 from the approved protected location, normally `/opt/node-26.13.1/bin`, and the independently locked `webops-locked-npm-v1` profile for npm 12.2.2 builds. Preparation selects and audits that profile; the original npm is only a bootstrap seed. Preserve the host-wide runtime. `NODE_BIN_DIR` can select a reviewed alternative for the helpers; changing service `ExecStart` requires its own review.
+Use Node 26.13.1 from the approved protected location, normally `/opt/node-26.13.1/bin`, and the independently locked `webops-locked-npm-v1` profile for npm 12.2.3 builds. Preparation selects and audits that profile; the original npm is only a bootstrap seed. Preserve the host-wide runtime. `NODE_BIN_DIR` can select a reviewed alternative for the helpers; changing service `ExecStart` requires its own review.
 
 ## First administrator setup
 

@@ -37,7 +37,9 @@ class BuildToolchainPackageTests(unittest.TestCase):
         return original, metadata
 
     def rebuild(self, original, metadata):
-        with tempfile.TemporaryDirectory(dir=Path(__file__).resolve().parent.parent / ".ai-work/runs") as directory:
+        parent = Path(__file__).resolve().parent.parent / ".ai-work/runs"
+        parent.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=parent) as directory:
             source = Path(directory) / "upstream.tgz"
             source.write_bytes(original)
             return packager.rebuild(source, metadata)

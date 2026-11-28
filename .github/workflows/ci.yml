@@ -15,7 +15,7 @@ concurrency:
 
 env:
   NODE_VERSION: 26.13.1
-  NPM_VERSION: 12.2.2
+  NPM_VERSION: 12.2.3
   PUPPETEER_SKIP_DOWNLOAD: "true"
 
 jobs:
@@ -27,11 +27,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: package-lock.json
+      - name: Stage verified Node for this runner
+        run: bash scripts/stage-ci-node.sh
 
       - name: Prepare the independent locked build toolchain
         run: |

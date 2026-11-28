@@ -2,10 +2,10 @@
   "name": "native-providers-original-reference",
   "version": "1.0.0",
   "private": true,
-  "packageManager": "npm@12.2.2",
+  "packageManager": "npm@12.2.3",
   "engines": {
     "node": ">=26.13.0 <27",
-    "npm": ">=12.2.2 <13"
+    "npm": ">=12.2.3 <13"
   },
   "dependencies": {
     "@unocss/transformer-attributify-jsx": "66.13.0",

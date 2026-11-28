@@ -96,13 +96,13 @@ test('the installed Nuxt provider preserves the original unimport dependency con
 test('the selected npm and child commands use the patched build-only toolchain', () => {
   const selected = npmPackage()
   const manifest = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'))
-  assert.equal(manifest.packageManager, 'npm@12.2.2')
-  assert.equal(selected.require('./package.json').version, '12.2.2')
-  assert.equal(execFileSync(process.execPath, [selected.entrypoint, '--version'], { encoding: 'utf8', timeout: 10_000 }).trim(), '12.2.2')
+  assert.equal(manifest.packageManager, 'npm@12.2.3')
+  assert.equal(selected.require('./package.json').version, '12.2.3')
+  assert.equal(execFileSync(process.execPath, [selected.entrypoint, '--version'], { encoding: 'utf8', timeout: 10_000 }).trim(), '12.2.3')
   const childCommand = process.platform === 'win32'
     ? 'npm.cmd'
     : 'npm'
-  assert.equal(execFileSync(childCommand, ['--version'], { encoding: 'utf8', timeout: 10_000 }).trim(), '12.2.2')
+  assert.equal(execFileSync(childCommand, ['--version'], { encoding: 'utf8', timeout: 10_000 }).trim(), '12.2.3')
   assert.ok(selected.require('semver').satisfies(selected.require('undici/package.json').version, '^6.29.1 || ^7.30.1 || ^8.12.2'))
 })
 

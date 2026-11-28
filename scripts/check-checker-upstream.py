@@ -23,7 +23,7 @@ def require(condition, message):
 
 def current_files(payload, record):
     require(record['schemaVersion'] == 1 and record['name'] == 'vite-plugin-checker', 'Unsupported current checker record')
-    require(record['version'] == '1.0.0', 'Review a changed checker release')
+    require(record['version'] == '1.1.0', 'Review a changed checker release')
     require(LEGACY.integrity(payload) == record['registryIntegrity'], 'Current checker registry integrity mismatch')
     require(hashlib.sha256(payload).hexdigest() == record['registryArchiveSha256'], 'Current checker source digest mismatch')
     files = LEGACY.archive_files(payload)
@@ -80,7 +80,7 @@ def main():
     parser.add_argument('--source-only', action='store_true')
     arguments = parser.parse_args()
     record = json.loads(IO.regular_bytes(SOURCE / 'CURRENT.json', IO.MAX_COMPRESSED))
-    require(record['archive'] == 'upstream/vite-plugin-checker-1.0.0.tgz', 'Unexpected current checker input path')
+    require(record['archive'] == 'upstream/vite-plugin-checker-1.1.0.tgz', 'Unexpected current checker input path')
     files = current_files(IO.regular_bytes(SOURCE / record['archive'], IO.MAX_COMPRESSED), record)
     verify_legacy_reference()
     if not arguments.source_only:

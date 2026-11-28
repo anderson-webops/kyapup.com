@@ -102,8 +102,8 @@
     "archive": "upstream/eslint-plugin-format-2.0.1.tgz",
     "registryIntegrity": "sha512-0BA65p5DAiuKtx5MmMJfPk9WaTjoHHbyVW7ZXRhaZoA1fdiMHhay9QRiDL2wr0hJWZxdF7CRThOK/70VUKVg2g==",
     "registryArchiveSha256": "c98d5af4e2a49a846fca865cdedf6401be359ed062a088a4c5362c5afff93481",
-    "patchedVersion": "2.0.1-webops.3",
-    "qualifiedRange": "^0.79.0",
+    "patchedVersion": "2.0.1-webops.4",
+    "qualifiedRange": "^0.80.0",
     "files": {
       "LICENSE": "af32efdd008a371c77b13eef5010c81d6c5c2f67c054b6bb74317e13ac38c171",
       "README.md": "b2098317872a2504dc5f626177afed0a74d30325696d661fa05438538bd59937",
@@ -163,8 +163,8 @@
     "archive": "upstream/unocss-transformer-attributify-jsx-66.13.0.tgz",
     "registryIntegrity": "sha512-oaaSsyH01qE/emuMHIqXCgLotWWKCsQhs0fjpr4QH1cBC5shqKOsvML1Qyf2nvryLC4PIhD1xpwDl5lWKmtHVA==",
     "registryArchiveSha256": "8d48c19700ae228bc377f669370a318ccf4acd9febd130ca95998ef1f031a3ae",
-    "patchedVersion": "66.13.0-webops.2",
-    "qualifiedRange": "^0.159.0",
+    "patchedVersion": "66.13.0-webops.3",
+    "qualifiedRange": "^0.160.0",
     "files": {
       "README.md": "e591f2a5e0f08d7ff4d2b027c4557042cab229f1cbde7c8794d79f70fe37bc9d",
       "dist/index.d.mts": "7f266cc89a89fa15f639282e90b69ca51cdc7bf785d884f75248d19c7e9b6305",
@@ -415,8 +415,8 @@
         "ci": "pnpm run lint && pnpm run typecheck && pnpm run knip && pnpm run test --run"
       }
     },
-    "patchedVersion": "0.1.0-webops.2",
-    "qualifiedRange": "^0.159.0",
+    "patchedVersion": "0.1.0-webops.3",
+    "qualifiedRange": "^0.160.0",
     "archive": "upstream/nuxt-explicit-imports-0.1.0.tgz",
     "registryIntegrity": "sha512-Vemqd0kA6WkF7STk9DzcWYqdBbD5Qh/p4fxZoi8CNlgw3lCCtf6ND/JlNO5fC6z1g1TzU9jzheJIoIVFHIvONA==",
     "registryArchiveSha256": "097bd92d0ede10ede95ee7355d35de5fefb491d78bb007e2a3c755b039770130",

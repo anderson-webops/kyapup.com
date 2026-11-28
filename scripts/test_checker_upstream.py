@@ -20,7 +20,9 @@ class CurrentCheckerTests(unittest.TestCase):
 
     def test_official_source_keeps_its_native_position_types_and_original_modules(self):
         files = CHECKER.current_files(self.archive, self.record)
-        self.assertEqual(len(files), 135)
+        self.assertEqual(len(files), 140)
+        self.assertIn('package/dist/sv.js', files)
+        self.assertIn('package/dist/sv.d.ts', files)
         self.assertIn(b'toZeroBasedPosition', files['package/dist/codeFrame.js'])
         self.assertIn(b'column?: number', files['package/dist/codeFrame.d.ts'])
         self.assertNotIn('package/dist/babel8.js', files)

@@ -17,7 +17,7 @@ export default {
   modules: [
     async function qualifiedFixture(_options, nuxt) {
       nuxt.hook('devtools:initialized', (info) => {
-        assert.equal(info.version, '4.2.0')
+        assert.equal(info.version, '4.2.2')
         console.log('WATCHER_DEVTOOLS_4_INITIALIZED')
       })
       nuxt.hook('builder:watch', (event, filename) => {
